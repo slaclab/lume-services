@@ -1,14 +1,12 @@
-from typing import List
 from pydantic import BaseSettings
 
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine.base import Connection
-from sqlalchemy.orm import sessionmaker, scoped_session
 import os
 
-from lume_services.database.model.db import ModelDB, ModelDBConfig
+from lume_services.database.model.db import DBServiceConfig, DBConnConfig, DBService
 
 from pkg_resources import resource_filename
 from contextvars import ContextVar
@@ -19,23 +17,12 @@ MYSQL_MODEL_SCHEMA = resource_filename(".", "schema.sql")
 # guesses: r.successful, r.dict
 
 
-"""
-class ModelDBConfig(BaseSettings):
-    db_uri_template: str = "mysql+pymysql://${user}:${password}@${host}:${port}/${database}"
-    pool_size: int
-    password: str
-    user: str
-    host: str
-    port: int
-    database: str
-"""
-
-class MySQLConfig(BaseSettings):
+class MySQLConfig(DBConnConfig):
     db_uri: str
     pool_size: int
 
 
-class MySQLConnHandler(BaseSettings):
+class MySQLCxnManager(BaseSettings):
 
     def __init__(self, *, config: MySQLConfig):
         self.config = config
@@ -59,9 +46,9 @@ class MySQLConnHandler(BaseSettings):
         #self.session = scoped_session(self.orm_sessionmaker)
 
     def _connect(self) -> Connection:
-        connection = self.engine.connect()
-        self._connection.set(connection)
-        return connection
+        cxn = self.engine.connect()
+        self._connection.set(cxn)
+        return cxn
 
     def _check_mp(self):
 
@@ -91,52 +78,39 @@ class MySQLConnHandler(BaseSettings):
         self._check_mp()
 
         # get connection
-        connection = self._connection.get()
-        if connection is None:
+        cxn = self._connection.get()
+        if cxn is None:
             self._connect()
 
         try:
-            yield connection
+            yield cxn
 
         finally:
-            connection = self._connection.get()
+            cxn = self._connection.get()
 
-            if connection:
+            if cxn:
                 self._connection.close()
 
 
     def execute(self, sql, *args, **kwargs):
-        with self.connection() as conn:
+        with self.connection() as cxn:
             
-            r = conn.execute(sql, *args, **kwargs)
+            r = cxn.execute(sql, *args, **kwargs)
 
         return r
 
 
+class MySQService(DBService):
 
-class MySQLModelDB(ModelDB):
-    """
-    Not safe with mutiprocessing at present
-    
-    """
-    def __init__(self, *, db_config: ModelDBConfig, db_conn_handler: MySQLConnHandler):
+    def __init__(self, *, db_config: DBServiceConfig):
 
-        super().__init__()
+        super().__init__(db_config)
 
         self._config = db_config
         self._connection = None
         self._create_engine()
-        self._conn_handler = 
-
+        self._cxn_manager = MySQLCxnManager(db_config.cxn_config)
 
     
     def execute(self, sql, *args, **kwargs):
-        self._
-        
-        with self.connection() as conn:
-            
-            r = conn.execute(sql, *args, **kwargs)
-
-        return r
-
-    
+        return self._cxn_manager.execute(sql, *args, **kwargs)

@@ -46,17 +46,17 @@ class DBSchema(BaseSettings):
     flow_to_deployments_table: str
 
 
-class DBConnConfig(BaseSettings):
+class DBCxnConfig(BaseSettings):
     ...
 
 
-class DBConfig(BaseSettings):
+class DBServiceConfig(BaseSettings):
     table_schema: DBSchema
-    conn_config: DBConnConfig
+    cxn_config: DBCxnConfig
 
 class DBService(ABC):
 
-    def __init__(self, db_config: DBConfig):
+    def __init__(self, db_config: DBServiceConfig):
         self.schema = db_config.table_schema
 
     @abstractmethod
@@ -96,7 +96,7 @@ class ModelDB:
         deployment = Deployment(**kwargs)
 
         # store in db
-        r = self._insert_one(self._config.deployment_table, **deployment.dict())
+        r = self._insert_one(self._deployment_table, **deployment.dict())
 
         # assign deployment id if successful
         if r.successful:
@@ -112,7 +112,7 @@ class ModelDB:
         project = Project(**kwargs)
 
         # store in db
-        r = self._insert_one(self._config.project_table, **project.dict())
+        r = self._insert_one(self._project_table, **project.dict())
 
         # assign deployment id if successful
         if r.successful:
@@ -134,7 +134,7 @@ class ModelDB:
             flow_rep["deployment_id"] = deployment_id
 
             # store in db
-            r = self._insert_one(self._config.flow_table, **flow_rep)
+            r = self._insert_one(self._flow_table, **flow_rep)
 
         # assign deployment id if successful
         if r.successful:
@@ -150,7 +150,7 @@ class ModelDB:
         allowed_kwargs = filter_keys_in_settings(kwargs, Model)
 
         # execute query
-        r = self._execute_single_table_query(self._config.model_table, **allowed_kwargs)
+        r = self._execute_single_table_query(self._model_table, **allowed_kwargs)
 
         if r.successful:
             # do not throw complaint about extras
@@ -164,7 +164,7 @@ class ModelDB:
         # check kwargs in Deployment fields
         allowed_kwargs = filter_keys_in_settings(kwargs, Deployment)
 
-        r = self._execute_single_table_query(self._config.deployment_table, **allowed_kwargs)
+        r = self._execute_single_table_query(self._deployment_table, **allowed_kwargs)
 
         if r.successful:
             # check number returned
@@ -189,7 +189,7 @@ class ModelDB:
         LIMIT 1
         """
 
-        r = self._execute_single_table_query(self._config.deployment_table, sql_extra=sql_extra, **allowed_kwargs)
+        r = self._execute_single_table_query(self._deployment_table, sql_extra=sql_extra, **allowed_kwargs)
 
         if r.successful:
             # do not throw complaint about extras
@@ -205,7 +205,7 @@ class ModelDB:
         allowed_kwargs = filter_keys_in_settings(kwargs, Project)
 
         # execute query
-        r = self._execute_single_table_query(self._config.project_table, **allowed_kwargs)
+        r = self._execute_single_table_query(self._project_table, **allowed_kwargs)
 
         if r.successful:
             # check number returned
@@ -224,7 +224,7 @@ class ModelDB:
         # check kwargs in Flow fields
         allowed_kwargs = filter_keys_in_settings(kwargs, Flow)
 
-        r = self._execute_single_table_query(self._config.flow_table, **allowed_kwargs)
+        r = self._execute_single_table_query(self._flow_table, **allowed_kwargs)
 
         if r.successful:
             # check number, only one should be returned
@@ -233,7 +233,7 @@ class ModelDB:
             # raise error for too many returned
 
             # GET ALL FLOW IDS
-            deploy_res = self._execute_single_table_query(self._config.flow_to_deployments_table, flow_id = r.first().flow_id)
+            deploy_res = self._execute_single_table_query(self._flow_to_deployments_table, flow_id = r.first().flow_id)
 
             deployment_ids = [d.deployment_id for d in deploy_res]
 
