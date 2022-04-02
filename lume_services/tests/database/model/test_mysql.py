@@ -1,0 +1,102 @@
+import pytest
+
+
+sample_model = {
+    "author": "Jackie Garrahan",
+    "laboratory": "slac",
+    "facility": "lcls",
+    "beampath": "cu_hxr",
+    "description": "test model"
+}
+
+sample_deployment= {
+    "version": "v0.0",
+    "sha256": "placeholder",
+    "url": "http://mytest.com",
+    "package-name": "test_package",
+    "asset_dir": None, # opt
+    "asset_url": None, # opt
+    "deployment_id": "0",
+}
+
+sample_project = {
+    "project_name": "my_project",
+    "description": "placeholder",
+}
+
+sample_flow = {
+    "flow_id": "0",
+    "deployment_ids": [0],
+    "flow_name": "my_test_flow",
+    "project_name": "my_projcet",
+}
+
+@pytest.mark.parametrize("model_dict", (sample_model))
+@pytest.fixture(scope="module", autouse=True)
+def test_store_model(model_db_service, model_dict):
+
+    model = model_db_service.store_model(**model_dict)
+    assert model.model_id is not None
+
+    return model
+
+@pytest.fixture(scope="module", autouse=True)
+def test_store_deployment(model_db_service, deployment_dict, test_store_model):
+
+    deployment_dict["model_id"] = test_store_model.model_id 
+    deployment = model_db_service.store_deployment(**deployment_dict)
+
+    assert deployment.deployment_ids is not None
+
+    return deployment
+
+
+@pytest.fixture(scope="module", autouse=True)
+def test_store_project(model_db_service, project_dict):
+
+    return model_db_service.store_projcet(**project_dict)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def test_store_flow(model_db_service, flow_dict, test_store_deployment):
+
+    flow_dict["deployment_ids"] = test_store_deployment.deployment_ids
+    flow = model_db_service.store_flow(**flow_dict)
+
+    return flow.flow_id
+
+
+def test_get_model(model_db_service, test_store_model):
+
+    model = model_db_service.get_model(**test_store_model.dict())
+
+    assert model.model_id == test_store_model.mode_id
+
+@pytest.mark.skip
+def test_get_deployment(model_db_service, test_store_deployment):
+
+    deployment = model_db_service.get_deployment(**test_store_deployment.dict())
+
+    assert deployment.deployment_id == test_store_deployment.deployment_id
+
+@pytest.mark.skip
+def test_get_latest_deployment(model_db_service, test_store_model):
+
+    deployment = model_db_service.get_latest_deployment(model_id=test_store_model.model_id)
+
+    assert deployment.deployment_id == test_store_deployment.deployment_id
+
+@pytest.mark.skip
+def test_get_project(model_db_service, test_store_project):
+
+    project = model_db_service.get_project(**test_store_project.dict())
+
+    assert project.project_name == test_store_project.project_name
+
+@pytest.mark.skip
+def test_get_flow(model_db_service, test_store_flow):
+    
+    flow = model_db_service.get_flow(**test_store_flow.dict())
+
+    assert flow.flow_id == test_store_flow.flow_id
+

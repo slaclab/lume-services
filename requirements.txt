@@ -1,0 +1,8 @@
+pydantic
+sqlalchemy
+pymysql
+
+
+# tests
+pytest
+pytest_mysql

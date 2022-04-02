@@ -6,26 +6,28 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine.base import Connection
 import os
 
-from lume_services.database.model.db import DBServiceConfig, DBConnConfig, DBService
+from lume_services.database.model.db import DBServiceConfig, DBService
 
 from pkg_resources import resource_filename
 from contextvars import ContextVar
 from contextlib import contextmanager
 
 
-MYSQL_MODEL_SCHEMA = resource_filename(".", "schema.sql")
+MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
 # guesses: r.successful, r.dict
 
 
-class MySQLConfig(DBConnConfig):
+class MySQLConfig(DBServiceConfig):
     db_uri: str
     pool_size: int
 
 
-class MySQLCxnManager(BaseSettings):
+class MySQLService(DBService):
 
-    def __init__(self, *, config: MySQLConfig):
+    def __init__(self, config: MySQLConfig):
+        super().__init__(config)
         self.config = config
+        self._create_engine()
 
 
     def _create_engine(self):
@@ -38,7 +40,7 @@ class MySQLCxnManager(BaseSettings):
         self._connection = ContextVar("connection", default=None)
 
         # pool_pre_ping provides liveliness check
-        self.engine=create_engine(self.config.db_uri, connect_args, pool_pre_ping=True, pool_size=self.config.pool_size)
+        self._engine = create_engine(self.config.db_uri, *connect_args, pool_pre_ping=True, pool_size=self.config.pool_size)
 
         # don't really need now
         # create a scoped session
@@ -46,8 +48,9 @@ class MySQLCxnManager(BaseSettings):
         #self.session = scoped_session(self.orm_sessionmaker)
 
     def _connect(self) -> Connection:
-        cxn = self.engine.connect()
+        cxn = self._engine.connect()
         self._connection.set(cxn)
+       # self._inspector = inspect(self._engine)
         return cxn
 
     def _check_mp(self):
@@ -56,13 +59,6 @@ class MySQLCxnManager(BaseSettings):
         if os.getpid() != self.pid:
             self._create_engine()
     
-
-    def _connect(self) -> Connection:
-        self._connection = self._engine.connect()
-        # update inspector
-        self._inspector = inspect(self._engine)
-        return self._connection
-
 
     @property
     def _currect_connection(self) -> Connection:
@@ -89,7 +85,7 @@ class MySQLCxnManager(BaseSettings):
             cxn = self._connection.get()
 
             if cxn:
-                self._connection.close()
+                cxn.close()
 
 
     def execute(self, sql, *args, **kwargs):
@@ -98,19 +94,3 @@ class MySQLCxnManager(BaseSettings):
             r = cxn.execute(sql, *args, **kwargs)
 
         return r
-
-
-class MySQService(DBService):
-
-    def __init__(self, *, db_config: DBServiceConfig):
-
-        super().__init__(db_config)
-
-        self._config = db_config
-        self._connection = None
-        self._create_engine()
-        self._cxn_manager = MySQLCxnManager(db_config.cxn_config)
-
-    
-    def execute(self, sql, *args, **kwargs):
-        return self._cxn_manager.execute(sql, *args, **kwargs)

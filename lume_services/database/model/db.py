@@ -46,34 +46,30 @@ class DBSchema(BaseSettings):
     flow_to_deployments_table: str
 
 
-class DBCxnConfig(BaseSettings):
-    ...
-
-
 class DBServiceConfig(BaseSettings):
-    table_schema: DBSchema
-    cxn_config: DBCxnConfig
+    db_schema: DBSchema
 
 class DBService(ABC):
 
     def __init__(self, db_config: DBServiceConfig):
-        self.schema = db_config.table_schema
+        self.schema = db_config.db_schema
 
     @abstractmethod
-    def execute(self, sql *args, **kwargs):
+    def execute(self, sql, *args, **kwargs):
         ...
+        # Raise not implemented
 
 
-class ModelDB:
+class ModelDBService:
 
     def __init__(self, db_service: DBService):
-        self._db = db_service
+        self._db_service = db_service
 
-        self._model_table = self.db_service.schema.model_table
-        self._flow_table = self.db_service.schema.flow_table
-        self._deployment_table = self.db_service.schema.deployment_table
-        self._project_table = self.db_service.schema.project_table
-        self._flow_to_deployments_table = self.db_service.schema.flow_to_deployments_table
+        self._model_table = self._db_service.schema.model_table
+        self._flow_table = self._db_service.schema.flow_table
+        self._deployment_table = self._db_service.schema.deployment_table
+        self._project_table = self._db_service.schema.project_table
+        self._flow_to_deployments_table = self._db_service.schema.flow_to_deployments_table
 
     def store_model(self, **kwargs) -> Model:
         # check able to instantiate Model with kwargs
@@ -268,13 +264,13 @@ class ModelDB:
         sql += " AND ".join(kwarg_strings)
 
         if fields is None:
-            self.db_service.execute(sql, "*", table)
+            self._db_service.execute(sql, "*", table)
 
         if sql_extra:
             sql += f" {sql_extra}"
 
         else:
-            return self.db_service.execute(sql, ",".join(fields), table)
+            return self._db_service.execute(sql, ",".join(fields), table)
 
 
     def _insert_one(self, table: str, **kwargs):
@@ -290,4 +286,4 @@ class ModelDB:
 
         sql += f" ({kwarg_field_string}) VALUES ({kwarg_value_string})"
 
-        return self.db_service.execute(sql, table)
+        return self._db_service.execute(sql, table)

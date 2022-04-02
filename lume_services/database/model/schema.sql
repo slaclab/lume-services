@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS deployments (
     model_id INT NOT NULL,
     url VARCHAR(255) NOT NULL,
     FOREIGN KEY (model_id)
-    REFERENCES models(model_id)
+    REFERENCES models (model_id)
     ON UPDATE RESTRICT
 )  ENGINE=INNODB;
 
@@ -38,9 +38,8 @@ CREATE TABLE IF NOT EXISTS flows (
     flow_name VARCHAR(255) NOT NULL,
     project_name VARCHAR(255) NOT NULL,
     deploy_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ON UPDATE RESTRICT,
     FOREIGN KEY (project_name)
-    REFERENCES projects(project_name)
+    REFERENCES projects (project_name)
     ON UPDATE RESTRICT
 ) ENGINE=INNODB;
 
@@ -49,6 +48,6 @@ CREATE TABLE IF NOT EXISTS flow_to_deployments (
     flow_id VARCHAR(255) PRIMARY KEY,
     deployment_id INT NOT NULL,
     FOREIGN KEY (deployment_id)
-    REFERENCES deployments(deployment_id)
-    ON UPDATE RESTRICT,
+    REFERENCES deployments (deployment_id)
+    ON UPDATE RESTRICT
 ) ENGINE=INNODB;
