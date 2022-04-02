@@ -75,17 +75,24 @@ class MySQLService(DBService):
 
         # get connection
         cxn = self._connection.get()
+
         if cxn is None:
-            self._connect()
+            cxn = self._connect()
+            cleanup = True
+
+        else:
+            cleanup = False
 
         try:
             yield cxn
 
         finally:
-            cxn = self._connection.get()
+            if cleanup:
+                cxn = self._connection.get()
 
-            if cxn:
-                cxn.close()
+                if cxn:
+                    cxn.close()
+                    self._connection.set(None)
 
 
     def execute(self, sql, *args, **kwargs):
@@ -93,4 +100,4 @@ class MySQLService(DBService):
             
             r = cxn.execute(sql, *args, **kwargs)
 
-        return r
+            return r

@@ -1,37 +1,43 @@
 import pytest
 
+@pytest.fixture(scope="module", autouse=True)
+def model_dict():
+    return {
+        "author": "Jackie Garrahan",
+        "laboratory": "slac",
+        "facility": "lcls",
+        "beampath": "cu_hxr",
+        "description": "test model"
+    }
 
-sample_model = {
-    "author": "Jackie Garrahan",
-    "laboratory": "slac",
-    "facility": "lcls",
-    "beampath": "cu_hxr",
-    "description": "test model"
-}
+@pytest.fixture(scope="module", autouse=True)
+def deployment_dict():
+    return {
+        "version": "v0.0",
+        "sha256": "placeholder",
+        "url": "http://mytest.com",
+        "package-name": "test_package",
+        "asset_dir": None, # opt
+        "asset_url": None, # opt
+        "deployment_id": "0",
+    }
 
-sample_deployment= {
-    "version": "v0.0",
-    "sha256": "placeholder",
-    "url": "http://mytest.com",
-    "package-name": "test_package",
-    "asset_dir": None, # opt
-    "asset_url": None, # opt
-    "deployment_id": "0",
-}
+@pytest.fixture(scope="module", autouse=True)
+def project_dict():
+    return {
+        "project_name": "my_project",
+        "description": "placeholder",
+    }
 
-sample_project = {
-    "project_name": "my_project",
-    "description": "placeholder",
-}
+@pytest.fixture(scope="module", autouse=True)
+def flow_dict():
+    return {
+        "flow_id": "0",
+        "deployment_ids": [0],
+        "flow_name": "my_test_flow",
+        "project_name": "my_projcet",
+    }
 
-sample_flow = {
-    "flow_id": "0",
-    "deployment_ids": [0],
-    "flow_name": "my_test_flow",
-    "project_name": "my_projcet",
-}
-
-@pytest.mark.parametrize("model_dict", (sample_model))
 @pytest.fixture(scope="module", autouse=True)
 def test_store_model(model_db_service, model_dict):
 
@@ -95,7 +101,7 @@ def test_get_project(model_db_service, test_store_project):
 
 @pytest.mark.skip
 def test_get_flow(model_db_service, test_store_flow):
-    
+
     flow = model_db_service.get_flow(**test_store_flow.dict())
 
     assert flow.flow_id == test_store_flow.flow_id

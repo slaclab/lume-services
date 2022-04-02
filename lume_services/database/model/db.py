@@ -76,7 +76,7 @@ class ModelDBService:
         model = Model(**kwargs)
 
         # store in db
-        r = self._insert_one(self._config.model_table, **model.dict())
+        r = self._insert_one(self._model_table, **model.dict())
 
         # assign model id if successful
         if r.successful:
