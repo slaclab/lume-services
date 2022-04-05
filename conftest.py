@@ -3,10 +3,8 @@ from pytest_mysql import factories
 from sqlalchemy import create_engine
 from string import Template
 
-
-
-from lume_services.database.model.mysql import MYSQL_MODEL_SCHEMA, MySQLConfig, MySQLService
-from lume_services.database.model.db import ModelDBService
+from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
+from lume_services.data.model.model_db_service import ModelDBService
 
 
 mysql_server = factories.mysql_proc()
@@ -49,7 +47,7 @@ def mysql_database(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_pool_size(request):
     return int(request.config.getini("mysql_poolsize"))
-    
+
 
 @pytest.fixture(scope="session", autouse=True)
 def base_db_uri(mysql_user, mysql_host, mysql_port):
@@ -85,8 +83,7 @@ def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_proc):
 
     engine = create_engine(base_db_uri, pool_size=1)
     with engine.connect() as connection:
-        result = connection.execute("CREATE DATABASE IF NOT EXISTS model_db;")
-
+        connection.execute("CREATE DATABASE IF NOT EXISTS model_db;")
 
     model_db_service = ModelDBService(mysql_service)
     model_db_service.apply_schema()
@@ -94,9 +91,8 @@ def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_proc):
     # set up database
     yield model_db_service
 
-
     with engine.connect() as connection:
-        result = connection.execute(f"DROP DATABASE {mysql_database};")
+        connection.execute(f"DROP DATABASE {mysql_database};")
 
 
 
