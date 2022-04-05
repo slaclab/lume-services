@@ -8,12 +8,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import Insert, Select
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Connection
-from sqlalchemy.engine import Result
 
 from typing import List
 
 from lume_services.data.model.db import DBServiceConfig, DBService
-
 
 MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
 
@@ -50,7 +48,7 @@ class MySQLService(DBService):
 
     def _connect(self) -> Connection:
         """Establish connection and set _connection.
-        
+
         """
         cxn = self.engine.connect()
         self._connection.set(cxn)
@@ -59,10 +57,9 @@ class MySQLService(DBService):
 
     def _check_mp(self) -> None:
         """Check for multiprocessing. If PID is different that object PID, create new engine connection.
-        
+
         """
 
-        # check pid against object pid and create new engine in event of another process
         if os.getpid() != self.pid:
             self._create_engine()
     
@@ -70,7 +67,9 @@ class MySQLService(DBService):
     @property
     def _currect_connection(self) -> Connection:
         """Getter for current connection
+
         """
+
         return self._connection.get()
 
 
@@ -104,6 +103,7 @@ class MySQLService(DBService):
                     cxn.close()
                     self._connection.set(None)
 
+
     def session(self) -> Session:
         """Establishes Session with active connection. 
 
@@ -116,15 +116,33 @@ class MySQLService(DBService):
             session.expire_on_commit = False
             return session
 
-
-    def execute(self, sql: Select) -> list:
-        """Execute sql query inside a managed session.
+    def execute(self, sql) -> list:
+        """Execute sql inside a managed session.
 
         Args:
-            sql (Select): Execute a selection query
+            sql: Execute a query
 
         Results:
             list: Results of query operation
+
+        """
+        with self.session() as session:
+
+            res = session.execute(sql)
+            session.commit()
+
+        return res
+
+
+
+    def select(self, sql: Select) -> list:
+        """Execute sql query inside a managed session.
+
+        Args:
+            sql: Execute a selection query
+
+        Results:
+            list: Results of selection operation
 
         """
         with self.session() as session:
