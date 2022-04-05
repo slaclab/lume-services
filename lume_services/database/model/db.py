@@ -1,61 +1,159 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseSettings
+from pydantic import BaseModel, BaseSettings
 from typing import Optional, List
-from lume_services.utils import filter_keys_in_settings
+from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint, UniqueConstraint
+from sqlalchemy.types import Integer, String, DateTime
+from sqlalchemy import insert, select, desc
+from sqlalchemy.sql import func
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship
 
-##############################################
-# Objects for representing table entries     #
-# Consistent with schema                     #
-##############################################
+Base = declarative_base()
 
-class Model(BaseSettings):
-    author: str
-    laboratory: str
-    facility: str
-    beampath: str
-    description: str
-    model_id: Optional[str]
+##############################################################
+# Define schema objecs using sqlalchemy ORM                  #
+# https://docs.sqlalchemy.org/en/14/orm/quickstart.html      #
+##############################################################
 
-class Deployment(BaseSettings):
-    version: str
-    sha256: str
-    model_id: int
-    url: str
-    package_name: str
-    asset_dir: Optional[str]
-    asset_url: Optional[str]
-    deployment_id: Optional[str]
 
-class Flow(BaseSettings):
-    flow_id: str
-    deployment_ids: List[int]
-    flow_name: str
-    project_name: str
+class Model(Base):
+    __tablename__ = "models"
+    model_id = Column('model_id', Integer, primary_key=True, autoincrement=True)
+    created = Column("created", DateTime(timezone=True), server_default=func.now())
+    author = Column("author", String(255), nullable=False)
+    laboratory = Column("laboratory", String(255), nullable=False)
+    facility = Column("facility", String(255), nullable=False)
+    beampath = Column("beampath", String(255), nullable=False)
+    description =Column("description", String(255), nullable=False)
 
-    # drop deployment_ids from flow serialization
+    children = relationship("Deployment",
+       # back_populates="parent",
+       # cascade="all, delete",
+       # passive_deletes= True
+    )
 
-class Project(BaseSettings):
-    project_name: str 
-    description: str
+    def __repr__(self):
+        return f"Model( \
+                    model_id={self.model_id!r}, \
+                    created={self.created!r}, \
+                    author={self.author!r}), \
+                    laboratory={self.laboratory!r}, \
+                    facility={self.facility!r}, \
+                    beampath={self.beampath!r}, \
+                    description={self.description!r} \
+                )"
 
-class DBSchema(BaseSettings):
-    model_table: str
-    deployment_table: str
-    flow_table: str
-    project_table: str
-    flow_to_deployments_table: str
+
+class Deployment(Base):
+    __tablename__ = "deployments"
+    deployment_id = Column('deployment_id', Integer, primary_key=True, autoincrement=True)
+    version = Column('version', String(255), nullable=False)
+    deploy_date = Column("deploy_date", DateTime(timezone=True), server_default=func.now())
+    asset_dir = Column("asset_dir", String(255), nullable=True)
+    asset_url = Column("asset_url", String(255), nullable=True)
+    sha_256 = Column("sha256", String(255), nullable=False)
+    package_name = Column("package_name", String(255), nullable=False)
+    url = Column("url", String(255), nullable=False)
+
+    # if model deleted from models table, all deployments will be deleted
+    model_id = Column('model_id', Integer, ForeignKey("models.model_id", ondelete="CASCADE"), nullable=False)
+
+    parent = relationship("Model", back_populates="children")
+
+    __table_args__ = (
+                ForeignKeyConstraint(['model_id'], ['models.model_id']),
+               # UniqueConstraint('foo'),
+                )
+
+    def __repr__(self):
+        return f"Deployment( \
+                deployment_id={self.deployment_id!r}, \
+                model_id={self.model_id}, \
+                version={self.version!r}, \
+                deploy_date={self.deploy_date!r}), \
+                asset_dir={self.asset_dir!r}, \
+                asset_url={self.asset_url!r}, \
+                sha256={self.sha_256!r}, \
+                package_name={self.package_name!r} \
+                url={self.package_url!r} \
+                )"
+
+class Project(Base):
+    __tablename__ = "projects"
+    project_name = Column("project_name", String(255), primary_key=True)
+    description = Column("description", String(255), nullable=False)
+    create_date = Column("create_date", DateTime(timezone=True), server_default=func.now())
+
+    children = relationship("Flow",
+        back_populates="parent",
+        cascade="all, delete",
+        passive_deletes= True
+    )
+
+    def __repr__(self):
+        return f"Project( \
+                project_name={self.project_name!r}, \
+                description={self.description!r}, \
+                create_date={self.create_date!r}, \
+                )"
+
+
+class Flow(Base):
+    __tablename__ = "flows"
+    flow_id = Column("flow_id", String(255), primary_key=True)
+    deploy_date = Column("deploy_date", DateTime(timezone=True), server_default=func.now())
+    flow_name = Column("flow_name", String(255), nullable=False)
+    project_name = Column("project_name", ForeignKey("projects.project_name"), nullable=False)
+
+    parent = relationship("Project", back_populates="children")
+
+    __table_args__ = (
+        ForeignKeyConstraint(['project_name'], ['projects.project_name']),
+        # UniqueConstraint('foo'),
+    )
+
+    def __repr__(self):
+        return f"Flow( \
+                flow_id={self.flow_id!r}, \
+                deploy_date={self.deploy_date!r}, \
+                flow_name={self.flow_name!r}, \
+                project_name={self.project_name!r} \
+                )"
+
+    
+class FlowToDeployments(Base):
+    __tablename__ = "flow_to_deployments"
+    flow_id = Column("flow_id", String(255), primary_key=True)
+    deployment_id = Column("deployment_id", ForeignKey("deployments.deployment_id"), nullable=False)
+    
+    __table_args__ = (ForeignKeyConstraint(
+        ['deployment_id'], ["deployments.deployment_id"],
+        #ondelete="SET NULL"
+        ),
+    )
+
+    def __repr__(self):
+        return f"FlowToDeployments( \
+                flow_id={self.flow_id!r}, \
+                deployment_id={self.deployment_id!r} \
+                )"
 
 
 class DBServiceConfig(BaseSettings):
-    db_schema: DBSchema
+    ...
 
 class DBService(ABC):
 
     def __init__(self, db_config: DBServiceConfig):
-        self.schema = db_config.db_schema
+        ...
 
     @abstractmethod
-    def execute(self, sql, *args, **kwargs):
+    def execute(self, orm_obj: Base):
+        ...
+        # Raise not implemented
+
+    @abstractmethod
+    def insert(self, orm_obj: Base):
         ...
         # Raise not implemented
 
@@ -65,111 +163,93 @@ class ModelDBService:
     def __init__(self, db_service: DBService):
         self._db_service = db_service
 
-        self._model_table = self._db_service.schema.model_table
-        self._flow_table = self._db_service.schema.flow_table
-        self._deployment_table = self._db_service.schema.deployment_table
-        self._project_table = self._db_service.schema.project_table
-        self._flow_to_deployments_table = self._db_service.schema.flow_to_deployments_table
-
     def store_model(self, **kwargs) -> Model:
-        # check able to instantiate Model with kwargs
-        model = Model(**kwargs)
 
         # store in db
-        r = self._insert_one(self._model_table, **model.dict())
+        insert_stmt = insert(Model).values(**kwargs)
 
-        # assign model id if successful
-        if r.successful:
-            model.model_id = r.lastrowid
-            return model
+        result = self._db_service.insert(insert_stmt)
+
+        print(result)
+
+        if result is not None:
+            return result[0]
 
         else:
             return None
 
     def store_deployment(self, **kwargs) -> Deployment:
 
-        # check able to instantiate Deployment with kwargs
-        deployment = Deployment(**kwargs)
-
         # store in db
-        r = self._insert_one(self._deployment_table, **deployment.dict())
+        insert_stmt = insert(Deployment).values(**kwargs)
+
+        result = self._db_service.insert(insert_stmt)
 
         # assign deployment id if successful
-        if r.successful:
-            deployment.deployment_id = r.lastrowid
-            return deployment
+        if result is not None:
+            return result[0]
 
         else:
             return None
 
     def store_project(self, **kwargs) -> Project:
 
-        # check able to instantiate Project with kwargs
-        project = Project(**kwargs)
+        insert_stmt = insert(Project).values(**kwargs)
 
         # store in db
-        r = self._insert_one(self._project_table, **project.dict())
+        result = self._db_service.insert(insert_stmt)
 
-        # assign deployment id if successful
-        if r.successful:
-            return project
+        # return inserted
+        if result is not None:
+            return result[0]
 
         else:
             return None
 
     
-    def store_flow(self, **kwargs) -> Flow:
-        # check able to instantiate Project with kwargs
-        flow = Flow(**kwargs)
+    def store_flow(self, deployment_ids=List[int], flow_id=str, **kwargs) -> Flow:
 
-        for deployment_id in flow.deployment_ids:
+        insert_stmnts = []
+
+        insert_stmt = insert(Flow).values(flow_id=flow_id, **kwargs)
+        result = self._db_service.insert(insert_stmt)
+
+        for deployment_id in deployment_ids:
 
             #drop the pop below once deployment ids removed from flow serialization
+            insert_stmt = insert(FlowToDeployments).values(deployment_id=deployment_id, flow_id=flow_id)
+            insert_stmnts.append(insert_stmt)
 
-            flow_rep = flow.dict().pop("deployment_ids")
-            flow_rep["deployment_id"] = deployment_id
+        self._db_service.insert(insert_stmnts)
 
-            # store in db
-            r = self._insert_one(self._flow_table, **flow_rep)
-
-        # assign deployment id if successful
-        if r.successful:
-            return flow
+        # return inserted
+        if result is not None:
+            return result
 
         else:
-            return None
-
+            return
     
     def get_model(self, **kwargs) -> Model: 
-
-        # check kwargs are in Model fields
-        allowed_kwargs = filter_keys_in_settings(kwargs, Model)
-
         # execute query
-        r = self._execute_single_table_query(self._model_table, **allowed_kwargs)
+        query = select(Model).filter_by(**kwargs)
+        result = self._db_service.execute(query)
 
-        if r.successful:
-            # do not throw complaint about extras
-            return Model(r.dict)
+        # assign project_name id if successful
+        if result is not None:
+            return result[0]
 
         else:
             return None
 
 
     def get_deployment(self, **kwargs) -> Deployment:
-        # check kwargs in Deployment fields
-        allowed_kwargs = filter_keys_in_settings(kwargs, Deployment)
 
-        r = self._execute_single_table_query(self._deployment_table, **allowed_kwargs)
+        query = select(Deployment).filter_by(**kwargs)
+        result = self._db_service.execute(query)
 
-        if r.successful:
-            # check number returned
-
-            # raise error for too many returned
-
-            # do not throw complaint about extras
-
-            return Deployment(r.first())
+        # assign project_name id if successful
+        if result is not None:
+            return result
 
         else:
             return None
@@ -177,19 +257,12 @@ class ModelDBService:
 
     def get_latest_deployment(self, **kwargs) -> Deployment:
 
-        # check kwargs in Deployment fields
-        allowed_kwargs = filter_keys_in_settings(kwargs, Deployment)
+        query = select(Deployment).filter_by(**kwargs).order_by(desc(Deployment.deploy_date))
+        result = self._db_service.execute(query)
 
-        sql_extra = """
-        ORDER BY deploy_date DESC
-        LIMIT 1
-        """
-
-        r = self._execute_single_table_query(self._deployment_table, sql_extra=sql_extra, **allowed_kwargs)
-
-        if r.successful:
-            # do not throw complaint about extras
-            return Deployment(r.first())
+        # assign project_name id if successful
+        if result is not None:
+            return result
 
         else:
             return None
@@ -197,93 +270,31 @@ class ModelDBService:
 
     def get_project(self, **kwargs) -> Project:
 
-        # check kwargs in Project fields
-        allowed_kwargs = filter_keys_in_settings(kwargs, Project)
-
         # execute query
-        r = self._execute_single_table_query(self._project_table, **allowed_kwargs)
+        query = select(Project).filter_by(**kwargs).order_by(desc(Project.create_date))
+        result = self._db_service.execute(query)
 
-        if r.successful:
-            # check number returned
-
-            # raise error for too many returned
-
-            # do not throw complaint about extras
-            return Project(r.dict)
+        # assign project_name id if successful
+        if result is not None:
+            return result[0]
 
         else:
             return None
-
 
     def get_flow(self, **kwargs) -> Flow:
 
-        # check kwargs in Flow fields
-        allowed_kwargs = filter_keys_in_settings(kwargs, Flow)
+        query = select(Flow).filter_by(**kwargs).order_by(desc(Flow.deploy_date))
+        result = self._db_service.execute(query)
 
-        r = self._execute_single_table_query(self._flow_table, **allowed_kwargs)
-
-        if r.successful:
-            # check number, only one should be returned
-            res = r.first()
-
-            # raise error for too many returned
-
-            # GET ALL FLOW IDS
-            deploy_res = self._execute_single_table_query(self._flow_to_deployments_table, flow_id = r.first().flow_id)
-
-            deployment_ids = [d.deployment_id for d in deploy_res]
-
-            # do not throw complaint about extras
-            return Flow(deployment_ids=deployment_ids, **res)
+        # assign project_name id if successful
+        if result is not None:
+            return result[0]
 
         else:
             return None
 
-    def _execute_single_table_query(self, table: str, fields: List[str] = None, sql_extra: str = None, **kwargs):
-        """
-        
-        Args:
-            table (str):
-            fields (List[str] = None)
-            sql_extra (str = None): extra sql to append to end, helpful in case of limits, ordering
-        
-        """
-        sql = """
-        SELECT %s
-        FROM %s 
-        """
 
-        # format kwargs
-        kwarg_strings = []
-        if len(kwargs):
-            sql += "WHERE "
+    def apply_schema(self):
 
-            for kw, value in kwargs.items():
-                kwarg_strings.append(f"{kw} = {value}")
-
-        sql += " AND ".join(kwarg_strings)
-
-        if fields is None:
-            self._db_service.execute(sql, "*", table)
-
-        if sql_extra:
-            sql += f" {sql_extra}"
-
-        else:
-            return self._db_service.execute(sql, ",".join(fields), table)
-
-
-    def _insert_one(self, table: str, **kwargs):
-        sql = """
-        INSERT INTO %s 
-        """
-            
-        kwarg_strings = []
-        kwarg_values = []
-
-        kwarg_field_string = ", ".join(kwargs.keys())
-        kwarg_value_string = ", ".join(kwargs.values())
-
-        sql += f" ({kwarg_field_string}) VALUES ({kwarg_value_string})"
-
-        return self._db_service.execute(sql, table)
+    
+        Base.metadata.create_all(self._db_service.engine)

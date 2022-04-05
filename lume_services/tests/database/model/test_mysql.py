@@ -16,7 +16,7 @@ def deployment_dict():
         "version": "v0.0",
         "sha256": "placeholder",
         "url": "http://mytest.com",
-        "package-name": "test_package",
+        "package_name": "test_package",
         "asset_dir": None, # opt
         "asset_url": None, # opt
         "deployment_id": "0",
@@ -41,42 +41,47 @@ def flow_dict():
 @pytest.fixture(scope="module", autouse=True)
 def test_store_model(model_db_service, model_dict):
 
-    model = model_db_service.store_model(**model_dict)
-    assert model.model_id is not None
+    model_id = model_db_service.store_model(**model_dict)
+    assert model_id is not None
 
-    return model
+    return model_id
+
+def test_get_model(model_db_service, test_store_model):
+
+    model = model_db_service.get_model(model_id=test_store_model)
+
+    assert model.model_id == test_store_model
+
+
 
 @pytest.fixture(scope="module", autouse=True)
 def test_store_deployment(model_db_service, deployment_dict, test_store_model):
 
-    deployment_dict["model_id"] = test_store_model.model_id 
-    deployment = model_db_service.store_deployment(**deployment_dict)
+    deployment_dict["model_id"] = test_store_model
+    deployment_id = model_db_service.store_deployment(**deployment_dict)
 
-    assert deployment.deployment_ids is not None
+    assert deployment_id is not None
 
-    return deployment
+    return deployment_id
 
 
 @pytest.fixture(scope="module", autouse=True)
 def test_store_project(model_db_service, project_dict):
 
-    return model_db_service.store_projcet(**project_dict)
+    return model_db_service.store_project(**project_dict)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def test_store_flow(model_db_service, flow_dict, test_store_deployment):
+def test_store_flow(model_db_service, flow_dict, test_store_deployment, test_store_project):
 
-    flow_dict["deployment_ids"] = test_store_deployment.deployment_ids
-    flow = model_db_service.store_flow(**flow_dict)
+    flow_dict["project_name"] = test_store_project
 
-    return flow.flow_id
+    flow_dict["deployment_ids"] = test_store_deployment
+    flow_id = model_db_service.store_flow(**flow_dict)
 
+    return flow_id
 
-def test_get_model(model_db_service, test_store_model):
-
-    model = model_db_service.get_model(**test_store_model.dict())
-
-    assert model.model_id == test_store_model.mode_id
+"""
 
 @pytest.mark.skip
 def test_get_deployment(model_db_service, test_store_deployment):
@@ -106,3 +111,4 @@ def test_get_flow(model_db_service, test_store_flow):
 
     assert flow.flow_id == test_store_flow.flow_id
 
+"""

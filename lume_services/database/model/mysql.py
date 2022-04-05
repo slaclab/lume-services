@@ -2,7 +2,9 @@ from pydantic import BaseSettings
 
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
+from sqlalchemy.sql.expression import Insert, Select
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.base import Connection
 import os
 
@@ -14,13 +16,21 @@ from contextlib import contextmanager
 
 
 MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
-# guesses: r.successful, r.dict
 
 
 class MySQLConfig(DBServiceConfig):
     db_uri: str
     pool_size: int
 
+
+
+"""
+https://docs.sqlalchemy.org/en/14/dialects/mysql.html#create-table-arguments-including-storage-engines
+mysql_engine='InnoDB',
+      mariadb_engine='InnoDB',
+
+      mysql_charset='utf8mb4',
+      mariadb_charset='utf8',"""
 
 class MySQLService(DBService):
 
@@ -40,17 +50,15 @@ class MySQLService(DBService):
         self._connection = ContextVar("connection", default=None)
 
         # pool_pre_ping provides liveliness check
-        self._engine = create_engine(self.config.db_uri, *connect_args, pool_pre_ping=True, pool_size=self.config.pool_size)
+        self.engine = create_engine(self.config.db_uri, *connect_args, pool_pre_ping=True, pool_size=self.config.pool_size)
 
-        # don't really need now
-        # create a scoped session
-        # self.orm_sessionmaker = sessionmaker(bind=self.engine)
-        #self.session = scoped_session(self.orm_sessionmaker)
+        # sessionmaker for orm operations
+        self._sessionmaker = sessionmaker(bind=self.engine)
 
     def _connect(self) -> Connection:
-        cxn = self._engine.connect()
+        cxn = self.engine.connect()
         self._connection.set(cxn)
-       # self._inspector = inspect(self._engine)
+
         return cxn
 
     def _check_mp(self):
@@ -94,10 +102,26 @@ class MySQLService(DBService):
                     cxn.close()
                     self._connection.set(None)
 
-
-    def execute(self, sql, *args, **kwargs):
+    def session(self):
         with self.connection() as cxn:
-            
-            r = cxn.execute(sql, *args, **kwargs)
+            session = self._sessionmaker()
+            session.expire_on_commit = False
+            return session
 
-            return r
+
+    def execute(self, sql: Select):
+        with self.session() as session:
+
+            res = session.execute(sql).scalars().all()
+            session.commit()
+
+        return res
+
+    def insert(self, sql: Insert):
+        with self.session() as session:
+
+            res = session.execute(sql)
+            session.commit() 
+
+        return res.inserted_primary_key
+
