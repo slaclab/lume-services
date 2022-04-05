@@ -6,8 +6,9 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import Insert, Select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Connection
+from sqlalchemy.engine import Result
 
 from typing import List
 
@@ -30,7 +31,10 @@ class MySQLService(DBService):
         self._create_engine()
 
 
-    def _create_engine(self):
+    def _create_engine(self) -> None:
+        """Create sqlalchemy engine using db_uri.
+        
+        """
         self.pid = os.getpid()
 
         # can possible pass args here...
@@ -46,12 +50,18 @@ class MySQLService(DBService):
         self._sessionmaker = sessionmaker(bind=self.engine)
 
     def _connect(self) -> Connection:
+        """Establish connection and set _connection.
+        
+        """
         cxn = self.engine.connect()
         self._connection.set(cxn)
 
         return cxn
 
-    def _check_mp(self):
+    def _check_mp(self) -> None:
+        """Check for multiprocessing. If PID is different that object PID, create new engine connection.
+        
+        """
 
         # check pid against object pid and create new engine in event of another process
         if os.getpid() != self.pid:
@@ -60,12 +70,15 @@ class MySQLService(DBService):
 
     @property
     def _currect_connection(self) -> Connection:
+        """Getter for current connection
+        """
         return self._connection.get()
 
 
     @contextmanager
     def connection(self) -> Connection:
-        """This is a context manager bc we want to be able to release connection when finished
+        """Context manager for operations. Will clean up connections on exit of
+        scope.
         """
         # Add cleanup on exit check
 
@@ -92,14 +105,29 @@ class MySQLService(DBService):
                     cxn.close()
                     self._connection.set(None)
 
-    def session(self):
+    def session(self) -> Session:
+        """Establishes Session with active connection. 
+
+        Note: Setting expire_on_commit to False allows us to access objects
+        after session closing.
+        
+        """
         with self.connection() as cxn:
             session = self._sessionmaker()
             session.expire_on_commit = False
             return session
 
 
-    def execute(self, sql: Select):
+    def execute(self, sql: Select) -> list:
+        """Execute sql query inside a managed session.
+
+        Args:
+            sql (Select): Execute a selection query
+
+        Results:
+            list: Results of query operation
+
+        """
         with self.session() as session:
 
             res = session.execute(sql).scalars().all()
@@ -108,6 +136,15 @@ class MySQLService(DBService):
         return res
 
     def insert(self, sql: Insert):
+        """Execute and insert operation inside a managed session.
+        
+        Args:
+            sql (Insert): Execute a sqlalchemy insert operation
+
+        Returns:
+            primary key returned from insert operation
+
+        """
         with self.session() as session:
 
             res = session.execute(sql)
@@ -116,6 +153,15 @@ class MySQLService(DBService):
         return res.inserted_primary_key
 
     def insert_many(self, sql: List[Insert]):
+        """Execute many inserts within a managed session.
+        
+        Args:
+            sql (List[Insert]): Execute a sqlalchemy insert operation
+
+        Returns:
+            list of primary keys returned from insert operation
+
+        """
 
         with self.session() as session:
 
