@@ -1,36 +1,8 @@
-from abc import ABC, abstractmethod
-from pydantic import BaseSettings
+from sqlalchemy import insert, select, desc
 from typing import List
 
-from sqlalchemy import insert, select, desc
-
-from lume_services.database.model.schema import Base, Model, Deployment, Flow, FlowToDeployments, Project
-
-
-class DBServiceConfig(BaseSettings, ABC):
-    ...
-
-class DBService(ABC):
-
-    def __init__(self, db_config: DBServiceConfig):
-        ...
-
-    @abstractmethod
-    def execute(self, orm_obj: Base):
-        ...
-        # Raise not implemented
-
-    @abstractmethod
-    def insert(self, orm_obj: Base):
-        ...
-        # Raise not implemented
-
-
-    @abstractmethod
-    def insert_many(self, orm_obj: Base):
-        ...
-        # Raise not implemented
-
+from lume_services.data.model.db import DBService
+from lume_services.data.model.db.schema import Base, Model, Deployment, Flow, FlowToDeployments, Project
 
 class ModelDBService:
 

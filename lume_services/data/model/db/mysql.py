@@ -12,7 +12,7 @@ from sqlalchemy.engine import Result
 
 from typing import List
 
-from lume_services.database.model.db import DBServiceConfig, DBService
+from lume_services.data.model.db import DBServiceConfig, DBService
 
 
 MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
@@ -26,7 +26,6 @@ class MySQLConfig(DBServiceConfig):
 class MySQLService(DBService):
 
     def __init__(self, config: MySQLConfig):
-        super().__init__(config)
         self.config = config
         self._create_engine()
 
