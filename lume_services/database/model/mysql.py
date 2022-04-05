@@ -11,8 +11,8 @@ from sqlalchemy.engine.base import Connection
 
 from typing import List
 
-
 from lume_services.database.model.db import DBServiceConfig, DBService
+
 
 MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
 
@@ -128,6 +128,3 @@ class MySQLService(DBService):
             session.commit() 
 
         return [res.inserted_primary_key for res in results]
-
-
-

@@ -4,7 +4,7 @@ from typing import List
 
 from sqlalchemy import insert, select, desc
 
-from lume_services.database.schema import Base, Model, Deployment, Flow, FlowToDeployments, Project
+from lume_services.database.model.schema import Base, Model, Deployment, Flow, FlowToDeployments, Project
 
 
 class DBServiceConfig(BaseSettings, ABC):
@@ -193,6 +193,6 @@ class ModelDBService:
     def apply_schema(self) -> None:
         """Applies database schema to connected service.
         
-        
         """
+
         Base.metadata.create_all(self._db_service.engine)
