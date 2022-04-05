@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from pydantic import BaseSettings
 from typing import List
+import logging
 
 from sqlalchemy.sql.base import Executable
 from sqlalchemy.sql.expression import Insert, Select
 
-from lume_services.data.model.db.schema import Base
+logger = logging.getLogger(__name__)
 
 class DBServiceConfig(BaseSettings, ABC):
     ...

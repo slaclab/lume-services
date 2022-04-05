@@ -1,6 +1,6 @@
 import os
+import logging
 
-from pkg_resources import resource_filename
 from contextvars import ContextVar
 from contextlib import contextmanager
 
@@ -13,17 +13,34 @@ from typing import List
 
 from lume_services.data.model.db import DBServiceConfig, DBService
 
-MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
+
+logger = logging.getLogger(__name__)
 
 
 class MySQLConfig(DBServiceConfig):
+    """Configuration for MySQL connection.
+
+    db_uri: uri for establishing db connection
+    pool_size: Number of connections to maintain in the connection pool. Establishing connections is expensive and 
+    maintaining multiple connections in a pool allows for availability.
+    
+    """
     db_uri: str
     pool_size: int
 
 
 class MySQLService(DBService):
+    """MySQL implementation of the DBService client, allowing for Model DB connections to MySQL model db.
+    
+    """
 
     def __init__(self, config: MySQLConfig):
+        """Initialize MySQL client service.
+
+        Args:
+            config (MySQLConfig): MySQL connection config
+        
+        """
         self.config = config
         self._create_engine()
 

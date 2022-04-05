@@ -1,8 +1,12 @@
+import logging
+
 from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import Integer, String, DateTime
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
