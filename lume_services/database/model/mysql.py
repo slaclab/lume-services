@@ -1,19 +1,18 @@
-from pydantic import BaseSettings
+import os
 
+from pkg_resources import resource_filename
+from contextvars import ContextVar
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import Insert, Select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.base import Connection
-import os
+
+from typing import List
+
 
 from lume_services.database.model.db import DBServiceConfig, DBService
-
-from pkg_resources import resource_filename
-from contextvars import ContextVar
-from contextlib import contextmanager
-
 
 MYSQL_MODEL_SCHEMA = resource_filename("lume_services.database.model", "schema.sql")
 
@@ -22,15 +21,6 @@ class MySQLConfig(DBServiceConfig):
     db_uri: str
     pool_size: int
 
-
-
-"""
-https://docs.sqlalchemy.org/en/14/dialects/mysql.html#create-table-arguments-including-storage-engines
-mysql_engine='InnoDB',
-      mariadb_engine='InnoDB',
-
-      mysql_charset='utf8mb4',
-      mariadb_charset='utf8',"""
 
 class MySQLService(DBService):
 
@@ -124,4 +114,20 @@ class MySQLService(DBService):
             session.commit() 
 
         return res.inserted_primary_key
+
+    def insert_many(self, sql: List[Insert]):
+
+        with self.session() as session:
+
+            results = []
+
+            for stmt in sql:
+                res = session.execute(stmt)
+                results.append(res)
+
+            session.commit() 
+
+        return [res.inserted_primary_key for res in results]
+
+
 
