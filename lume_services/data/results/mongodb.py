@@ -1,5 +1,6 @@
 from pydantic import BaseSettings
-from lume_serices.database.results.db import ResultsDB
+from lume_services.data.results.db import ResultsDB
+import pandas as pd
 
 class MongoResultsDBConfig(BaseSettings):
     db_uri_template: str = "mongodb://${user}:${password}@${host}:${port}"
