@@ -17,6 +17,11 @@ class ModelDBService:
 
     @validate_kwargs_exist(Model)
     def store_model(self, **kwargs) -> int:
+        """Store a model. 
+        
+        Returns:
+            int: inserted model id
+        """
 
         # store in db
         insert_stmt = insert(Model).values(**kwargs)
@@ -31,6 +36,11 @@ class ModelDBService:
 
     @validate_kwargs_exist(Deployment)
     def store_deployment(self, **kwargs) -> int:
+        """Store a deployment. 
+        
+        Returns:
+            int: inserted deployment id
+        """
 
         # store in db
         insert_stmt = insert(Deployment).values(**kwargs)
@@ -45,6 +55,11 @@ class ModelDBService:
 
     @validate_kwargs_exist(Project)
     def store_project(self, **kwargs) -> str:
+        """Store a project. 
+        
+        Returns:
+            str: inserted project name
+        """
 
         insert_stmt = insert(Project).values(**kwargs)
 
@@ -86,10 +101,10 @@ class ModelDBService:
 
     @validate_kwargs_exist(Model)
     def get_model(self, **kwargs) -> Model: 
-        """
+        """Get a model from criteria
         
         Returns:
-            Model:
+            Model
         """
         # execute query
         query = select(Model).filter_by(**kwargs)
@@ -108,10 +123,10 @@ class ModelDBService:
 
     @validate_kwargs_exist(Deployment)
     def get_deployment(self, **kwargs) -> Deployment:
-        """
+        """Get a deployment based on criteria
         
         Returns:
-            Deployment:
+            Deployment
         """
 
         query = select(Deployment).filter_by(**kwargs)
@@ -131,10 +146,10 @@ class ModelDBService:
 
     @validate_kwargs_exist(Deployment)
     def get_latest_deployment(self, **kwargs) -> Deployment:
-        """
+        """Get the latest deployment
         
         Returns:
-            Deployment:
+            Deployment
         """
 
         query = select(Deployment).filter_by(**kwargs).order_by(desc(Deployment.deploy_date))
@@ -152,7 +167,7 @@ class ModelDBService:
         """Get a single Project 
         
         Returns:
-            Project:
+            Project
         """
 
         # execute query
@@ -171,7 +186,7 @@ class ModelDBService:
 
     @validate_kwargs_exist(Flow)
     def get_flow(self, **kwargs) -> Flow:
-        """
+        """Get a flow from criteria
         
         Returns:
             Flow:
