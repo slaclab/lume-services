@@ -122,6 +122,9 @@ class ResultsDBService:
 
     def _get_model_doc_type(self, model_type: str) -> type[DocumentBase]:
         """Get model doc type reference from model string.
+
+        Args:
+            model_type: str
         
         """
 
