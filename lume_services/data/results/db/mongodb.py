@@ -1,5 +1,3 @@
-from email import contentmanager
-from pydantic import BaseSettings
 from typing import List
 import os
 from pymongo import MongoClient
