@@ -7,3 +7,6 @@ class ImpactResultDocument(ResultDocument):
     archive = StringField(max_length=200, required=True)
     pv_collection_isotime = DateTimeField(required=True)
     config = DictField(required=True)
+
+    meta = {'collection': 'Impact'}
+

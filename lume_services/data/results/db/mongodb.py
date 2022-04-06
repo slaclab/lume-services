@@ -1,14 +1,22 @@
+from email import contentmanager
 from pydantic import BaseSettings
+from typing import List
+import os
+from pymongo import MongoClient
+
+from contextvars import ContextVar
+from contextlib import contextmanager
+
 from lume_services.data.results.db import DBService, DBServiceConfig
-from lume_services.data.results.db.document import ResultDocument
+from mongoengine import Document
 
 import mongoengine
 
-class MongoResultsDBConfig(DBServiceConfig):
+class MongodbConfig(DBServiceConfig):
     db: str #name of database
     host: str 
-    port: str
-    read_preference: str= ""
+    port: int
+    #read_preference: str= ""
     username: str
     password: str
   #  authentication_source
@@ -17,58 +25,96 @@ class MongoResultsDBConfig(DBServiceConfig):
   # kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s MongoClient for a full list.
 
 
-class MongoDBService(DBService):
+class MongodbService(DBService):
     # Note: pymongo is threadsafe
 
-    def __init__(self, *, db_config: MongoResultsDBConfig):
+    def __init__(self, db_config: MongodbConfig):
         self.config = db_config
-        self._client = mongoengine.connect(alias="connected_db")
 
-    def insert_one(self, doc: ResultDocument):
+        # track pid to make multiprocessing safe
+        self.pid = os.getpid()
 
-        doc.save(validate=True)
-
-     #   .model_results[model_type].insert_one(model_rep)
-        return 
+        self._connection = ContextVar("connection", default=None)
+        self._connect()
 
 
-    def find(self):
-        ...
+    def _connect(self) -> MongoClient:
+        """Establish connection and set _connection.
 
+        """
+        mongoengine.connect(**self.config.dict())
+
+        cxn = mongoengine.get_connection()
+        self._connection.set(cxn)
+
+        return cxn
+
+    def _check_mp(self) -> None:
+        """Check for multiprocessing. If PID is different that object PID, create new engine connection.
+
+        """
+
+        if os.getpid() != self.pid:
+            self._connect()
     
 
+    @property
+    def _currect_connection(self) -> MongoClient:
+        """Getter for current connection
 
-    """
-    def store(self, *, model_type, model_rep) -> bool:
+        """
 
-        # check that target field is provided in rep
-        insert_result = self._client.model_results[model_type].insert_one(model_rep)
-        
-        if insert_result.inserted_id:
-            return True
-        
+        return self._connection.get()
+
+
+    @contextmanager
+    def connection(self) -> MongoClient:
+        #Context manager for operations. Will clean up connections on exit of
+        #scope.
+       
+
+        self._check_mp()
+
+        # get connection
+        cxn = self._connection.get()
+
+        if cxn is None:  # why clean up here? Hmm...
+            cxn = self._connect()
+            cleanup = True
+
         else:
-            return False
+            cleanup = False
 
-    def find(self, *, model_type, query={}, fields={}) -> pd.DataFrame:
-        results = self._db[model_type].find((query, fields))
-        
-        return list(results)
+        try:
+            yield cxn
 
-    def find_all(self, *, model_type):
-        results = self._db[model_type].find()
-        return list(results)
+        finally:
+            if cleanup:
+                cxn = self._connection.get()
 
-    def load_dataframe(self, *, model_type, query={}, fields={}):
-        # flattens results and returns dataframe
-        results = list(self._db[model_type].find((query, fields)))
-        flattened = [flatten_dict(res) for res in results]
-        df = pd.DataFrame(flattened)
+                if cxn:
+                    mongoengine.disconnect()
+                    self._connection.set(None)
 
-        # Load DataFrame
-        df["date"] = pd.to_datetime(df["isotime"])
-        df["_id"] = df["_id"].astype(str)
 
-        return df
+    def insert_one(self, doc: Document):
+        res = doc.save(validate=True)
+        return res
 
-    """
+
+    def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None):
+
+        results = model_doc_type.objects(**query)
+
+        if len(fields):
+            results = results.only(*fields)
+
+        return results
+
+    def find_all(self, model_doc_type: type[Document]):
+        results = model_doc_type.object()
+        return results 
+
+
+    def disconnect(self):
+        mongoengine.disconnect(alias="connected_db")
