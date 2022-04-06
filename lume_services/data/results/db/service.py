@@ -10,7 +10,6 @@ class DBServiceConfig(BaseSettings, ABC):
 
 class DBService(ABC):
 
-    target_field = "fingerprint"
 
     @abstractmethod
     def __init__(self, db_config: DBServiceConfig):

@@ -30,7 +30,7 @@ class ResultsDBService:
         self._db_service = db_service
         self._model_docs = model_docs
 
-    def store(self, model_type: str, **kwargs) -> bool:
+    def store(self, model_type: str, **kwargs) -> str:
         """Store model data.
 
         Args:
@@ -63,10 +63,10 @@ class ResultsDBService:
 
         if pk_id:
             logger.info("Document stored with id %s", pk_id)
-            return True
+            return pk_id
         
         else:
-            return False
+            return None
 
     def find(self, model_type: str, query={}, fields: List[str] = None) -> list:
 
@@ -74,7 +74,7 @@ class ResultsDBService:
 
         results = self._db_service.find(model_doc_type, query, fields)
         
-        return list(results)
+        return results
 
     def find_all(self, model_type: str) -> list:
 

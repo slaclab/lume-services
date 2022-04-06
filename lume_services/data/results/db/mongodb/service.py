@@ -17,7 +17,7 @@ class MongodbConfig(DBServiceConfig):
     #read_preference: str= ""
     username: str
     password: str
-    uuidRepresentation: str = 'pythonLegacy' # compat with pymongo 3.x
+    #uuidRepresentation: str = 'pythonLegacy' # compat with pymongo 3.x
   #  authentication_source
   # authentication_mechanism
   # is_mock
@@ -97,13 +97,17 @@ class MongodbService(DBService):
 
 
     def insert_one(self, doc: Document) -> Document:
-        res = doc.save(validate=True)
+
+        with self.connection() as cxn:
+            res = doc.save(validate=True)
+
         return res
 
 
     def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None) -> List[Document]:
 
-        results = model_doc_type.objects(**query)
+        with self.connection() as cxn:
+            results = model_doc_type.objects(**query)
 
         if len(fields):
             results = results.only(*fields)
@@ -111,7 +115,10 @@ class MongodbService(DBService):
         return results
 
     def find_all(self, model_doc_type: type[Document]) -> List[Document]:
-        results = model_doc_type.object()
+
+        with self.connection() as cxn:
+            results = model_doc_type.object()
+
         return results 
 
 
