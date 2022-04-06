@@ -75,6 +75,9 @@ class ResultsDBService:
             model_type (str): Must correspond to models listed in model_docs enum provided during construction
             query (dict): Field values for constructing query
             fields List[str]: Subset of fields to return
+
+        Return:
+            list: Results of query
         
         """
 
@@ -89,6 +92,9 @@ class ResultsDBService:
 
         Args:
             model_type (str): Must correspond to models listed in model_docs enum provided during construction
+
+        Return:
+            list: Results of query
 
         """
 
@@ -125,6 +131,9 @@ class ResultsDBService:
 
         Args:
             model_type: str
+
+        Return:
+            list: Results of query
         
         """
 

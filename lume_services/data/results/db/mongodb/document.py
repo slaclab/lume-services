@@ -1,7 +1,11 @@
 from mongoengine import Document
+from mongoengine.base.document import BaseDocument
 from mongoengine.fields import StringField, DateTimeField, DictField
 from datetime import datetime
 from mongoengine.errors import ValidationError
+from abc import ABCMeta
+
+from lume_services.data.results.db.document import DocumentBase
 
 
 class ResultDocument(Document):
