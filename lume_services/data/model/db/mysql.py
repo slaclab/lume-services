@@ -95,7 +95,6 @@ class MySQLService(DBService):
         """Context manager for operations. Will clean up connections on exit of
         scope.
         """
-        # Add cleanup on exit check
 
         self._check_mp()
 

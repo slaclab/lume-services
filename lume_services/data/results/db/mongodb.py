@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from contextvars import ContextVar
 from contextlib import contextmanager
 
-from lume_services.data.results.db import DBService, DBServiceConfig
+from lume_services.data.results.db.db_service import DBService, DBServiceConfig
 from mongoengine import Document
 
 import mongoengine
@@ -19,6 +19,7 @@ class MongodbConfig(DBServiceConfig):
     #read_preference: str= ""
     username: str
     password: str
+    uuidRepresentation: str = 'pythonLegacy' # compat with pymongo 3.x
   #  authentication_source
   # authentication_mechanism
   # is_mock
@@ -97,12 +98,12 @@ class MongodbService(DBService):
                     self._connection.set(None)
 
 
-    def insert_one(self, doc: Document):
+    def insert_one(self, doc: Document) -> Document:
         res = doc.save(validate=True)
         return res
 
 
-    def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None):
+    def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None) -> List[Document]:
 
         results = model_doc_type.objects(**query)
 
@@ -111,10 +112,11 @@ class MongodbService(DBService):
 
         return results
 
-    def find_all(self, model_doc_type: type[Document]):
+    def find_all(self, model_doc_type: type[Document]) -> List[Document]:
         results = model_doc_type.object()
         return results 
 
 
     def disconnect(self):
         mongoengine.disconnect(alias="connected_db")
+

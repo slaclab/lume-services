@@ -1,4 +1,6 @@
 from typing import List
+import json
+import logging
 
 from lume_services.data.results.db import DBService
 from lume_services.utils import flatten_dict
@@ -9,6 +11,8 @@ from lume_services.data.results.db.models import ModelDocs
 from enum import Enum
 import pandas as pd
 
+logger = logging.getLogger(__name__)
+
 
 class ResultsDBService:
     """Results database for use with NoSQL database service
@@ -16,12 +20,26 @@ class ResultsDBService:
     """
 
     def __init__(self, db_service: DBService, model_docs: Enum = ModelDocs):
+        """Initialize Results DB Service interface
+
+        Args:
+            db_service (DBService): DB Connection service
+            model_docs (Enum): Enum of configured model documents
+
+        
+        """
         self._db_service = db_service
         self._model_docs = model_docs
 
     def store(self, model_type: str, **kwargs) -> bool:
         """Store model data.
 
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            **kwargs: Initialization arguments for document construction covering minimal data required by model
+
+        Returns:
+            bool: Success of storage operation
 
         """
 
@@ -29,13 +47,23 @@ class ResultsDBService:
 
         doc = model_doc_type(**kwargs)
 
-        # check that target field is provided in rep
+        # validate document contruction
+        try:
+            doc.validate()
+
+        except model_doc_type.get_validation_error() as err:
+            logger.error("Unable to validate doc with type %s and kwargs= %s", model_doc_type.__name__, json.dumps(kwargs))
+            raise err
+
+
+        # insert
         res = self._db_service.insert_one(doc)
 
-        print(res)
-        print(dir(res))
-        
-        if res.inserted_id:
+        # confirm success
+        pk_id = res.get_pk_id()
+
+        if pk_id:
+            logger.info("Document stored with id %s", pk_id)
             return True
         
         else:

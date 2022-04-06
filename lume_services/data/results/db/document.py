@@ -1,16 +1,20 @@
-from mongoengine import Document
-from mongoengine.fields import StringField, DateTimeField, DictField
-from datetime import datetime
+from abc import ABC, abstractmethod
 
-class ResultDocument(Document):
-    flow_id = StringField(max_length=200, required=True)
-    inputs = DictField(required=True)
-    outputs = DictField(required=True)
-    date_modified = DateTimeField(default=datetime.utcnow)
 
-    meta = {'allow_inheritance': True,
-    'indexes': [
-            {'fields': ['inputs', 'outputs', '-flow_id'], 'unique': True}, # use compound index
-           ],
-    'ordering': ['-date_modified']
-        }
+
+class DocumentBase(ABC):
+    """Fields should be stored as attributes and able to be initialized with passed kwargs
+    
+    """
+
+    @abstractmethod
+    @staticmethod
+    def get_validation_error():
+        """Return validation error
+        """
+        ...
+
+    def get_pk_id(self):
+        """Get pk id from initialized doc.
+
+        """
