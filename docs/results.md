@@ -30,12 +30,12 @@ In the event that a different result storage scheme would like to be used the st
     - Implementation of `DocumentBase` class defined in `lume_services.data.results.db.document` with `get_pk_id` and static method `get_validation_error`.
     - All fields should be available as attributes on the representation class
 2. Creation of database service
-    - Implementation of `DBService` class in `lume_services.data.results.db.db_service`. 
+    - Implementation of `DBService` class in `lume_services.data.results.db.service`. 
     - Methods should manage connections (multiprocessing and thread-safe) & translate above custom document representations to database
 3. Implement `ResultsDBService` using instances of new services. This codebase has been structured using [Inversion of Control](https://en.wikipedia.org/wiki/Inversion_of_control) principles and an effort has been made to modularize and decouple components. 
 
 ```python
-from lume_services.data.results.db.db_service import DBService, BServiceConfig
+from lume_services.data.results.db.service import DBService, BServiceConfig
 from lume_services.data.results.results_db_service import ResultsDBService
 
 class MyCustomDBService(DBService):
