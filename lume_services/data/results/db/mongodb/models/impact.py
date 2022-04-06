@@ -1,4 +1,4 @@
-from lume_services.data.results.db.document import ResultDocument
+from lume_services.data.results.db.mongodb.document import ResultDocument
 from mongoengine.fields import StringField, DateTimeField, DictField
 
 

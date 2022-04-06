@@ -1,14 +1,14 @@
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 
 
 
-class DocumentBase(ABC):
+class DocumentBase(ABC, metaclass=ABCMeta):
     """Fields should be stored as attributes and able to be initialized with passed kwargs
     
     """
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def get_validation_error():
         """Return validation error
         """

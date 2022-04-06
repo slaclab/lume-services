@@ -4,9 +4,7 @@ from datetime import datetime
 from mongoengine.errors import ValidationError
 
 
-from lume_services.data.results.db.document import DocumentBase
-
-class ResultDocument(Document, DocumentBase):
+class ResultDocument(Document):
     flow_id = StringField(max_length=200, required=True)
     inputs = DictField(required=True)
     outputs = DictField(required=True)

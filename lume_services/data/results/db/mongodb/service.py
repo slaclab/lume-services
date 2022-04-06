@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from contextvars import ContextVar
 from contextlib import contextmanager
 
-from lume_services.data.results.db.db_service import DBService, DBServiceConfig
+from lume_services.data.results.db.service import DBService, DBServiceConfig
 from mongoengine import Document
 
 import mongoengine

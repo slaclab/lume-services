@@ -2,10 +2,10 @@ from typing import List
 import json
 import logging
 
-from lume_services.data.results.db import DBService
+from lume_services.data.results.db.service import DBService
 from lume_services.utils import flatten_dict
 
-from lume_services.data.results.db.document import ResultDocument
+from lume_services.data.results.db.document import DocumentBase
 
 from enum import Enum
 import pandas as pd
@@ -95,6 +95,6 @@ class ResultsDBService:
         return df
 
 
-    def _get_model_doc_type(self, model_type: str) -> type[ResultDocument]:
+    def _get_model_doc_type(self, model_type: str) -> type[DocumentBase]:
 
         return self._model_docs[model_type].value
