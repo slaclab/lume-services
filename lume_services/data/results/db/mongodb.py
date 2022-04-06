@@ -1,29 +1,47 @@
 from pydantic import BaseSettings
-from lume_services.data.results.db import ResultsDB
-import pandas as pd
+from lume_services.data.results.db import DBService, DBServiceConfig
+from lume_services.data.results.db.document import ResultDocument
 
-class MongoResultsDBConfig(BaseSettings):
-    db_uri_template: str = "mongodb://${user}:${password}@${host}:${port}"
+import mongoengine
+
+class MongoResultsDBConfig(DBServiceConfig):
+    db: str #name of database
+    host: str 
+    port: str
+    read_preference: str= ""
+    username: str
     password: str
-    user: str
-    host: str
-    port: int
+  #  authentication_source
+  # authentication_mechanism
+  # is_mock
+  # kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s MongoClient for a full list.
 
 
-class MongoResultsDB(ResultsDB):
+class MongoDBService(DBService):
     # Note: pymongo is threadsafe
 
-    def __init__(self, *, db_config):
+    def __init__(self, *, db_config: MongoResultsDBConfig):
+        self.config = db_config
+        self._client = mongoengine.connect(alias="connected_db")
 
-        # need to transition off of plaintext templating
-        self._db_uri = Template(db_uri_template).substitute(user=user, password=password, host=host, port=str(port))
-        self._client = MongoClient(self._db_uri)
-        self._db = self._client.model_results
+    def insert_one(self, doc: ResultDocument):
 
+        doc.save(validate=True)
+
+     #   .model_results[model_type].insert_one(model_rep)
+        return 
+
+
+    def find(self):
+        ...
+
+    
+
+
+    """
     def store(self, *, model_type, model_rep) -> bool:
 
         # check that target field is provided in rep
-
         insert_result = self._client.model_results[model_type].insert_one(model_rep)
         
         if insert_result.inserted_id:
@@ -53,3 +71,4 @@ class MongoResultsDB(ResultsDB):
 
         return df
 
+    """
