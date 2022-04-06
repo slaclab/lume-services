@@ -69,6 +69,14 @@ class ResultsDBService:
             return None
 
     def find(self, model_type: str, query={}, fields: List[str] = None) -> list:
+        """Find model entries based on query.
+        
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            query (dict): Field values for constructing query
+            fields List[str]: Subset of fields to return
+        
+        """
 
         model_doc_type = self._get_model_doc_type(model_type)
 
@@ -77,24 +85,48 @@ class ResultsDBService:
         return results
 
     def find_all(self, model_type: str) -> list:
+        """Get all members of a model_type collection
+
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+
+        """
 
         results = self._db_service.find_all(model_type)
 
         return list(results)
 
     def load_dataframe(self, *, model_type: str, query = {}, fields: List[str] = []) -> pd.DataFrame:
+        """Load dataframe from result database query. 
+
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            query (dict): Field values for constructing query
+            fields List[str]: Subset of fields to return
+
+        Returns:
+            pd.DataFrame
+        
+        """
         # flattens results and returns dataframe
         results = self.find(model_type, query=query, fields=fields)
         flattened = [flatten_dict(res) for res in results]
         df = pd.DataFrame(flattened)
 
         # Load DataFrame
-        df["date"] = pd.to_datetime(df["isotime"])
-        df["_id"] = df["_id"].astype(str)
+       # df["date"] = pd.to_datetime(df["pv_collection_isotime"])
+      #  df["_id"] = df["_id"].astype(str)
 
         return df
 
 
     def _get_model_doc_type(self, model_type: str) -> type[DocumentBase]:
+        """Get model doc type reference from model string.
+        
+        """
+
+        if not getattr(self._model_docs, model_type):
+            logger.error("Model type %s not a member of model doc types: %s", model_type, ','.join([e.key for e in self._model_docs]) )
+            raise ValueError("Model type %s not a member of model doc types: %s", model_type,','.join([e.key for e in self._model_docs]))
 
         return self._model_docs[model_type].value
