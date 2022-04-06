@@ -6,7 +6,6 @@ from lume_services.data.results.db import DBService
 from lume_services.utils import flatten_dict
 
 from lume_services.data.results.db.document import ResultDocument
-from lume_services.data.results.db.models import ModelDocs
 
 from enum import Enum
 import pandas as pd
@@ -19,7 +18,7 @@ class ResultsDBService:
     
     """
 
-    def __init__(self, db_service: DBService, model_docs: Enum = ModelDocs):
+    def __init__(self, db_service: DBService, model_docs: Enum):
         """Initialize Results DB Service interface
 
         Args:
@@ -98,4 +97,4 @@ class ResultsDBService:
 
     def _get_model_doc_type(self, model_type: str) -> type[ResultDocument]:
 
-        return ModelDocs[model_type].value
+        return self._model_docs[model_type].value
