@@ -1,24 +1,33 @@
-Doing:
-Automatically generate diagram from pipes import Template
-from .sql schema?
-Add uniqueness constraints on the model table 
-Figure out logger 
-MySQL schema unique key constraints
-Test database failures
-Add uniqueness to results
-Make mongodb multiprocessing safe
-Transition from pytest-mysql to remove pip dependency
+# TODO:
 
-Template
-- template fro
+## In progress
+### Repo setup
+- [ ] Action for testing package install & running pytests
+- [ ] Action for building docs
 
+### Template
+- [ ] Add versioneer config. Versioneer install needs to happen on init.
+- [ ] CLI tool
+- [ ] Documentation of tool and configuration
 
+### Databases
+- [ ] Add uniqueness constraints on the model table 
+- [ ] MySQL schema unique key constraints
+- [ ] Test database failure cases 
+- [ ] Transition from pytest-mysql to remove pip dependency
 
- Done:
-Tests mysql model db
-Abstraction of database schema and auth config from query execution
-Add flow_to_deployments into db 
-flow_to_deployments table +
-Change model_versions to deployments in schema +
-Versioneer
+## Backlog
+- [ ] Implement/plan for logging infrastructure
 
+## Maybe TODO
+- [ ] Automatically generate diagram from .sql schema?
+
+## Done:
+- [x] Initial tests for mysql model db
+- [x] Abstraction of database schema and auth config from query execution
+- [x] Add flow_to_deployments into db 
+- [x] flow_to_deployments table +
+- [x] Change model_versions to deployments in schema
+- [x] Versioneer
+- [x] Make mongodb multiprocessing safe
+- [x] Add uniqueness to results
