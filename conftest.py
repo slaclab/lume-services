@@ -1,5 +1,4 @@
 import pytest 
-from pytest_mysql import factories
 from sqlalchemy import create_engine
 from string import Template
 
@@ -12,8 +11,9 @@ from lume_services.data.results.db.mongodb.service import MongodbService
 from lume_services.data.results.results_db_service import ResultsDBService
 
 from lume_services.data.results.db.mongodb.models import ModelDocs
+from lume_services.tests.plugins.mysql import mysql_proc
 
-mysql_server = factories.mysql_proc()
+mysql_server = mysql_proc()
 
 
 def pytest_addoption(parser):
