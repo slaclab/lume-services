@@ -1,8 +1,6 @@
 pydantic
-sqlalchemy
+sqlalchemy>=1.4
 pymysql
-
-
-# tests
-pytest
-pytest_mysql
+pandas
+mongoengine
+pymongo
