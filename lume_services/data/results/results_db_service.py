@@ -24,7 +24,6 @@ class ResultsDBService:
         Args:
             db_service (DBService): DB Connection service
             model_docs (Enum): Enum of configured model documents
-
         
         """
         self._db_service = db_service
@@ -43,20 +42,15 @@ class ResultsDBService:
         """
 
         model_doc_type = self._get_model_doc_type(model_type)
-
         doc = model_doc_type(**kwargs)
 
-        # validate document contruction
-        try:
-            doc.validate()
+        # insert
+        try: 
+            res = self._db_service.insert_one(doc)
 
         except model_doc_type.get_validation_error() as err:
             logger.error("Unable to validate doc with type %s and kwargs= %s", model_doc_type.__name__, json.dumps(kwargs))
             raise err
-
-
-        # insert
-        res = self._db_service.insert_one(doc)
 
         # confirm success
         pk_id = res.get_pk_id()
@@ -85,7 +79,10 @@ class ResultsDBService:
 
         results = self._db_service.find(model_doc_type, query, fields)
         
-        return results
+        if results is not None:
+            return results
+        else:
+            return []
 
     def find_all(self, model_type: str) -> list:
         """Get all members of a model_type collection
@@ -100,7 +97,10 @@ class ResultsDBService:
 
         results = self._db_service.find_all(model_type)
 
-        return list(results)
+        if results is not None:
+            return results
+        else:
+            return []
 
     def load_dataframe(self, *, model_type: str, query = {}, fields: List[str] = []) -> pd.DataFrame:
         """Load dataframe from result database query. 
@@ -126,14 +126,14 @@ class ResultsDBService:
         return df
 
 
-    def _get_model_doc_type(self, model_type: str) -> type[DocumentBase]:
+    def _get_model_doc_type(self, model_type: str):
         """Get model doc type reference from model string.
 
         Args:
             model_type: str
 
         Return:
-            list: Results of query
+            type: Document type
         
         """
 

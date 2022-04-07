@@ -68,10 +68,8 @@ class MongodbService(DBService):
 
     @contextmanager
     def connection(self) -> MongoClient:
-        #Context manager for operations. Will clean up connections on exit of
-        #scope.
-       
-
+        """Context manager for mongoclient. Will check for multiprocessing and restart accordingly.
+        """
         self._check_mp()
 
         # get connection
@@ -97,7 +95,15 @@ class MongodbService(DBService):
 
 
     def insert_one(self, doc: Document) -> Document:
+        """Insert one document into the database.
 
+        Args:
+            doc (Document): Document to save
+
+        Returns:
+            Document: Saved document
+
+        """
         with self.connection() as cxn:
             res = doc.save(validate=True)
 
@@ -105,11 +111,20 @@ class MongodbService(DBService):
 
 
     def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None) -> List[Document]:
+        """Find a document based on a query.
+
+        Args:
+            model_doc_type (type[Document]): Document type to query
+
+        
+
+        
+        """
 
         with self.connection() as cxn:
             results = model_doc_type.objects(**query)
 
-        if len(fields):
+        if fields is not None and len(fields):
             results = results.only(*fields)
 
         return results
