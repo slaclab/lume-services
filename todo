@@ -1,12 +1,17 @@
-Change model_versions to deployments in schema +
 Automatically generate diagram from .sql schema?
 Add uniqueness constraints on the model table 
 Figure out logger 
-flow_to_deployments table +
-Add flow_to_deployments into db 
-drop deployment_ids from flow serialization
-MySQL connection could be abstracted out from the DB calls
+MySQL schema unique key constraints
+Test database failures
+Add uniqueness to results
+Make mongodb multiprocessing safe
+
 
 Done 
 Tests mysql model db
 Abstraction of database schema and auth config from query execution
+Add flow_to_deployments into db 
+flow_to_deployments table +
+Change model_versions to deployments in schema +
+
+

@@ -1,0 +1,30 @@
+site_name: lume-services
+site_url: https://slaclab.github.io/lume-services
+repo_url: https://github.com/slaclab/lume-services
+nav:
+  - Overview: index.md
+  - Install: Install.md
+  - Tutorial:
+    - Bokeh Server: BokehServer.md
+    - Jupyter Notebook Demo: Jupyter.md
+  - Widgets: Widgets_doc.md
+  - Documentation:
+    - Client:
+      - Controller: Controller.md
+      - Monitors: Monitors.md
+      - Widgets: Widgets.md
+    - Model: Model.md
+    - Server: Server.md
+    - EPICS: EPICS.md
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          selection:
+            inherited_members: false
+            filters:
+              - "!^_"  # exlude all members starting with _
+              - "^__init__$"  # but always include __init__ modules and methods
+          rendering:
+            show_source: true
