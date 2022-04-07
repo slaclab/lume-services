@@ -1,0 +1,34 @@
+name: Build docs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    if: ${{ github.repository == 'slaclab/lume-services' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.8]
+    name:  Build docs
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-activate-base: true
+          activate-environment: true
+          python-version: ${{ matrix.python-version }}
+          channels: anaconda,conda-forge
+          channel-priority: flexible
+      - name: Build package
+        shell: bash -l {0}
+        run: |
+          conda config --set always_yes yes --set changeps1 no
+          conda install --file requirements.txt
+          conda install --file dev-requirements.txt
+          conda install --file docs-requirements.txt
+          mkdocs build
+          mkdocs gh-deploy --force

@@ -1,0 +1,6 @@
+pydantic
+sqlalchemy>=1.4
+pymysql
+pandas
+mongoengine
+pymongo
