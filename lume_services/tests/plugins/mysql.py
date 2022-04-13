@@ -240,6 +240,7 @@ class MySQLProcessManager:
         if self.process is None:
             command: Union[str, List[str], Tuple[str, ...]] = self.command
             command_parts = command.split(" ")
+            print(command_parts)
             self.process = subprocess.Popen(command_parts, **self._popen_kwargs)
 
         self._set_timeout()
@@ -648,13 +649,13 @@ def mysql_proc(
         :returns: tcp executor
         """
         config = get_config(request)
-        mysql_mysqld = mysqld_exec or config["mysqld"]
-        mysql_admin_exec = admin_executable or config["admin"]
-        mysql_mysqld_safe = mysqld_safe or config["mysqld_safe"]
-        mysql_port = port or config["port"]
-        mysql_host = host or config["host"]
+        mysql_mysqld = config["mysqld"]
+        mysql_admin_exec = config["admin"]
+        mysql_mysqld_safe = config["mysqld_safe"]
+        mysql_port = config["port"]
+        mysql_host = config["host"]
         mysql_params = params or config["params"]
-        mysql_install_db = install_db or config["install_db"]
+        mysql_install_db = config["install_db"]
 
         tmpdir = py.path.local(
             tmp_path_factory.mktemp(f"pytest-mysql-{request.fixturename}")

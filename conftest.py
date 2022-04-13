@@ -1,7 +1,8 @@
 import pytest 
 from sqlalchemy import create_engine
 from string import Template
-
+from datetime import datetime 
+import time
 import mongomock
 
 from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
@@ -63,10 +64,6 @@ def pytest_addoption(parser):
             default="mysql_install_db",
     )
 
-mysql_server = mysql_proc()
-
-
-
 @pytest.fixture(scope="session", autouse=True)
 def mysql_user(request):
     return request.config.getini("mysql_user")
@@ -96,6 +93,10 @@ def base_db_uri(mysql_user, mysql_host, mysql_port):
     return Template("mysql+pymysql://${user}:@${host}:${port}").substitute(user=mysql_user, host=mysql_host, port=mysql_port)
 
 
+#@pytest.fixture(scope="module", autouse=True)
+#def mysql_server(): 
+mysql_server= mysql_proc()
+
 @pytest.fixture(scope="session", autouse=True)
 def mysql_config(mysql_user, mysql_host, mysql_port, mysql_database, mysql_pool_size):
 
@@ -105,7 +106,6 @@ def mysql_config(mysql_user, mysql_host, mysql_port, mysql_database, mysql_pool_
         db_uri=db_uri,
         pool_size=mysql_pool_size,
     )
-
 
 @pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
@@ -121,6 +121,9 @@ def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_server):
     # start the mysql process if not started
     if not mysql_server.running():
         mysql_server.start()
+
+    # allow a moment for startup
+    time.sleep(2)
 
     engine = create_engine(base_db_uri, pool_size=1)
     with engine.connect() as connection:
@@ -159,8 +162,6 @@ def results_db_service(mongodb_service):
 
     # no teardown needed because mock is module scoped
     return results_db_service
-import pytest
-from datetime import datetime
 
 @pytest.fixture(scope="session", autouse=True)
 def test_generic_result_document():
