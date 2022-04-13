@@ -25,7 +25,6 @@ setup(
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     packages=find_packages(),
-    author_email="{{ cookiecutter.author }}",
   #  license="...",
     install_requires=requirements,
     extras_require={"dev": dev_requirements, "docs": docs_requirements},
