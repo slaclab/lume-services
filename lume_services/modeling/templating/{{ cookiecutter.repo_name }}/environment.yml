@@ -1,0 +1,11 @@
+name: {{ cookiecutter.project_slug }}
+channels:
+  - conda-forge
+dependencies:
+  - Python=3.9
+#  - lume-model=1.4
+  - prefect[kubernetes]
+  - pip
+  - pip:
+    - git+https://github.com/jacquelinegarrahan/lume-services.git
+    - git+https://github.com/slaclab/lume-model.git
