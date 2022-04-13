@@ -13,22 +13,58 @@ from lume_services.data.results.results_db_service import ResultsDBService
 from lume_services.data.results.db.mongodb.models import ModelDocs
 from lume_services.tests.plugins.mysql import mysql_proc
 
-mysql_server = mysql_proc()
-
 
 def pytest_addoption(parser):
 
     parser.addini(
+        "mysql_host", default="127.0.0.1", help="MySQL host"
+    )
+
+    parser.addini(
+        "mysql_port", default=3306, help="MySQL port"
+    )
+
+    parser.addini(
         "mysql_user", default="root", help="MySQL user"
     )
+    parser.addini(
+        "mysql_passwd", default="root", help="MySQL password"
+    )
+
+    parser.addini(name="mysql_dbname", help="Mysql database name", default="test")
+
+    parser.addini(name="mysql_params", help="MySQL params", default="")
 
     parser.addini(
         "mysql_database", default="model_db", help="Model database name"
     )
 
+
     parser.addini(
         "mysql_poolsize", default=1, help="MySQL client poolsize"
     )
+
+    parser.addini(name="mysql_mysqld", help="mysqld command", default="mysqld")
+
+    parser.addini(
+        name="mysql_mysqld_safe", help="mysqld safe command", default="mysqld_safe"
+    )
+
+    parser.addini(name="mysql_admin", help="mysql admin command", default="mysqladmin")
+
+    parser.addini(
+        name="mysql_logsdir",
+        help="Add log directory",
+    )
+
+    parser.addini(
+            name="mysql_install_db",
+            help="Installation path",
+            default="mysql_install_db",
+    )
+
+mysql_server = mysql_proc()
+
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -71,20 +107,20 @@ def mysql_config(mysql_user, mysql_host, mysql_port, mysql_database, mysql_pool_
     )
 
 
-@pytest.mark.usefixtures("mysql_proc")
+@pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
 def mysql_service(mysql_config):
     mysql_service = MySQLService(mysql_config)
     return mysql_service
 
 
-@pytest.mark.usefixtures("mysql_proc")
+@pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
-def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_proc):
+def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_server):
 
     # start the mysql process if not started
-    if not mysql_proc.running():
-        mysql_proc.start()
+    if not mysql_server.running():
+        mysql_server.start()
 
     engine = create_engine(base_db_uri, pool_size=1)
     with engine.connect() as connection:

@@ -75,6 +75,8 @@ class MySQLProcessManager:
     def __init__(
         self,
         command: str,
+        host: str,
+        port: int,
         cwd: Optional[str] = None,
         timeout: Union[int, float] = 3600,
         sleep: float = 0.1,
@@ -104,11 +106,16 @@ class MySQLProcessManager:
 
         self._uuid = f"{os.getpid()}:{uuid.uuid4()}"
 
+        self.host = host 
+        self.port = port
+
+
 
     def start(self, command):
 
         if self.process is None:
-            self.process = subprocess.Popen(command, **self._popen_kwargs)
+            command_parts = command.split(" ")
+            self.process = subprocess.Popen(command_parts, **self._popen_kwargs)
 
         self._set_timeout()
 
@@ -139,7 +146,7 @@ class MySQLProcessManager:
         if exit_code is not None and exit_code != 0:
             # The main process exited with an error. Clean up the children
             # if any.
-            self._kill_all_kids(SIGKILL)
+            self.kill_all_subprocesses(SIGKILL)
             self._clear_process()
             raise Exception(f"Process exited with exit_code {exit_code}")
 
@@ -200,7 +207,7 @@ class MySQLProcessManager:
             kwargs["stderr"] = self._stderr
         kwargs["universal_newlines"] = True
 
-        kwargs["shell"] = self._shell
+      #  kwargs["shell"] = self._shell
 
         env = os.environ.copy()
         env.update(self._envvars)
@@ -232,7 +239,8 @@ class MySQLProcessManager:
         """
         if self.process is None:
             command: Union[str, List[str], Tuple[str, ...]] = self.command
-            self.process = subprocess.Popen(command, **self._popen_kwargs)
+            command_parts = command.split(" ")
+            self.process = subprocess.Popen(command_parts, **self._popen_kwargs)
 
         self._set_timeout()
         return self
@@ -285,7 +293,7 @@ class MySQLProcessManager:
             # the process has already been force killed and cleaned up by the
             # `wait_for` above.
             return self  # type: ignore[unreachable]
-        self._kill_all_kids(SIGKILL)
+        self.kill_all_subprocesses(SIGKILL)
         exit_code = self.process.wait()
         self._clear_process()
 
@@ -335,7 +343,7 @@ class MySQLProcessManager:
             if wait:
                 self.process.wait()
 
-        self._kill_all_kids(sig)
+        self.kill_all_subprocesses(sig)
         self._clear_process()
         return self
 
@@ -460,7 +468,12 @@ class MySQLExecutor(MySQLProcessManager):
             f"--tmpdir={self.base_directory} "
             f"--skip-syslog {params}"
         )
+        print(command)
+        print(host)
+        print(port)
+        print(timeout)
         super().__init__(command, host, port, timeout=timeout)
+
 
     def version(self):
         """Read MySQL's version."""
@@ -579,7 +592,7 @@ def get_config(request):
     ]
     for option in options:
         option_name = "mysql_" + option
-        conf = request.config.getoption(option_name) or request.config.getini(
+        conf = request.config.getini(
             option_name
         )
         config[option] = conf
