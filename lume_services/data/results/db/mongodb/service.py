@@ -10,18 +10,21 @@ from mongoengine import Document
 
 import mongoengine
 
+
 class MongodbConfig(DBServiceConfig):
-    db: str #name of database
-    host: str 
+    db: str  # name of database
+    host: str
     port: int
-    #read_preference: str= ""
+    # read_preference: str= ""
     username: str
     password: str
-    #uuidRepresentation: str = 'pythonLegacy' # compat with pymongo 3.x
-  #  authentication_source
-  # authentication_mechanism
-  # is_mock
-  # kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s MongoClient for a full list.
+    # uuidRepresentation: str = 'pythonLegacy' # compat with pymongo 3.x
+
+
+#  authentication_source
+# authentication_mechanism
+# is_mock
+# kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s MongoClient for a full list.
 
 
 class MongodbService(DBService):
@@ -36,11 +39,8 @@ class MongodbService(DBService):
         self._connection = ContextVar("connection", default=None)
         self._connect()
 
-
     def _connect(self) -> MongoClient:
-        """Establish connection and set _connection.
-
-        """
+        """Establish connection and set _connection."""
         mongoengine.connect(**self.config.dict())
 
         cxn = mongoengine.get_connection()
@@ -49,41 +49,29 @@ class MongodbService(DBService):
         return cxn
 
     def _check_mp(self) -> None:
-        """Check for multiprocessing. If PID is different that object PID, create new engine connection.
-
-        """
+        """Check for multiprocessing. If PID is different that object PID, create new engine connection."""
 
         if os.getpid() != self.pid:
             self._connect()
-    
 
     @property
     def _currect_connection(self) -> MongoClient:
-        """Getter for current connection
-
-        """
+        """Getter for current connection"""
 
         return self._connection.get()
 
-    
     def _disconnect(self):
-        """Disconnect mongodb connection. 
-        
-        """
+        """Disconnect mongodb connection."""
         mongoengine.disconnect()
         self._connection.set(None)
 
     def disconnect(self):
-        """Disconnect mongodb connection. 
-        
-        """
+        """Disconnect mongodb connection."""
         self._disconnect()
-
 
     @contextmanager
     def connection(self) -> MongoClient:
-        """Context manager for mongoclient. Will check for multiprocessing and restart accordingly.
-        """
+        """Context manager for mongoclient. Will check for multiprocessing and restart accordingly."""
         self._check_mp()
 
         # get connection
@@ -106,7 +94,6 @@ class MongodbService(DBService):
                 if cxn:
                     self._disconnect()
 
-
     def insert_one(self, doc: Document) -> Document:
         """Insert one document into the database.
 
@@ -122,8 +109,9 @@ class MongodbService(DBService):
 
         return res
 
-
-    def find(self, model_doc_type: Type[Document], query: dict, fields: List[str] = None) -> List[Document]:
+    def find(
+        self, model_doc_type: Type[Document], query: dict, fields: List[str] = None
+    ) -> List[Document]:
         """Find a document based on a query.
 
         Args:
@@ -133,7 +121,7 @@ class MongodbService(DBService):
 
         Returns:
             List[Document]: List of query result documents.
-        
+
         """
 
         with self.connection() as cxn:
@@ -154,10 +142,10 @@ class MongodbService(DBService):
 
         Returns:
             List[Document]: List of query result documents.
-        
+
         """
 
         with self.connection() as cxn:
             results = model_doc_type.objects()
 
-        return results 
+        return results

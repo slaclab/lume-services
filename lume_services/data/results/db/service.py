@@ -5,16 +5,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class DBServiceConfig(BaseSettings, ABC):
     ...
 
+
 class DBService(ABC):
-
-
     @abstractmethod
     def __init__(self, db_config: DBServiceConfig):
         ...
-    
+
     @abstractmethod
     def insert_one(self):
         ...

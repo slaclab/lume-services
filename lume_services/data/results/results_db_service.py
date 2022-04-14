@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Type
 import json
 import logging
+
+from pydantic import ValidationError
 
 from lume_services.data.results.db.service import DBService
 from lume_services.utils import flatten_dict
@@ -14,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class ResultsDBService:
-    """Results database for use with NoSQL database service
-    
-    """
+    """Results database for use with NoSQL database service"""
 
     def __init__(self, db_service: DBService, model_docs: Enum):
         """Initialize Results DB Service interface
@@ -24,7 +24,7 @@ class ResultsDBService:
         Args:
             db_service (DBService): DB Connection service
             model_docs (Enum): Enum of configured model documents
-        
+
         """
         self._db_service = db_service
         self._model_docs = model_docs
@@ -45,11 +45,15 @@ class ResultsDBService:
         doc = model_doc_type(**kwargs)
 
         # insert
-        try: 
+        try:
             res = self._db_service.insert_one(doc)
 
         except model_doc_type.get_validation_error() as err:
-            logger.error("Unable to validate doc with type %s and kwargs= %s", model_doc_type.__name__, json.dumps(kwargs))
+            logger.error(
+                "Unable to validate doc with type %s and kwargs= %s",
+                model_doc_type.__name__,
+                json.dumps(kwargs),
+            )
             raise err
 
         # confirm success
@@ -58,13 +62,27 @@ class ResultsDBService:
         if pk_id:
             logger.info("Document stored with id %s", pk_id)
             return pk_id
-        
+
         else:
             return None
 
+    def _find(self, model_doc_type, query={}, fields: List[str] = None) -> list:
+        """Find model entries from doc type query.
+
+        Args:
+            model_doc_type (Type[DocumentBase]): Model document type
+            query (dict): Field values for constructing query
+            fields List[str]: Subset of fields to return
+
+        Return:
+            list: Results of query
+
+        """
+        return self._db_service.find(model_doc_type, query, fields)
+
     def find(self, model_type: str, query={}, fields: List[str] = None) -> list:
-        """Find model entries based on query.
-        
+        """Find model entries by query.
+
         Args:
             model_type (str): Must correspond to models listed in model_docs enum provided during construction
             query (dict): Field values for constructing query
@@ -72,15 +90,48 @@ class ResultsDBService:
 
         Return:
             list: Results of query
-        
+
         """
 
         model_doc_type = self._get_model_doc_type(model_type)
 
-        results = self._db_service.find(model_doc_type, query, fields)
-        
+        results = self._find(model_doc_type, query, fields)
+
         if results is not None:
             return results
+        else:
+            return []
+
+    def find_by_index(self, model_type: str, **kwargs) -> List[str]:
+        """Find model entries based on query.
+
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            **kwargs: Field values for constructing document
+
+        Return:
+            List[str]: List of index fields
+
+        """
+
+        model_doc_type = self._get_model_doc_type(model_type)
+
+        index_fields = model_doc_type.get_unique_result_index_fields()
+
+        for field in index_fields:
+
+            kwargs.get(field)
+
+        query = {field: kwargs.get(field, None) for field in index_fields}
+        if any([value is None for field, value in query.items()]):
+            raise ValueError(
+                f"Missing index field  for {model_type}. Requires {','.join(index_fields)}. Provided: {json.dumps(query)}"
+            )
+
+        results = self._find(model_doc_type, query)
+
+        if results is not None:
+            return results[0]
         else:
             return []
 
@@ -102,8 +153,10 @@ class ResultsDBService:
         else:
             return []
 
-    def load_dataframe(self, *, model_type: str, query = {}, fields: List[str] = []) -> pd.DataFrame:
-        """Load dataframe from result database query. 
+    def load_dataframe(
+        self, *, model_type: str, query={}, fields: List[str] = []
+    ) -> pd.DataFrame:
+        """Load dataframe from result database query.
 
         Args:
             model_type (str): Must correspond to models listed in model_docs enum provided during construction
@@ -112,7 +165,7 @@ class ResultsDBService:
 
         Returns:
             pd.DataFrame
-        
+
         """
         # flattens results and returns dataframe
         results = self.find(model_type, query=query, fields=fields)
@@ -120,13 +173,12 @@ class ResultsDBService:
         df = pd.DataFrame(flattened)
 
         # Load DataFrame
-       # df["date"] = pd.to_datetime(df["pv_collection_isotime"])
-      #  df["_id"] = df["_id"].astype(str)
+        # df["date"] = pd.to_datetime(df["pv_collection_isotime"])
+        #  df["_id"] = df["_id"].astype(str)
 
         return df
 
-
-    def _get_model_doc_type(self, model_type: str):
+    def _get_model_doc_type(self, model_type: str) -> Type[DocumentBase]:
         """Get model doc type reference from model string.
 
         Args:
@@ -134,11 +186,42 @@ class ResultsDBService:
 
         Return:
             type: Document type
-        
+
+
         """
 
         if not getattr(self._model_docs, model_type):
-            logger.error("Model type %s not a member of model doc types: %s", model_type, ','.join([e.key for e in self._model_docs]) )
-            raise ValueError("Model type %s not a member of model doc types: %s", model_type,','.join([e.key for e in self._model_docs]))
+            logger.error(
+                "Model type %s not a member of model doc types: %s",
+                model_type,
+                ",".join([e.key for e in self._model_docs]),
+            )
+            raise ValueError(
+                "Model type %s not a member of model doc types: %s",
+                model_type,
+                ",".join([e.key for e in self._model_docs]),
+            )
 
         return self._model_docs[model_type].value
+
+    def validate_model_type(self, model_type: str) -> None:
+        """Utility for checking whether model type is a member of the model doc enum.
+
+        Args:
+            model_type: str
+        """
+        try:
+            self._get_model_doc_type(model_type)
+
+        except ValueError as err:
+            raise err
+
+    def get_index_fields(self, model_type: str):
+        """Get index fields for value.
+
+        ...
+        """
+
+        model_doc_type = self._get_model_doc_type(model_type)
+
+        return model_doc_type.get_unique_result_index_fields()
