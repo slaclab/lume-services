@@ -10,7 +10,7 @@ from lume_services.data.model.utils import validate_kwargs_exist
 logger = logging.getLogger(__name__)
 
 
-class ModelDBService:
+class ModelService:
 
     def __init__(self, db_service: DBService):
         self._db_service = db_service

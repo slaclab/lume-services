@@ -2,7 +2,7 @@ from typing import List, Type
 import json
 import logging
 
-from pydantic import ValidationError
+from pydantic import BaseSettings
 
 from lume_services.data.results.db.service import DBService
 from lume_services.utils import flatten_dict
@@ -14,8 +14,10 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+class ResultsServiceConfig(BaseSettings):
+    model_docs: Enum # describes documents allowed
 
-class ResultsDBService:
+class ResultsService:
     """Results database for use with NoSQL database service"""
 
     def __init__(self, db_service: DBService, model_docs: Enum):
@@ -61,7 +63,7 @@ class ResultsDBService:
 
         if pk_id:
             logger.info("Document stored with id %s", pk_id)
-            return pk_id
+            return res
 
         else:
             return None
@@ -134,6 +136,44 @@ class ResultsDBService:
             return results[0]
         else:
             return []
+
+    def find_by_unique_field(self, model_type: str, unique_result_hash: str) -> DocumentBase:
+        """Find model entry by unique index hash.
+
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            unique_result_hash (str): Hash of unique index
+
+        Return:
+            DocumentBase
+
+        """
+
+        model_doc_type = self._get_model_doc_type(model_type)
+
+        query = {model_doc_type.target_field: unique_result_hash}
+
+        results = self._find(model_doc_type, query)
+
+        if results is not None:
+            return results[0]
+        else:
+            return []
+
+    def get_unique_field(self, model_type: str) -> str:
+        """Get unique field for model type
+
+        Args:
+            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+
+        Return:
+            str
+
+        """
+
+        model_doc_type = self._get_model_doc_type(model_type)
+        return model_doc_type.target_field
+
 
     def find_all(self, model_type: str) -> list:
         """Get all members of a model_type collection

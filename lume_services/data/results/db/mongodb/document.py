@@ -13,7 +13,11 @@ class ResultDocument(Document):
 
     It may be necessary to overwrite the index specified here in subclasses.
 
+    Signals must connect subclass to ResultDocument post_init
+
     """
+
+    target_field = "unique_result_hash"
 
     flow_id = StringField(max_length=200, required=True)
     inputs = DictField(required=True)
@@ -60,13 +64,21 @@ class ResultDocument(Document):
 
     @classmethod
     def post_init(cls, sender, document, **kwargs):
-        document.unique_result_hash = fingerprint_dict(
+        document.unique_result_hash = cls.get_unique_hash(inputs=document.inputs, outputs=document.outputs, flow_id=document.flow_id)
+
+
+    @classmethod
+    def get_unique_hash(cls, *, inputs, outputs, flow_id):
+
+        return fingerprint_dict(
             {
-                "inputs": document.inputs,
-                "outputs": document.outputs,
-                "flow_id": document.flow_id,
+                "inputs": inputs,
+                "outputs": outputs,
+                "flow_id": flow_id,
             }
         )
+
+    
 
 
 class GenericResultDocument(ResultDocument):
