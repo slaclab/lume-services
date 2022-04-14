@@ -1,6 +1,6 @@
 from lume_services.data.results.db.mongodb.document import ResultDocument
 from mongoengine.fields import StringField, DateTimeField, DictField
-
+from mongoengine import signals
 
 class ImpactResultDocument(ResultDocument):
     """Extends ResultDocument base and implements Impact specific collection
@@ -17,3 +17,4 @@ class ImpactResultDocument(ResultDocument):
            ],
     }
 
+signals.post_init.connect(ResultDocument.post_init, sender=ImpactResultDocument)

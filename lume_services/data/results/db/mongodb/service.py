@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Type
 import os
 from pymongo import MongoClient
 
@@ -65,6 +65,20 @@ class MongodbService(DBService):
 
         return self._connection.get()
 
+    
+    def _disconnect(self):
+        """Disconnect mongodb connection. 
+        
+        """
+        mongoengine.disconnect()
+        self._connection.set(None)
+
+    def disconnect(self):
+        """Disconnect mongodb connection. 
+        
+        """
+        self._disconnect()
+
 
     @contextmanager
     def connection(self) -> MongoClient:
@@ -90,8 +104,7 @@ class MongodbService(DBService):
                 cxn = self._connection.get()
 
                 if cxn:
-                    mongoengine.disconnect()
-                    self._connection.set(None)
+                    self._disconnect()
 
 
     def insert_one(self, doc: Document) -> Document:
@@ -110,14 +123,16 @@ class MongodbService(DBService):
         return res
 
 
-    def find(self, model_doc_type: type[Document], query: dict=None, fields: List[str] = None) -> List[Document]:
+    def find(self, model_doc_type: Type[Document], query: dict, fields: List[str] = None) -> List[Document]:
         """Find a document based on a query.
 
         Args:
-            model_doc_type (type[Document]): Document type to query
+            model_doc_type (Type[Document]): Document type to query
+            query (dict): Query in dictionary form of field to value
+            fields (List[str]): List of fields for filtering result
 
-        
-
+        Returns:
+            List[Document]: List of query result documents.
         
         """
 
@@ -130,13 +145,19 @@ class MongodbService(DBService):
         return results
 
     def find_all(self, model_doc_type: type[Document]) -> List[Document]:
+        """Find all documents for a model type.
+
+        Args:
+            model_doc_type (type[Document]): Document type to query
+            query (dict): Query in dictionary form of field to value
+            fields (List[str]): List of fields for filtering result
+
+        Returns:
+            List[Document]: List of query result documents.
+        
+        """
 
         with self.connection() as cxn:
-            results = model_doc_type.object()
+            results = model_doc_type.objects()
 
         return results 
-
-
-    def disconnect(self):
-        mongoengine.disconnect(alias="connected_db")
-
