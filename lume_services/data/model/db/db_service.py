@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseSettings
 from typing import List
 import logging
+from lume_services.config import LUMESettings
 
 from sqlalchemy.sql.base import Executable
 from sqlalchemy.sql.expression import Insert, Select
 
 logger = logging.getLogger(__name__)
 
-class DBServiceConfig(BaseSettings, ABC):
+class DBServiceConfig(LUMESettings):
     ...
 
 class DBService(ABC):

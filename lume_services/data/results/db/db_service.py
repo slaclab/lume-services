@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseSettings
+from lume_services.config import LUMESettings
 from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class DBServiceConfig(BaseSettings, ABC):
+class DBServiceConfig(LUMESettings):
     ...
 
 
