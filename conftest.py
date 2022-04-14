@@ -116,6 +116,7 @@ def mysql_service(mysql_config):
 
 @pytest.fixture(scope="module")
 def context(mongodb_service, mysql_service):
+    # don't use factory her because want to use pytest fixture management
     return Context(results_db_service=mongodb_service, model_db_service=mysql_service)
 
 @pytest.mark.usefixtures("mysql_server")
