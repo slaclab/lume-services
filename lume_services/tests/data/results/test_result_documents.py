@@ -1,15 +1,12 @@
 from lume_services.data.results.db.mongodb.models.impact import ImpactResultDocument
 from lume_services.data.results.db.mongodb.document import GenericResultDocument
-from datetime import datetime
 import pytest
 
-
-@pytest.mark.run(order=1)
 def test_construct_result_document(test_generic_result_document):
     result_doc_instance = GenericResultDocument(**test_generic_result_document)
 
+    assert result_doc_instance.unique_result_hash is not None
 
-@pytest.mark.run(order=1)
 def test_construct_impact_result_document(test_impact_result_document, test_generic_result_document):
 
     # check missing fields
@@ -18,9 +15,9 @@ def test_construct_impact_result_document(test_impact_result_document, test_gene
     with pytest.raises(validation_error):
         missing_field_doc.validate()
 
-  #  del missing_field_doc
     result_doc_instance = ImpactResultDocument(**test_impact_result_document)
-  #  del result_doc_instance
+
+    assert result_doc_instance.unique_result_hash is not None
 
 def test_distinct_collection(test_impact_result_document, test_generic_result_document):
 
