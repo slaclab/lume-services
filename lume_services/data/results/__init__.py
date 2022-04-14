@@ -1,1 +1,1 @@
-from .results_db_service import ResultsService, ResultsServiceConfig
+from .results_service import ResultsService, ResultsServiceConfig

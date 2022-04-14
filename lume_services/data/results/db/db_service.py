@@ -23,7 +23,6 @@ class DBService(ABC):
     def find(self):
         ...
 
-
     @abstractmethod
     def find_all(self):
         ...
