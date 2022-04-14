@@ -2,7 +2,7 @@ from sqlalchemy import insert, select, desc
 from typing import List
 import logging
 
-from lume_services.data.model.db import DBService
+from lume_services.data.model.db.db_service import DBService
 from lume_services.data.model.db.schema import Base, Model, Deployment, Flow, FlowToDeployments, Project
 
 from lume_services.data.model.utils import validate_kwargs_exist
