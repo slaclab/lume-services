@@ -6,14 +6,15 @@ import time
 import mongomock
 
 from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
-from lume_services.data.model.model_db_service import ModelDBService
-from lume_services.data.results.db.service import DBServiceConfig
+from lume_services.data.model.model_service import ModelService
+from lume_services.data.results.db.db_service import DBServiceConfig
 from lume_services.data.results.db.mongodb.service import MongodbService
-from lume_services.data.results.results_db_service import ResultsDBService
+from lume_services.data.results.results_service import ResultsService
 
 from lume_services.data.results.db.mongodb.models import ModelDocs
 from lume_services.tests.plugins.mysql import mysql_proc
 
+from lume_services.context import Context
 
 def pytest_addoption(parser):
 
@@ -112,9 +113,14 @@ def mysql_service(mysql_config):
     return mysql_service
 
 
+
+@pytest.fixture(scope="module")
+def context(mongodb_service, mysql_service):
+    return Context(results_db_service=mongodb_service, model_db_service=mysql_service)
+
 @pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
-def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_server):
+def model_service(mysql_service, mysql_database, base_db_uri, mysql_server):
 
     # start the mysql process if not started
     if not mysql_server.running():
@@ -127,11 +133,11 @@ def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_server):
     with engine.connect() as connection:
         connection.execute("CREATE DATABASE IF NOT EXISTS model_db;")
 
-    model_db_service = ModelDBService(mysql_service)
-    model_db_service.apply_schema()
+    model_service = ModelService(mysql_service)
+    model_service.apply_schema()
 
     # set up database
-    yield model_db_service
+    yield model_service
 
     with engine.connect() as connection:
         connection.execute(f"DROP DATABASE {mysql_database};")
@@ -154,12 +160,12 @@ def mongodb_service(mongodb_config):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def results_db_service(mongodb_service):
+def results_service(mongodb_service):
 
-    results_db_service = ResultsDBService(mongodb_service, ModelDocs)
+    results_service = ResultsService(mongodb_service, ModelDocs)
 
     # no teardown needed because mock is module scoped
-    return results_db_service
+    return results_service
 
 @pytest.fixture(scope="session", autouse=True)
 def test_generic_result_document():
