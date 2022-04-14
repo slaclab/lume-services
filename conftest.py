@@ -93,8 +93,6 @@ def base_db_uri(mysql_user, mysql_host, mysql_port):
     return Template("mysql+pymysql://${user}:@${host}:${port}").substitute(user=mysql_user, host=mysql_host, port=mysql_port)
 
 
-#@pytest.fixture(scope="module", autouse=True)
-#def mysql_server(): 
 mysql_server= mysql_proc()
 
 @pytest.fixture(scope="session", autouse=True)
