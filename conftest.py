@@ -4,17 +4,18 @@ from string import Template
 from datetime import datetime 
 import time
 import mongomock
+from mongoengine import connect
 
 from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
 from lume_services.data.model.model_service import ModelService
 from lume_services.data.results.db.db_service import DBServiceConfig
 from lume_services.data.results.db.mongodb.service import MongodbService
-from lume_services.data.results.results_service import ResultsService
+from lume_services.data.results.results_service import ResultsService, ResultsServiceConfig
 
-from lume_services.data.results.db.mongodb.models import ModelDocs
+from lume_services.data.results.db.mongodb.models import ModelDocs as MongoDBModelDocs
 from lume_services.tests.plugins.mysql import mysql_proc
 
-from lume_services.context import Context
+from lume_services.context import Context, LumeServicesConfig
 
 def pytest_addoption(parser):
 
@@ -114,10 +115,10 @@ def mysql_service(mysql_config):
 
 
 
-@pytest.fixture(scope="module")
-def context(mongodb_service, mysql_service):
-    # don't use factory her because want to use pytest fixture management
-    return Context(results_db_service=mongodb_service, model_db_service=mysql_service)
+@pytest.fixture(scope="session")
+def model_docs():
+    return MongoDBModelDocs
+
 
 @pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
@@ -146,7 +147,7 @@ def model_service(mysql_service, mysql_database, base_db_uri, mysql_server):
 
 class MongomockResultsDBConfig(DBServiceConfig):
     host: str= 'mongomock://localhost'
-    db: str= "localhost"
+    db: str= "test"
     port: int = 27017
 
 
@@ -159,14 +160,37 @@ def mongodb_config():
 def mongodb_service(mongodb_config):
     return MongodbService(mongodb_config)
 
-
 @pytest.fixture(scope="module", autouse=True)
-def results_service(mongodb_service):
+def results_service(mongodb_service, model_docs):
 
-    results_service = ResultsService(mongodb_service, ModelDocs)
+    results_service = ResultsService(mongodb_service, model_docs)
 
-    # no teardown needed because mock is module scoped
-    return results_service
+    yield results_service
+
+    cxn = connect('test', host='mongomock://localhost')
+    cxn.drop_database('test')
+
+
+
+@pytest.fixture(scope="module")
+def context(mongodb_service, mysql_service, mysql_config, mongodb_config, model_docs):
+    # don't use factory here because want to use pytest fixture management
+    
+    results_service_config = ResultsServiceConfig(
+        model_docs = model_docs
+    )
+    config = LumeServicesConfig(
+        results_service_config = results_service_config,
+        model_db_service_config = mysql_config,
+        results_db_service_config = mongodb_config
+    )
+
+    context = Context(results_db_service=mongodb_service, model_db_service=mysql_service)
+
+    context.config.from_pydantic(config)
+
+    return context
+
 
 @pytest.fixture(scope="session", autouse=True)
 def test_generic_result_document():

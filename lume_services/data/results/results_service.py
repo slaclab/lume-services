@@ -9,23 +9,22 @@ from lume_services.data.results.db.document import DocumentBase
 
 from lume_services.config import LUMESettings
 
-from enum import Enum
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 class ResultsServiceConfig(LUMESettings):
-    model_docs: Enum # describes documents allowed
+    model_docs: dict # describes documents allowed
 
 class ResultsService:
     """Results database for use with NoSQL database service"""
 
-    def __init__(self, db_service: DBService, model_docs: Enum):
+    def __init__(self, db_service: DBService, model_docs: dict):
         """Initialize Results DB Service interface
 
         Args:
             db_service (DBService): DB Connection service
-            model_docs (Enum): Enum of configured model documents
+            model_docs (dict): Mapping of name to configured model documents
 
         """
         self._db_service = db_service
@@ -230,7 +229,7 @@ class ResultsService:
 
         """
 
-        if not getattr(self._model_docs, model_type):
+        if not self._model_docs.get(model_type, None):
             logger.error(
                 "Model type %s not a member of model doc types: %s",
                 model_type,
@@ -242,7 +241,7 @@ class ResultsService:
                 ",".join([e.key for e in self._model_docs]),
             )
 
-        return self._model_docs[model_type].value
+        return self._model_docs[model_type]
 
     def validate_model_type(self, model_type: str) -> None:
         """Utility for checking whether model type is a member of the model doc enum.

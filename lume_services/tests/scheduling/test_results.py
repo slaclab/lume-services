@@ -23,6 +23,13 @@ class TestInitialization:
         assert s.location is None
 """
 
+def test_result_service_injection(test_generic_result_document, context):
+    result = DBResult(value= test_generic_result_document, model_type="Generic")
+
+    #check location is None
+    assert result.location is None
+
+
 def test_generic_result(results_service, test_generic_result_document):
     result = DBResult(value= test_generic_result_document, model_type="Generic", results_service=results_service)
 
@@ -30,65 +37,18 @@ def test_generic_result(results_service, test_generic_result_document):
     assert result.location is None
 
 
-def test_everything_is_pickleable_after_init(results_service, test_generic_result_document):
+def test_generic_everything_is_pickleable_after_init(results_service, test_generic_result_document):
     result = DBResult(value= test_generic_result_document, model_type="Generic", results_service=results_service)
 
     assert cloudpickle.loads(cloudpickle.dumps(result)) == result
 
 
+def test_write_generic_result(results_service, test_generic_result_document):
+    result = DBResult(model_type="Generic", results_service=results_service)
+    result.write(test_generic_result_document)
+    return result
 
-"""
-
-@pytest.mark.parametrize("abstract_interface", ["exists", "read", "write"])
-def test_has_abstract_interfaces(abstract_interface: str):
-
-    r = Result(value=3)
-
-    func = getattr(r, abstract_interface)
-    with pytest.raises(ResultNotImplementedError):
-        func(None)
-
-
-def test_basic_result_repr():
-    r = Result(2)
-    assert repr(r) == "<Result: 2>"
-
-
-class TestResultEquality:
-    @pytest.mark.parametrize("val", [1, "2", object, lambda: None])
-    def test_boring_results_are_the_same_if_values_are(self, val):
-        r, s = Result(val), Result(val)
-        assert r == s
-
-    def test_boring_results_are_different_if_one_has_location(self):
-        r, s = Result(), Result(location="s")
-        assert r != s
-
-    def test_no_results_are_equal(self):
-        r, s = NoResultType(), NoResultType()
-        assert r == s
-
-    def test_no_results_are_not_equal_to_results(self):
-        r, s = NoResultType(), Result()
-        assert r != s
-
-
-@pytest.mark.parametrize(
-    "obj",
-    [
-        Result(3),
-        Result(object, location=lambda: None),
-    ],
-)
-def test_everything_is_pickleable_after_init(obj):
-    assert cloudpickle.loads(cloudpickle.dumps(obj)) == obj
-
-
-def test_result_format_template_from_context():
-    res = Result(location="{this}/{works}/yes?")
-    with prefect.context(this="indeed", works="functional"):
-        new = res.format(**prefect.context)
-        assert new.location == "indeed/functional/yes?"
-        assert res.location == "{this}/{works}/yes?"
-        assert new != res
-"""
+def test_write_impact_result(results_service, test_impact_result_document):
+    result = DBResult(value= test_impact_result_document, model_type="Impact", results_service=results_service)
+    result.write(test_impact_result_document)
+    return result
