@@ -1,13 +1,13 @@
 from prefect.engine.result.base import Result
-from typing import Callable, Type, Any
+from typing import Any
 from dependency_injector.wiring import Provide
 
 from lume_services.data.results import ResultsService
-
+from lume_services.context import Context
 
 class DBResult(Result):
 
-    def __init__(self, *, model_type: str, results_service: ResultsService, **kwargs):
+    def __init__(self, *, model_type: str, results_service: ResultsService = Provide[Context.results_service], **kwargs):
         """
         
         Note: model_type string must be a key member of the model_docs Enum passed to the ResultsService.
@@ -28,7 +28,7 @@ class DBResult(Result):
 
 
     @property
-    def results_service(self, results_service: Provide[ResultsService]) -> ResultsService:
+    def results_service(self, results_service: ResultsService = Provide[Context.results_service]) -> ResultsService:
         if not hasattr(self, "_results_service"):
             self.results_service = results_service
 
@@ -70,7 +70,7 @@ class DBResult(Result):
 
         self.logger.debug("Writing result to results database...")
 
-        insert_result = self._results_service.store(model_type=self._model_type, model_rep=model_rep)
+        insert_result = self._results_service.store(model_type=self._model_type, **model_rep)
 
         run_fingerprint = getattr(insert_result, self._target)
         new = self.copy()
@@ -78,4 +78,3 @@ class DBResult(Result):
         new.location = run_fingerprint
 
         return new
-
