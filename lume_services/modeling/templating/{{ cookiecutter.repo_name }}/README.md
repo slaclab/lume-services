@@ -2,7 +2,7 @@
 
 ## Installation notes
 
-Release artifacts...
+Release artifacts will be uploaded to (Dockerhub? & release?)
 
 
 

@@ -44,7 +44,7 @@ def store_db_results(model_predict_results):
 
     return dat
 
-@task(results=FileResult)
+@task(result=FileResult)
 def store_result_artifact(model_predict_results):
     return model_predict_results["output_filename"]
 
