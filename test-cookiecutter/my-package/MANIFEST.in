@@ -1,4 +1,0 @@
-recursive-include my_package/files *
-include versioneer.py
-include my_package/_version.py
-recursive include .github/ *
