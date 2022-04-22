@@ -20,7 +20,7 @@ with open(path.join(cur_dir, "docs-requirements.txt"), "r") as f:
 
 
 setup(
-    name="{{ cookiecutter.package_name }}",
+    name="{{ cookiecutter.project_slug }}",
     author="{{ cookiecutter.author }}",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
@@ -33,8 +33,8 @@ setup(
     python_requires=">=3.7",
     entry_points = {
         "orchestration": [
-            "{{ cookiecutter.project_slug }}.model={{ cookiecutter.project_slug }}.model:{{ cookiecutter.model_name }}",
-            "{{ cookiecutter.project_slug }}.flow={{ cookiecutter.project_slug }}.flow.flow:{{ cookiecutter.model_name }}"
+            "{{ cookiecutter.project_slug }}.model={{ cookiecutter.project_slug }}.model:{{ cookiecutter.model_class }}",
+            "{{ cookiecutter.project_slug }}.flow={{ cookiecutter.project_slug }}.flow.flow:get_flow"
         ]
     }
 )

@@ -17,9 +17,11 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-activate-base: true
+          {% raw -%}
           python-version: ${{ matrix.python-version }}
           channels: conda-forge,anaconda
           channel-priority: flexible
+          {%- endraw %}
       - name: Create environment
         shell: bash -l {0}
         run: |

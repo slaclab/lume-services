@@ -1,4 +1,2 @@
-recursive-include {{ cookiecutter.package_name }}/files *
-include versioneer.py
-include {{ cookiecutter.package_name }}/_version.py
+recursive-include {{ cookiecutter.project_slug }}/files *
 recursive include .github/ *
