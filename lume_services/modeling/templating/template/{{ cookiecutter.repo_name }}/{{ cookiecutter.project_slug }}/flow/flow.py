@@ -2,6 +2,7 @@ from prefect import Flow, task
 from prefect import Parameter
 
 from lume_services.scheduling.prefect.results import MongoDBResult
+from prefect.tasks.control_flow import case
 import os
 
 from {{ cookiecutter.project_slug }}.model import {{ cookiecutter.model_class }}
@@ -44,18 +45,25 @@ def store_db_results(model_predict_results):
 
     return dat
 
-@task(result=FileResult)
-def store_result_artifact(model_predict_results):
-    return model_predict_results["output_filename"]
+#@task(result=FileResult)
+#def store_result_artifact(model_predict_results):
+#    return model_predict_results["output_filename"]
 
 
 with Flow(
         {{ cookiecutter.repo_name }},
     ) as flow:
 
+
+    preprocess_variables = Parameter("preprocess_variables", default=False)
     input_variable_parameter_dict = {
         var_name: Parameter(var_name, default=var.default) for var, var_name in INPUT_VARIABLES.items()
     }
+
+    with case(preprocess_variables, True):
+        
+
+
     model_settings = Parameter("model_settings", default=None)
 
     # Define any extra parameters here...

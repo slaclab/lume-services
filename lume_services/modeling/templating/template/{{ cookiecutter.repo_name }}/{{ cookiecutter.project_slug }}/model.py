@@ -22,18 +22,10 @@ class {{ cookiecutter.model_class }}(BaseModel):
         """
         self.input_variables = input_variables
 
-      # Optional other methods...
-      # model_inputs = self.scale_inputs(input_variables)
-
-
         # Assign output variables a value based on your execution
         model_output_dict = ...
 
         for output_varname, value in model_output_dict.items():
             self.output_variables[output_varname].value = value
 
-
         return self.output_variables
-
-  #  def scale_variables(self, input_variables):
-  #      ...

@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     name: Test model execution
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-activate-base: true
-          {% raw -%}
-          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
           channels: conda-forge,anaconda
           channel-priority: flexible
+          {% raw -%}
+          python-version: ${{ matrix.python-version }}
           {%- endraw %}
       - name: Create environment
         shell: bash -l {0}
