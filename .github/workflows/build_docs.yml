@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    if: ${{ github.repository == 'slaclab/lume-services' }}
+    #if: ${{ github.repository == 'slaclab/lume-services' }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,6 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           channels: anaconda,conda-forge
           channel-priority: flexible
+
       - name: Build package
         shell: bash -l {0}
         run: |
@@ -30,5 +31,21 @@ jobs:
           conda install --file requirements.txt
           conda install --file dev-requirements.txt
           conda install --file docs-requirements.txt
+          pip install -e .
+
+      - name: Build file artifacts
+        shell: bash -l {0}
+        run: |
+          lume generate-schema-docs --uml_output_filename=docs/files/model_db_uml.png --schema_output_filename=docs/files/model_db_schema.png
+
+      - name: Push schema docs
+        uses: actions-x/commit@v6
+        with:
+          branch: master
+          files: docs/files/model_db_uml.png docs/files/model_db_schema.png
+
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
           mkdocs build
           mkdocs gh-deploy --force
