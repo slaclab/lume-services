@@ -3,19 +3,29 @@ site_url: https://slaclab.github.io/lume-services
 repo_url: https://github.com/slaclab/lume-services
 nav:
   - Overview: index.md
-  - Install: Install.md
-  - Tutorial:
-    - Bokeh Server: BokehServer.md
-    - Jupyter Notebook Demo: Jupyter.md
-  - Widgets: Widgets_doc.md
-  - Documentation:
-    - Client:
-      - Controller: Controller.md
-      - Monitors: Monitors.md
-      - Widgets: Widgets.md
-    - Model: Model.md
-    - Server: Server.md
-    - EPICS: EPICS.md
+  - Notes: nodes.md
+  - Configuration:
+  - Services: 
+    - Data: 
+      - File Service: file_service.md
+      - Model Service: model_service.md
+      - Results Service: results_service.md
+    - HPC: 
+    - Modeling:
+      - Remote Modeling Service: 
+      - Local Modeling Service: 
+      - Preprocessing:
+      - Templating: 
+    - Scheduling:
+      - Scheduling Service: 
+      - Prefect:
+        - Prefect Scheduler: 
+        - Results:
+          - File Result:
+          - DB Result: 
+  - Developer:
+
+
 plugins:
   - mkdocstrings:
       default_handler: python
