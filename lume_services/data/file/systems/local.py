@@ -80,7 +80,6 @@ class LocalFilesystem(Filesystem):
         """Read file from the local filesystem.
 
         Args:
-        Args:
             filepath (str): Path of file to read
             serializer (SerializerBase): Implementation of lume-base SerializerBase abstract base class
         
