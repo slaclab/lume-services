@@ -14,3 +14,8 @@ echo -e '[mysqld]\nuser=root' > /etc/my.cnf
 Pytest tests the mysql commands using the system `mysqld` command in path. To use an alternative installation add `mysql_mysqld=/path/to/mysqld` to pytest.ini... 
 
 Has only been tested on 8.0.28
+
+
+
+# Pydantic docker secrets:
+https://pydantic-docs.helpmanual.io/usage/settings/

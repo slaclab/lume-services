@@ -1,11 +1,33 @@
 import os
 from typing import Any
+from enum import Enum
 import logging
+from pydantic import BaseSettings
 
 from .local import LocalFilesystem
 from lume.serializers.base import SerializerBase
 
 logger = logging.getLogger(__name__)
+
+
+class HostMountType(str, Enum):
+    # types associated with mounting host filesystem to kubernetes
+    # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
+    directory = "Directory"  # directory must exist at given path
+    directory_or_create = (
+        "DirectoryOrCreate"  # if directory does not exist, directory created
+    )
+    file = "File"  # file must exist at path
+    file_or_create = "FileOrCreate"  # will create file if does not exist
+    # socket = "Socket" # Unix socket must exist at given path
+    # char_device = "CharDevice" # Character device must exist at given path
+    # block_device = "BlockDevice" # block device must exist at given path
+
+
+class MountPoint(BaseSettings):
+    name: str
+    host_path: str
+    mount_type: HostMountType
 
 
 class PathNotInMount(Exception):

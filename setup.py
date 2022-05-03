@@ -28,14 +28,14 @@ setup(
     author_email="jgarra@slac.stanford.edu",
     license="SLAC Open",
     install_requires=requirements,
-
     # Add extra requirements
     extras_require={"dev": dev_requirements, "docs": docs_requirements},
     url="https://github.com/slaclab/lume-services",
     include_package_data=True,
     python_requires=">=3.7",
-   # entry_points={
-   #     "console_scripts": [
-   #     ]
-   # },
+    entry_points={
+        "console_scripts": [
+            "lume = lume_services.cli.cli:main"  
+        ]
+    },
 )
