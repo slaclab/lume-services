@@ -12,10 +12,15 @@ from lume_services.data.results.db.db_service import DBServiceConfig
 from lume_services.data.results.db.mongodb.service import MongodbService
 from lume_services.data.results.results_service import ResultsService, ResultsServiceConfig
 
+from lume_services.data.file.systems.local import LocalFilesystem
+from lume_services.data.file.service import FileService
+
 from lume_services.data.results.db.mongodb.models import ModelDocs as MongoDBModelDocs
 from lume_services.tests.plugins.mysql import mysql_proc
 
 from lume_services.context import Context, LumeServicesConfig
+
+from lume.serializers.base import SerializerBase
 
 def pytest_addoption(parser):
 
@@ -171,21 +176,56 @@ def results_service(mongodb_service, model_docs):
     cxn.drop_database('test')
 
 
+@pytest.fixture(scope="module", autouse=True)
+def local_filesystem_handler():
+    return LocalFilesystem()
+
+
+class TextSerializer(SerializerBase):
+
+    def serialize(self, filename, text):
+
+        with open(filename, "w") as f:
+            f.write(text)
+
+
+    @classmethod
+    def deserialize(cls, filename):
+
+        text = ""
+        
+        with open(filename, "r") as f:
+            text = f.read()
+
+        return text
+
+@pytest.fixture(scope="module", autouse=True)
+def text_serializer():
+    return TextSerializer()
 
 @pytest.fixture(scope="module")
-def context(mongodb_service, mysql_service, mysql_config, mongodb_config, model_docs):
+def file_service(local_filesystem_handler):
+    filesystems = [local_filesystem_handler]
+
+    return FileService(filesystems)
+
+
+
+@pytest.fixture(scope="module")
+def context(mongodb_service, mysql_service, mysql_config, mongodb_config, model_docs, file_service):
     # don't use factory here because want to use pytest fixture management
     
     results_service_config = ResultsServiceConfig(
-        model_docs = model_docs
+        model_docs = model_docs,
     )
+
     config = LumeServicesConfig(
         results_service_config = results_service_config,
         model_db_service_config = mysql_config,
         results_db_service_config = mongodb_config
     )
 
-    context = Context(results_db_service=mongodb_service, model_db_service=mysql_service)
+    context = Context(results_db_service=mongodb_service, model_db_service=mysql_service, file_service=file_service)
 
     context.config.from_pydantic(config)
 
