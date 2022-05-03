@@ -8,17 +8,13 @@ jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    env:
+      flow_image_root: {{ cookiecutter.project_slug }}_{{ "${{ github.ref_name }}" }}
 
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
       
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          username: {{ "${{ secrets.DOCKER_USERNAME }}" }}
-          password: {{ "${{ secrets.DOCKER_PASSWORD }}" }}
-
       - name: Copy environment file
         run: |
           cp environment.yml ./{{ cookiecutter.project_slug }}/flow/environment.yml
@@ -27,15 +23,13 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: ./{{ cookiecutter.project_slug }}/flow
-          push: true
-          tags: {{ "${{ secrets.DOCKER_USERNAME }}" }}/{{ cookiecutter.project_slug }}:{{ "${{ github.ref_name }}" }},{{ "${{ secrets.DOCKER_USERNAME }}" }}/{{ cookiecutter.project_slug }}:latest
+          push: false
           build-args: |
             VERSION={{ "${{ github.ref_name }}" }}
-          outputs: type=docker,dest=/tmp/myimage.tar
-      -
-        name: Upload artifact
+          outputs: type=docker,dest=/tmp/{{ "${{ env.flow_image_root }}" }}.tar
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: {{ cookiecutter.project_slug }}:{{ "${{ github.ref_name }}" }}
+          name: {{ cookiecutter.project_slug }}_{{ "${{ github.ref_name }}" }}.tar
           path: /tmp/myimage.tar
-
