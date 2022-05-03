@@ -24,6 +24,9 @@ nav:
           - File Result:
           - DB Result: 
   - Developer:
+    - Structure:
+  - API:
+    - ...
 
 
 plugins:

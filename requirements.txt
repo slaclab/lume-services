@@ -9,4 +9,6 @@ blinker
 dependency_injector
 lume-base
 h5py
-git+https://github.com/jacquelinegarrahan/lume-base.git
+click
+lume-base>=0.2.0
+sqlalchemy_schemadisplay

@@ -1,2 +1,4 @@
 pytest
 mongomock
+pre-commit
+flake8
