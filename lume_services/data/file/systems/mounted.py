@@ -31,8 +31,9 @@ class MountPoint(BaseSettings):
 
 
 class PathNotInMount(Exception):
-
-    def __init__(self, filesystem_identifier: str, path:str, mount_path: str, mount_alias: str):
+    def __init__(
+        self, filesystem_identifier: str, path: str, mount_path: str, mount_alias: str
+    ):
         self.filesystem_identifier = filesystem_identifier
         self.mount_path = mount_path
         self.mount_alias = mount_alias
@@ -41,10 +42,10 @@ class PathNotInMount(Exception):
 
 
 class MountedFilesystem(LocalFilesystem):
-    """Handler for mounted filesystem. Modifies the LocalFilesystem to implements checks for mount path modifications. 
-    Container and container orchestration tools often allow the ability to provide an alias for a mounted directory. 
+    """Handler for mounted filesystem. Modifies the LocalFilesystem to implements checks for mount path modifications.
+    Container and container orchestration tools often allow the ability to provide an alias for a mounted directory.
     This handler accounts for the mount base and verifies that the file is within the path.
-    
+
     """
 
     def __init__(self, mount_path: str, mount_alias: str, identifier: str = None):
@@ -52,9 +53,9 @@ class MountedFilesystem(LocalFilesystem):
 
         Args:
             mount_path (str):
-            mount_alias (str): 
+            mount_alias (str):
             identifier (str):
-        
+
         """
         if not identifier:
             self._identifier = "mounted"
@@ -75,13 +76,13 @@ class MountedFilesystem(LocalFilesystem):
         Args:
             dir (str): Path of directory
             create_dir (bool): Whether to create directory if it does not exist
-        
+
         Returns:
             bool
 
         """
         dir = self._check_mounted_path(dir)
-        return super().dir_exists(dir, create_dir = create_dir)
+        return super().dir_exists(dir, create_dir=create_dir)
 
     def file_exists(self, filepath: str) -> bool:
         """Check that a file exists on the mounted filesystem.
@@ -91,7 +92,7 @@ class MountedFilesystem(LocalFilesystem):
 
         Returns:
             bool
-        
+
         """
 
         filepath = self._check_mounted_path(filepath)
@@ -102,7 +103,7 @@ class MountedFilesystem(LocalFilesystem):
 
         Args:
             dir (str): Directory path to create
-        
+
         """
         dir = self._check_mounted_path(dir)
         super().create_dir(dir)
@@ -113,12 +114,18 @@ class MountedFilesystem(LocalFilesystem):
         Args:
             filepath (str): Path of file to read
             serializer (SerializerBase): Implementation of lume-base SerializerBase abstract base class
-        
+
         """
         filepath = self._check_mounted_path(filepath)
         return super().read(filepath, serializer)
 
-    def write(self, filepath: str, object: Any, serializer: SerializerBase, create_dir: bool = False) -> None:
+    def write(
+        self,
+        filepath: str,
+        object: Any,
+        serializer: SerializerBase,
+        create_dir: bool = False,
+    ) -> None:
         """Write a file to the mounted filesystem.
 
         Args:
@@ -126,13 +133,13 @@ class MountedFilesystem(LocalFilesystem):
             object (Any): Object to serialize
             serializer (SerializerBase): Implementation of lume-base SerializerBase abstract base class
             create_dir (bool): Whether to create directory in case not implemented
-        
+
         """
         filepath = self._check_mounted_path(filepath)
         super().write(filepath, object, serializer, create_dir=create_dir)
 
     def _check_mounted_path(self, path: str):
-        """Checks that the path exists inside the mount point relative to mount path or alias. 
+        """Checks that the path exists inside the mount point relative to mount path or alias.
 
         Args:
             path (str): Path to validate
@@ -148,6 +155,6 @@ class MountedFilesystem(LocalFilesystem):
             return path
 
         else:
-            raise PathNotInMount(self._identifier, path, self._mount_path, self._mount_alias)
-
-        
+            raise PathNotInMount(
+                self._identifier, path, self._mount_path, self._mount_alias
+            )
