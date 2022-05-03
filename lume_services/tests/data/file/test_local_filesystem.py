@@ -39,7 +39,7 @@ def test_local_filesystem_read_write(local_filesystem_handler, tmp_path, text_se
     assert new_text == text
 
 
-def test_local_filesystem_create_dir(local_filesystem_handler, tmp_path, text_serializer):
+def test_local_filesystem_create_dir_on_write(local_filesystem_handler, tmp_path, text_serializer):
 
 
     tmp_file = f"{tmp_path}/tmp_dir2/test.txt"

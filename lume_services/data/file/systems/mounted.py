@@ -83,7 +83,7 @@ class MountedFilesystem(LocalFilesystem):
         
         """
         dir = self._check_mounted_path(dir)
-        super().file_exists(dir)
+        super().create_dir(dir)
 
     def read(self, filepath: str, serializer: SerializerBase) -> Any:
         """Read file from the mounted filesystem.
@@ -114,10 +114,12 @@ class MountedFilesystem(LocalFilesystem):
 
         Args:
             path (str): Path to validate
-            
+
         """
 
         if self._mount_path in path:
+            print(path)
+            print(path.replace(self._mount_path, self._mount_alias))
             return path.replace(self._mount_path, self._mount_alias)
 
         elif self._mount_alias in path:
