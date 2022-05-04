@@ -31,7 +31,7 @@ jobs:
           conda install --file requirements.txt
           conda install --file dev-requirements.txt
           conda install --file docs-requirements.txt
-          pip install https://github.com/slaclab/lume-base.git@v0.2.0
+          pip install git+https://github.com/slaclab/lume-base.git@v0.2.0
           pip install -e .
 
       - name: Build file artifacts
