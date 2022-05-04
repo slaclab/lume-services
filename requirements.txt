@@ -10,5 +10,4 @@ dependency_injector
 lume-base
 h5py
 click
-lume-base>=0.2.0
 sqlalchemy_schemadisplay
