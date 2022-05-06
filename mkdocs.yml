@@ -21,6 +21,8 @@ nav:
       - Prefect: 
         - Scheduler: prefect_scheduler.md
         - Results: prefect_results.md
+    - API:
+      - modeling: api/modeling.md
   #- Developer:
   #  - 
   #  - Structure:
