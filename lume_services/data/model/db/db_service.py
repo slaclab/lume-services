@@ -8,11 +8,12 @@ from sqlalchemy.sql.expression import Insert, Select
 
 logger = logging.getLogger(__name__)
 
+
 class DBServiceConfig(LUMESettings):
     ...
 
-class DBService(ABC):
 
+class DBService(ABC):
     @abstractmethod
     def __init__(self, db_config: DBServiceConfig):
         ...
@@ -30,28 +31,27 @@ class DBService(ABC):
     def select(self, statement: Select):
         """Method for executing selection statements.
 
-        Args: 
+        Args:
             statement (Select): Executable selection statement.
 
         """
         ...
 
-
     @abstractmethod
-    def insert(self, statement: Insert): 
+    def insert(self, statement: Insert):
         """Method for executing insert statements.
 
         Args:
             statement (Insert): Executable insert statement.
-        
+
         """
         ...
 
-
     @abstractmethod
     def insert_many(self, table_row_obj: List[Insert]):
-        """Method accepting list of Insert statements. This is distinguished form the base insert method because 
-        many services will use context managment for the management of their sessions.
+        """Method accepting list of Insert statements. This is distinguished from the
+        base insert method because many services will use context managment for the
+        management of their sessions.
 
         Args:
             List[Insert]: List of executable insert statements.

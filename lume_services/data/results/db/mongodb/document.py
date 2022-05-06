@@ -1,9 +1,9 @@
-from attr import field
 from mongoengine import Document
 from mongoengine import signals
 from mongoengine.fields import StringField, DateTimeField, DictField
 from datetime import datetime
 from mongoengine.errors import ValidationError
+from typing import List
 
 from lume_services.utils import fingerprint_dict
 
@@ -49,7 +49,7 @@ class ResultDocument(Document):
         return getattr(self, pk_id_field)
 
     @classmethod
-    def get_unique_result_index_fields(cls):
+    def get_unique_result_index_fields(cls) -> List[str]:
         index_specs = cls._meta.get("index_specs")
 
         for index in index_specs:
@@ -58,14 +58,15 @@ class ResultDocument(Document):
 
         raise ValidationError(f"Unique result index {cls.unique_result_idx} not found.")
 
-    def get_unique_result_index(self):
+    def get_unique_result_index(self) -> dict:
         index_fields = self.get_unique_result_index_fields()
         return {field: getattr(self, field) for field in index_fields}
 
     @classmethod
     def post_init(cls, sender, document, **kwargs):
-        document.unique_result_hash = cls.get_unique_hash(inputs=document.inputs, outputs=document.outputs, flow_id=document.flow_id)
-
+        document.unique_result_hash = cls.get_unique_hash(
+            inputs=document.inputs, outputs=document.outputs, flow_id=document.flow_id
+        )
 
     @classmethod
     def get_unique_hash(cls, *, inputs, outputs, flow_id):
@@ -77,8 +78,6 @@ class ResultDocument(Document):
                 "flow_id": flow_id,
             }
         )
-
-    
 
 
 class GenericResultDocument(ResultDocument):

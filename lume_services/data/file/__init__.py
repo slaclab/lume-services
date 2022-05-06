@@ -1,1 +1,1 @@
-from .service import FileService
+from .service import FileService  # noqa: F401

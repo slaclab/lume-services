@@ -13,8 +13,10 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 class ResultsServiceConfig(LUMESettings):
-    model_docs: dict # describes documents allowed
+    model_docs: dict  # describes documents allowed
+
 
 class ResultsService:
     """Results database for use with NoSQL database service"""
@@ -34,8 +36,10 @@ class ResultsService:
         """Store model data.
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
-            **kwargs: Initialization arguments for document construction covering minimal data required by model
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction.
+            **kwargs: Initialization arguments for document construction covering
+                minimal data required by model.
 
         Returns:
             bool: Success of storage operation
@@ -85,7 +89,8 @@ class ResultsService:
         """Find model entries by query.
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
             query (dict): Field values for constructing query
             fields List[str]: Subset of fields to return
 
@@ -107,7 +112,8 @@ class ResultsService:
         """Find model entries based on query.
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
             **kwargs: Field values for constructing document
 
         Return:
@@ -126,7 +132,8 @@ class ResultsService:
         query = {field: kwargs.get(field, None) for field in index_fields}
         if any([value is None for field, value in query.items()]):
             raise ValueError(
-                f"Missing index field  for {model_type}. Requires {','.join(index_fields)}. Provided: {json.dumps(query)}"
+                f"Missing index field  for {model_type}. Requires {','.join(index_fields)}. \
+                    Provided: {json.dumps(query)}"
             )
 
         results = self._find(model_doc_type, query)
@@ -136,11 +143,14 @@ class ResultsService:
         else:
             return []
 
-    def find_by_unique_field(self, model_type: str, unique_result_hash: str) -> DocumentBase:
+    def find_by_unique_field(
+        self, model_type: str, unique_result_hash: str
+    ) -> DocumentBase:
         """Find model entry by unique index hash.
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
             unique_result_hash (str): Hash of unique index
 
         Return:
@@ -163,7 +173,8 @@ class ResultsService:
         """Get unique field for model type
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
 
         Return:
             str
@@ -173,12 +184,12 @@ class ResultsService:
         model_doc_type = self._get_model_doc_type(model_type)
         return model_doc_type.target_field
 
-
     def find_all(self, model_type: str) -> list:
         """Get all members of a model_type collection
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
 
         Return:
             list: Results of query
@@ -198,7 +209,8 @@ class ResultsService:
         """Load dataframe from result database query.
 
         Args:
-            model_type (str): Must correspond to models listed in model_docs enum provided during construction
+            model_type (str): Must correspond to models listed in model_docs enum
+                provided during construction
             query (dict): Field values for constructing query
             fields List[str]: Subset of fields to return
 
@@ -255,10 +267,15 @@ class ResultsService:
         except ValueError as err:
             raise err
 
-    def get_index_fields(self, model_type: str):
+    def get_index_fields(self, model_type: str) -> List[str]:
         """Get index fields for value.
 
-        ...
+        Args:
+            model_type (str)
+
+        Returns:
+            List[str]: List of index fields
+
         """
 
         model_doc_type = self._get_model_doc_type(model_type)

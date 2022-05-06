@@ -7,10 +7,9 @@ from lume.serializers.base import SerializerBase
 
 logger = logging.getLogger(__name__)
 
+
 class LocalFilesystem(Filesystem):
-    """Handler for local filesystem.
-    
-    """
+    """Handler for local filesystem."""
 
     def __init__(self):
         self._identifier = "local"
@@ -25,7 +24,7 @@ class LocalFilesystem(Filesystem):
         Args:
             dir (str): Path of directory
             create_dir (bool): Whether to create directory if it does not exist
-        
+
         Returns:
             bool
 
@@ -52,15 +51,15 @@ class LocalFilesystem(Filesystem):
 
         Returns:
             bool
-        
+
         """
         path = os.path.abspath(filepath)
-        if os.path.isfile(filepath):
-            logger.info("Found file %s on local filesystem.", filepath)
+        if os.path.isfile(path):
+            logger.info("Found file %s on local filesystem.", path)
             return True
 
         else:
-            logger.info("Unable to find file %s on local filesystem.", filepath)
+            logger.info("Unable to find file %s on local filesystem.", path)
             return False
 
     def create_dir(self, dir: str) -> None:
@@ -68,7 +67,7 @@ class LocalFilesystem(Filesystem):
 
         Args:
             dir (str): Directory path to create
-        
+
         """
         try:
             os.makedirs(dir, exist_ok=False)
@@ -80,23 +79,31 @@ class LocalFilesystem(Filesystem):
         """Read file from the local filesystem.
 
         Args:
-            filepath (str): Path of file to read
-            serializer (SerializerBase): Implementation of lume-base SerializerBase abstract base class
-        
+            filepath (str): Path of file to read.
+            serializer (SerializerBase): Implementation of lume-base SerializerBase
+                abstract base class.
+
         """
         path = os.path.abspath(filepath)
         content = serializer.deserialize(path)
         return content
 
-    def write(self, filepath: str, object: Any, serializer: SerializerBase, create_dir: bool = False) -> None:
+    def write(
+        self,
+        filepath: str,
+        object: Any,
+        serializer: SerializerBase,
+        create_dir: bool = False,
+    ) -> None:
         """Write a file to the local filesystem.
 
         Args:
             filepath (str):
             object (Any): Object to serialize
-            serializer (SerializerBase): Implementation of lume-base SerializerBase abstract base class
+            serializer (SerializerBase): Implementation of lume-base SerializerBase
+                abstract base class
             create_dir (bool): Whether to create directory in case not implemented
-        
+
         """
         path = os.path.abspath(filepath)
         dir = os.path.dirname(path)
