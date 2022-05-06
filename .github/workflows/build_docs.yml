@@ -42,7 +42,7 @@ jobs:
       - name: Push schema docs
         uses: actions-x/commit@v6
         with:
-          branch: master
+          branch: main
           files: docs/files/model_db_uml.png docs/files/model_db_schema.png
 
       - name: Build docs
