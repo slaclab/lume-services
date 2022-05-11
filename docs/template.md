@@ -25,6 +25,8 @@ JSON FILE WITH THE FOLLOWING:
 }
 
 
-
-
 ```
+
+
+
+ docker load --input /tmp/myimage.tar

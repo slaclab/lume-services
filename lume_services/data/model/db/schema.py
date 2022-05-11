@@ -5,7 +5,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.types import Integer, String, DateTime
+from sqlalchemy.types import Integer, String, DateTime, Boolean
 from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
 
 logger = logging.getLogger(__name__)
@@ -57,10 +57,11 @@ class Deployment(Base):
         "deploy_date", DateTime(timezone=True), server_default=func.now()
     )
     asset_dir = Column("asset_dir", String(255), nullable=True)
-    asset_url = Column("asset_url", String(255), nullable=True)
+    source = Column("source", String(255), nullable=True)
     sha_256 = Column("sha256", String(255), nullable=False)
-    package_name = Column("package_name", String(255), nullable=False)
+    image = Column("image", String(255), nullable=True)
     url = Column("url", String(255), nullable=False)
+    is_live = Column("is_live", Boolean, nullable=False)
 
     # if model deleted from models table, all deployments will be deleted
     model_id = Column(
@@ -71,7 +72,7 @@ class Deployment(Base):
     )
 
     model = relationship("Model", back_populates="deployment")
-    flow_to_deployment = relationship("FlowToDeployments", back_populates="deployment")
+    flow_to_deployment = relationship("DeploymentFlows", back_populates="deployment")
 
     __table_args__ = (
         ForeignKeyConstraint(["model_id"], ["models.model_id"]),
@@ -85,10 +86,11 @@ class Deployment(Base):
                 version={self.version!r}, \
                 deploy_date={self.deploy_date!r}), \
                 asset_dir={self.asset_dir!r}, \
-                asset_url={self.asset_url!r}, \
+                source={self.source!r}, \
                 sha256={self.sha_256!r}, \
-                package_name={self.package_name!r} \
-                url={self.url!r} \
+                image={self.image!r}, \
+                url={self.url!r}, \
+                is_live={self.is_live!r} \
                 )"
 
 
@@ -124,7 +126,7 @@ class Flow(Base):
     )
 
     parent = relationship("Project", back_populates="children")
-    flow_to_deployment = relationship("FlowToDeployments", back_populates="flow")
+    flow_to_deployment = relationship("DeploymentFlows", back_populates="flow")
 
     def __repr__(self):
         return f"Flow( \
@@ -135,8 +137,27 @@ class Flow(Base):
                 )"
 
 
-class FlowToDeployments(Base):
-    __tablename__ = "flow_to_deployments"
+class FlowOfFlows(Base):
+    __tablename__ = "flow_of_flows"
+    #  _id not necessarily referenced, but need pk for performance
+    id = Column("_id", Integer, primary_key=True, autoincrement=True)
+    parent_flow_id = Column("parent_flow_id", ForeignKey("flows.flow_id"))
+    flow_id = Column("flow_id", ForeignKey("flows.flow_id"), nullable=False)
+    # position in execution order
+    position = Column("position", Integer, nullable=False)
+
+    def __repr__(self):
+        return f"FlowOfFlows( \
+                id={self.id!r}, \
+                flow_id={self.flow_id!r}, \
+                parent_flow_id={self.parent_flow_id!r}, \
+                position={self.position!r}\
+                )"
+
+
+class DeploymentFlows(Base):
+    __tablename__ = "deployment_flows"
+    #  _id not necessarily referenced, but need pk for performance
     id = Column("_id", Integer, primary_key=True, autoincrement=True)
     flow_id = Column("flow_id", ForeignKey("flows.flow_id"), nullable=False)
     deployment_id = Column(
@@ -147,7 +168,7 @@ class FlowToDeployments(Base):
     deployment = relationship("Deployment")
 
     def __repr__(self):
-        return f"FlowToDeployments( \
+        return f"DeploymentFlows( \
                 flow_id={self.flow_id!r}, \
                 deployment_id={self.deployment_id!r} \
                 )"
@@ -160,7 +181,8 @@ def generate_schema_graph(
     rankdir: str = "LR",
     concentrate: bool = True,
 ) -> None:
-    """Utility function for creating a png of the schema graph for the schema defined in this module.
+    """Utility function for creating a png of the schema graph for the schema defined
+    in this module.
 
     Args:
         output_filename (str): Filename of saved output
@@ -170,7 +192,7 @@ def generate_schema_graph(
         concentrate (bool): Whether to join relation lines together
 
     """
-    ##Generate graph of connected database
+    # Generate graph of connected database
     graph = create_schema_graph(
         metadata=Base.metadata,
         show_datatypes=show_datatypes,
@@ -179,12 +201,13 @@ def generate_schema_graph(
         concentrate=concentrate,
     )
 
-    ##Generate png image
+    # Generate png image
     graph.write_png(output_filename)
 
 
 def generate_uml_graph(output_filename: str):
-    """Utility function for creating a png of the uml graph for the schema defined in this module.
+    """Utility function for creating a png of the uml graph for the schema defined in
+    this module.
 
     Args:
         output_filename (str): Filename of saved output
@@ -193,7 +216,7 @@ def generate_uml_graph(output_filename: str):
 
     # compile mappers
     mappers = [
-        class_mapper(x) for x in [Model, Deployment, Flow, FlowToDeployments, Project]
+        class_mapper(x) for x in [Model, Deployment, Flow, DeploymentFlows, Project]
     ]
     graph = create_uml_graph(
         mappers, show_operations=False, show_multiplicity_one=False

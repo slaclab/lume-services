@@ -51,10 +51,13 @@ The `README.md` file should contain a comprehensive outline of variables accepte
 Define GitHub secret variables 
 
 
-
-
 ## Caveats
 Because the repository is heavily templated, there are several things that may break on modification. The tests defined in the `your-project/your_project/tests` file are designed to test the following conditions:
 1. Clearly defined entrypoints
 2. Properly formatted and registerable flows
 4. 
+
+## 6. Using the Docker image
+All releases create a docker image
+Docker image uploaded to release artifacts
+

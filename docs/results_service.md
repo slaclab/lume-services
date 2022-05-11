@@ -63,3 +63,8 @@ Results are organized into artifacts called documents
 ### Custom indices
 
 It may be useful to overwrite the indices given in the base class...
+
+
+### User roles
+
+https://www.mongodb.com/docs/manual/core/collection-level-access-control/
