@@ -33,9 +33,5 @@ setup(
     url="https://github.com/slaclab/lume-services",
     include_package_data=True,
     python_requires=">=3.7",
-    entry_points={
-        "console_scripts": [
-            "lume = lume_services.cli.cli:main"  
-        ]
-    },
+    entry_points={"console_scripts": ["lume = lume_services.cli.cli:main"]},
 )
