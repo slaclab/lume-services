@@ -3,7 +3,6 @@
 ## In progress
 ### Repo setup
 - [ ] Action for testing package install & running pytests
-- [ ] Action for building docs
 - [ ] Docs for injection and container
 - [ ] Tests for injection and container
 - [ ] Environment variables with extensible prefix
@@ -12,32 +11,42 @@
 - [ ] CLI tool
 - [ ] Instructions for templating tool and configuration
 - [ ] Templated README
-- [ ] Action for testing package install & running pytests
-- [ ] Add upload of docker image to repo artifacts as well
+- [x] Action for testing package install & running pytests 
+- [x] Upload docker image to repo artifacts 5/3
 - [ ] Handling of input/output variables at outset
 - [ ] Drop required defaults for lume-model variables
+- [ ] Check functionality of above
 
 ### Databases
-- [ ] Add uniqueness constraints on the model table 
 - [ ] MySQL schema unique key constraints
 - [ ] Test database failure cases 
-
+- [ ] Rename base classes for DBService
+- [ ] Add flow image to db
+- [ ] Flow of flows
+ 
 ## Backlog
 - [ ] Implement/plan for logging infrastructure
-- [ ] Synchronous snapshot service
+- [ ] Synchronous snapshot service (-> SLAC-services)
 - [ ] Update scheduler
 - [ ] Modeling service
+- [ ] HPC interface
+- [ ] Output service (-> LUME-EPICS?)
+- [ ] Flow of flows...
 
 ## Maybe TODO
-- [ ] Automatically generate diagram from .sql schema?
 - [ ] Separate template into own repo?
+- [ ] Rename model service to model registry service
 
 ## Other
 - [ ] Dashboard image field in mongodb for impact
 
 ## Files
-- [ ] Implement mounted file handler
 - [ ] File locks
+- [ ] Change Filesystem to FilesystemHandler
+
+## Modeling
+- [ ] Preprocessing structure
+- [ ] Registration of preprocessing flows
 
 ## Done:
 - [x] Initial tests for mysql model db
@@ -58,3 +67,7 @@
 - [x] Basics of injection and container 4/15
 - [x] File result 5/2
 - [x] Implement local file handler 5/2
+- [x] Implement mounted filesystem handler 5/2 
+- [x] Action for building docs 
+- [x] Automatically generate diagram from .sql schema? 5/6
+
