@@ -8,7 +8,7 @@ from lume_services.data.model.db.schema import (
     Model,
     Deployment,
     Flow,
-    DeploymentFlows,
+    DeploymentFlow,
     Project,
 )
 
@@ -93,7 +93,7 @@ class ModelService:
 
         for deployment_id in deployment_ids:
 
-            insert_stmnt = insert(DeploymentFlows).values(
+            insert_stmnt = insert(DeploymentFlow).values(
                 deployment_id=deployment_id, flow_id=flow_id
             )
             insert_stmnts.append(insert_stmnt)

@@ -4,6 +4,6 @@ from .schema import (  # noqa: F401
     Model,
     Deployment,
     Project,
-    DeploymentFlows,
+    DeploymentFlow,
     FlowOfFlows,
 )
