@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy.schema import Column, ForeignKey, ForeignKeyConstraint
+from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import relationship
@@ -19,7 +19,7 @@ Base = declarative_base()
 
 
 class Model(Base):
-    __tablename__ = "models"
+    __tablename__ = "model"
     model_id = Column("model_id", Integer, primary_key=True, autoincrement=True)
     created = Column("created", DateTime(timezone=True), server_default=func.now())
     author = Column("author", String(255), nullable=False)
@@ -28,12 +28,7 @@ class Model(Base):
     beampath = Column("beampath", String(255), nullable=False)
     description = Column("description", String(255), nullable=False)
 
-    deployment = relationship(
-        "Deployment",
-        # back_populates="parent",
-        # cascade="all, delete",
-        # passive_deletes= True
-    )
+    deployment = relationship("Deployment", backref="model")
 
     def __repr__(self):
         return f"Model( \
@@ -48,7 +43,9 @@ class Model(Base):
 
 
 class Deployment(Base):
-    __tablename__ = "deployments"
+    __tablename__ = "deployment"
+
+    # columns
     deployment_id = Column(
         "deployment_id", Integer, primary_key=True, autoincrement=True
     )
@@ -60,23 +57,20 @@ class Deployment(Base):
     source = Column("source", String(255), nullable=True)
     sha_256 = Column("sha256", String(255), nullable=False)
     image = Column("image", String(255), nullable=True)
-    url = Column("url", String(255), nullable=False)
     is_live = Column("is_live", Boolean, nullable=False)
 
     # if model deleted from models table, all deployments will be deleted
     model_id = Column(
-        "model_id",
-        Integer,
-        ForeignKey("models.model_id", ondelete="CASCADE"),
-        nullable=False,
+        "model_id", ForeignKey("model.model_id"), nullable=False, onupdate="cascade"
     )
 
-    model = relationship("Model", back_populates="deployment")
-    flow_to_deployment = relationship("DeploymentFlows", back_populates="deployment")
+    # relationshipts
+    flow_to_deployment = relationship("DeploymentFlow", backref="deployment")
 
+    # unique constraints
     __table_args__ = (
-        ForeignKeyConstraint(["model_id"], ["models.model_id"]),
-        # UniqueConstraint('foo'),
+        UniqueConstraint("sha256", name="_sha256_unique"),
+        UniqueConstraint("version", "source", name="_sha256_unique"),
     )
 
     def __repr__(self):
@@ -95,16 +89,17 @@ class Deployment(Base):
 
 
 class Project(Base):
-    __tablename__ = "projects"
+    __tablename__ = "project"
+
+    # columns
     project_name = Column("project_name", String(255), primary_key=True)
     description = Column("description", String(255), nullable=False)
     create_date = Column(
         "create_date", DateTime(timezone=True), server_default=func.now()
     )
 
-    children = relationship(
-        "Flow", back_populates="parent", cascade="all, delete", passive_deletes=True
-    )
+    # relationships
+    children = relationship("Flow", backref="project")
 
     def __repr__(self):
         return f"Project( \
@@ -115,23 +110,24 @@ class Project(Base):
 
 
 class Flow(Base):
-    __tablename__ = "flows"
+    __tablename__ = "flow"
+
+    # columns
     flow_id = Column("flow_id", String(255), primary_key=True)
-    deploy_date = Column(
-        "deploy_date", DateTime(timezone=True), server_default=func.now()
-    )
     flow_name = Column("flow_name", String(255), nullable=False)
     project_name = Column(
-        "project_name", ForeignKey("projects.project_name"), nullable=False
+        "project_name",
+        ForeignKey("project.project_name"),
+        nullable=False,
+        onupdate="cascade",
     )
 
-    parent = relationship("Project", back_populates="children")
-    flow_to_deployment = relationship("DeploymentFlows", back_populates="flow")
+    # relationships
+    flow_to_deployment = relationship("DeploymentFlow", backref="flow")
 
     def __repr__(self):
         return f"Flow( \
                 flow_id={self.flow_id!r}, \
-                deploy_date={self.deploy_date!r}, \
                 flow_name={self.flow_name!r}, \
                 project_name={self.project_name!r} \
                 )"
@@ -139,36 +135,59 @@ class Flow(Base):
 
 class FlowOfFlows(Base):
     __tablename__ = "flow_of_flows"
+
+    # columns
     #  _id not necessarily referenced, but need pk for performance
     id = Column("_id", Integer, primary_key=True, autoincrement=True)
-    parent_flow_id = Column("parent_flow_id", ForeignKey("flows.flow_id"))
-    flow_id = Column("flow_id", ForeignKey("flows.flow_id"), nullable=False)
+    parent_flow_id = Column(
+        "parent_flow_id", ForeignKey("flow.flow_id"), nullable=False, onupdate="cascade"
+    )
+    flow_id = Column(
+        "flow_id", ForeignKey("flow.flow_id"), nullable=False, onupdate="cascade"
+    )
     # position in execution order
     position = Column("position", Integer, nullable=False)
+
+    # relationships
+    parent = relationship("Flow", foreign_keys=[parent_flow_id])
+    flow = relationship("Flow", foreign_keys=[flow_id])
+
+    # constraints
+    __table_args__ = (
+        UniqueConstraint("parent_flow_id", "flow_id", name="_flow_of_flow_entry"),
+    )
 
     def __repr__(self):
         return f"FlowOfFlows( \
                 id={self.id!r}, \
                 flow_id={self.flow_id!r}, \
                 parent_flow_id={self.parent_flow_id!r}, \
-                position={self.position!r}\
+                position={self.position!r} \
                 )"
 
 
-class DeploymentFlows(Base):
-    __tablename__ = "deployment_flows"
+class DeploymentFlow(Base):
+    __tablename__ = "deployment_flow"
+
+    # columns
     #  _id not necessarily referenced, but need pk for performance
     id = Column("_id", Integer, primary_key=True, autoincrement=True)
-    flow_id = Column("flow_id", ForeignKey("flows.flow_id"), nullable=False)
+    flow_id = Column(
+        "flow_id", ForeignKey("flow.flow_id"), nullable=False, onupdate="cascade"
+    )
     deployment_id = Column(
-        "deployment_id", ForeignKey("deployments.deployment_id"), nullable=False
+        "deployment_id",
+        ForeignKey("deployment.deployment_id"),
+        nullable=False,
+        onupdate="cascade",
     )
 
-    flow = relationship("Flow")
-    deployment = relationship("Deployment")
+    __table_args__ = (
+        UniqueConstraint("flow_id", "deployment_id", name="_unique_flow_deployment"),
+    )
 
     def __repr__(self):
-        return f"DeploymentFlows( \
+        return f"DeploymentFlow( \
                 flow_id={self.flow_id!r}, \
                 deployment_id={self.deployment_id!r} \
                 )"
@@ -179,7 +198,7 @@ def generate_schema_graph(
     show_datatypes: bool = True,
     show_indexes: bool = True,
     rankdir: str = "LR",
-    concentrate: bool = True,
+    concentrate: bool = False,
 ) -> None:
     """Utility function for creating a png of the schema graph for the schema defined
     in this module.
@@ -216,7 +235,7 @@ def generate_uml_graph(output_filename: str):
 
     # compile mappers
     mappers = [
-        class_mapper(x) for x in [Model, Deployment, Flow, DeploymentFlows, Project]
+        class_mapper(x) for x in [Model, Deployment, Flow, DeploymentFlow, Project]
     ]
     graph = create_uml_graph(
         mappers, show_operations=False, show_multiplicity_one=False
