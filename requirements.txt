@@ -12,3 +12,4 @@ h5py
 click
 sqlalchemy_schemadisplay
 graphviz
+yaml
