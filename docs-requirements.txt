@@ -1,2 +1,6 @@
 mkdocstrings
 mkdocs
+asciitree
+mkdocs
+mkdocstrings
+mkdocs-material

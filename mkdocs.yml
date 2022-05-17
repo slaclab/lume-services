@@ -8,7 +8,7 @@ nav:
   - Services: 
     - Data: 
       - File Service: file_service.md
-      - Model Service: model_service.md
+      - Model Service: modeling_service.md
       - Results Service: results_service.md
     - HPC: 
       - HPC Service: hpc_service.md
@@ -18,11 +18,14 @@ nav:
       - Packaging: model_packaging.md
     - Scheduling:
       - Scheduling Service: scheduling_service.md
-      - Prefect: 
-        - Scheduler: prefect_scheduler.md
-        - Results: prefect_results.md
-    - API:
-      - modeling: api/modeling.md
+      - Results: prefect_results.md
+  - API:
+    - scheduling: 
+      - scheduling service: api/scheduling.md
+      - backends: 
+        - backend: api/scheduling/backends.md
+        - local: api/scheduling/backends/local.md
+        - kubernetes: api/scheduling/backends/kubernetes.md
   #- Developer:
   #  - 
   #  - Structure:
@@ -43,3 +46,6 @@ plugins:
               - "^__init__$"  # but always include __init__ modules and methods
           rendering:
             show_source: true
+
+theme:
+  name: material

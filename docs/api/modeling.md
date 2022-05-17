@@ -1,3 +1,0 @@
-
-
-::: lume_services.model
