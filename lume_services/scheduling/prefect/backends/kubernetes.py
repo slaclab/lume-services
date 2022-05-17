@@ -64,7 +64,7 @@ class KubernetesMemoryRequest(BaseModel):
                 for inclusion in inclusions:
 
                     try:
-                        stripped = v.replace(inclusion)
+                        stripped = v.replace(inclusion, "")
                         _ = int(stripped)
                         acceptable = True
 
