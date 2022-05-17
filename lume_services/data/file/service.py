@@ -4,6 +4,7 @@ from lume.serializers.base import SerializerBase
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +46,8 @@ class FileService:
             bool
 
         """
-        self._filesystem.dir_exists(dir, create_dir=create_dir)
+        filesystem = self._get_filesystem(filesystem_identifier)
+        filesystem.dir_exists(dir, create_dir=create_dir)
 
     def file_exists(self, filesystem_identifier: str, file: str) -> bool:
         """Check that a file exists in a filesystem.
