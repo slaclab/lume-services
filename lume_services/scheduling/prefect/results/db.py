@@ -29,6 +29,7 @@ class DBResult(Result):
 
         # validate that model type is a member of model_docs enum
         self._results_service.validate_model_type(model_type)
+        self._target = self._results_service.get_unique_field(model_type)
 
         if not self._model_type:
             raise ValueError("model type not provided")
@@ -78,7 +79,7 @@ class DBResult(Result):
             **kwargs (Any): string format arguments for `location`
 
         Returns:
-            - bool: whether or not the target result exists
+            bool: whether or not the target result exists
         """
         # check whether target result exists
 
@@ -97,7 +98,7 @@ class DBResult(Result):
         Args:
             location (str): the location to read from
         Returns:
-            Result: New result instantiated from location
+            DBResult: New result instantiated from location
 
         """
 
@@ -108,6 +109,15 @@ class DBResult(Result):
         return new
 
     def write(self, model_rep: dict, **kwargs) -> DBResult:
+        """Write model result representation to database.
+
+        Args:
+            model_rep (dict): Dictionary representation of model
+
+        Returns:
+            DBResult
+
+        """
 
         self.logger.debug("Writing result to results database...")
 
