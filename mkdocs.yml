@@ -20,9 +20,13 @@ nav:
       - Scheduling Service: services/scheduling_service.md
       - Results: prefect_results.md
   - API:
-    - scheduling: 
-      - scheduling service: api/scheduling.md
+    - Scheduling: 
+      - scheduling service: api/scheduling/scheduling.md
       - backends: api/scheduling/backends.md
+    - Data:
+      - file service: api/data/file/file_service.md
+      - file systems: api/data/file/filesystems.md
+
   #- Developer:
   #  - 
   #  - Structure:
@@ -47,8 +51,8 @@ plugins:
             show_source: true
             show_root_toc_entry: false
             show_root_heading: true
-            show_if_no_docstring: true
-            show_signature_annotations: false
+            show_if_no_docstring: false
+            show_signature_annotations: true
             separate_signature: true
             merge_init_into_class: true
             show_submodules: true
