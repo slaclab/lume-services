@@ -8,8 +8,8 @@ nav:
   - Services: 
     - Data: 
       - File Service: file_service.md
-      - Model Service: modeling_service.md
-      - Results Service: results_service.md
+      - Model Registry: model_registry.md
+      - Results DB: results_service.md
     - HPC: 
       - HPC Service: hpc_service.md
     - Modeling:
