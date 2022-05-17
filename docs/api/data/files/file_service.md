@@ -1,3 +1,3 @@
 
 
-::: lume_services.data.files.file_service
+::: lume_services.data.file.service
