@@ -7,17 +7,17 @@ nav:
   - Configuration: config.md
   - Services: 
     - Data: 
-      - File Service: file_service.md
+      - File Service: services/file_service.md
       - Model Registry: model_registry.md
-      - Results DB: results_service.md
+      - Results DB: services/results_service.md
     - HPC: 
-      - HPC Service: hpc_service.md
+      - HPC Service: services/hpc_service.md
     - Modeling:
-      - Modeling Service: modeling_service.md
+      - Modeling Service: services/modeling_service.md
       - Preprocessing: preprocessing.md
       - Packaging: model_packaging.md
     - Scheduling:
-      - Scheduling Service: scheduling_service.md
+      - Scheduling Service: services/scheduling_service.md
       - Results: prefect_results.md
   - API:
     - scheduling: 
@@ -45,6 +45,19 @@ plugins:
               - "^__init__$"  # but always include __init__ modules and methods
           rendering:
             show_source: true
+            show_root_toc_entry: false
+            show_root_heading: true
+            show_if_no_docstring: true
+            show_signature_annotations: false
+            separate_signature: true
+            merge_init_into_class: true
+            show_submodules: true
+            heading_level: 2
 
 theme:
   name: material
+  features:
+    - toc.integrate
+    - toc.follow
+    - navigation.top
+    - navigation.tabs
