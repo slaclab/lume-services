@@ -1,7 +1,7 @@
-from pydantic import BaseSettings, BaseModel, Field
+from pydantic import BaseModel, validator
 from prefect.run_configs import KubernetesRun
-from typing import List
-import yaml
+from typing import List, Optional, Dict, Union
+import logging
 
 from lume_services.data.file import FileService
 from lume_services.context import Context
@@ -10,7 +10,24 @@ from dependency_injector.wiring import Provide
 from lume_services.data.file.serializers.yaml import YAMLSerializer
 from lume_services.scheduling.prefect.files import KUBERNETES_JOB_TEMPLATE_FILE
 
-from lume_services.scheduling.prefect.config import BackendConfig, BackendConfig
+from lume_services.scheduling.prefect.backends import Backend
+
+logger = logging.getLogger(__name__)
+
+KUBERNETES_REQUEST_SUFFIXES = [
+    "E",
+    "P",
+    "T",
+    "G",
+    "M",
+    "k",
+    "Ei",
+    "Pi",
+    "Ti",
+    "Gi",
+    "Mi",
+    "Ki",
+]
 
 
 class KubernetesCPURequest(BaseModel):
@@ -19,12 +36,54 @@ class KubernetesCPURequest(BaseModel):
 
 
 class KubernetesMemoryRequest(BaseModel):
-    limit: str = None
-    request: str = None
+    limit: Union[str, int] = None
+    request: Union[str, int] = None
+
+    @validator("limit", "request")
+    def validate_request(cls, v):
+        """Validate w.r.t. Kubernetes resource formats: int, fixed-point number using
+        quantity suffixes: E, P, T, G, M, k or power-of-two equivalents: Ei, Pi,
+        Ti, Gi, Mi, Ki
+
+        """
+
+        if isinstance(v, (int,)):
+            return v
+
+        elif isinstance(v, (str,)):
+
+            acceptable = False
+
+            # check substrings
+            inclusions = [
+                substring for substring in KUBERNETES_REQUEST_SUFFIXES if substring in v
+            ]
+
+            if len(inclusions):
+
+                for inclusion in inclusions:
+
+                    try:
+                        stripped = v.replace(inclusion)
+                        _ = int(stripped)
+                        acceptable = True
+
+                    except ValueError:
+                        pass
+
+            if not acceptable:
+                logger.error("Kubernetes resource request invalid: %s", v)
+                raise ValueError(f"Kubernetes resource request invalid: {v}")
+
+        else:
+            raise ValueError("Must provide string or int to request")
+
+        return v
 
 
 class KubernetesResourceRequest(BaseModel):
-    # for implementing device resources check https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/
+    # for implementing device resources check
+    # https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/
     cpu: KubernetesCPURequest = KubernetesCPURequest()
     memory: KubernetesMemoryRequest = KubernetesMemoryRequest()
 
@@ -34,14 +93,28 @@ class KubernetesJobTemplate(BaseModel):
     filesystem_identifier: str
 
 
-class KubernetesJobConfig(BackendConfig):
+class KubernetesRunConfig(BaseModel):
+    resource_request: Optional[KubernetesResourceRequest]
+    env: Optional[Dict[str, str]]
+    image: Optional[str]
+    image_pull_secrets: Optional[List[str]]
+
+
+#   labels: Optional[List[str]]
+#   service_account_name = Optional[str]
+
+
+class KubernetesBackend(Backend):
     job_template: KubernetesJobTemplate = None
     image_pull_policy: str = "IfNotPresent"  # Always, IfNotPresent, Never
-    resource_request: KubernetesResourceRequest = KubernetesResourceRequest()
-    image: str = None
 
-    def load_job_config(
-        self, file_service: FileService = Provide[Context.file_service]
+    # default image
+    default_image: str = None
+
+    def get_run(
+        self,
+        run_config: KubernetesRunConfig,
+        file_service: FileService = Provide[Context.file_service],
     ):
 
         job_template = file_service.read(
@@ -50,21 +123,16 @@ class KubernetesJobConfig(BackendConfig):
             YAMLSerializer,
         )
 
-        if self.resource_request is not None:
-            job_template["spec"]["template"]["spec"]["containers"][0][
-                "resources"
-            ] = self.resource_request.dict(exclude_none=True)
-
         return KubernetesRun(
             image_pull_policy=self.image_pull_policy,
             image=self.image,
-            cpu_limit=self.resource_request.cpu.limit,
-            cpu_request=self.resource_request.cpu.request,
-            memory_limit=self.resource_request.memory.limit,
-            memory_request=self.resource_request.memory.request,
-            # service_account_name
-            # image_pull_secrets
-            # labels
-            # env
+            cpu_limit=run_config.resource_request.cpu.limit,
+            cpu_request=run_config.resource_request.cpu.request,
+            memory_limit=run_config.resource_request.memory.limit,
+            memory_request=run_config.resource_request.memory.request,
+            image_pull_secrets=run_config.image_pull_secrets,
+            env=run_config.env,
             job_template=job_template,
+            # labels = run_config.labels,
+            # service_account_name = run_config.service_account_name
         )
