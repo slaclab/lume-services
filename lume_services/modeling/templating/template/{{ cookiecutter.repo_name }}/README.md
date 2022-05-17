@@ -2,6 +2,7 @@
 
 This repository packages the `{{ cookiecutter.model_class }}` in `{{ cookiecutter.project_slug }}/model.py ` for execution with [Prefect](https://docs.prefect.io/) using the flow described in `{{ cookiecutter.project_slug }}/flow/flow.py`. 
 
+
 ## Installation
 
 This package may be installed using pip:
@@ -44,6 +45,13 @@ Tests can be executed from the root directory using:
 ```
 pytest .
 ```
+
+
+## Visualize flow
+
+
+![Screenshot](docs/flow.png)
+
 
 
 ### Note

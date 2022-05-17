@@ -1,12 +1,12 @@
 from prefect import Flow, task
 from prefect import Parameter
 
-from lume_services.scheduling.prefect.results import MongoDBResult
+from lume_services.scheduling.prefect.results import DBResult
 from prefect.tasks.control_flow import case
 import os
 
 from {{ cookiecutter.project_slug }}.model import {{ cookiecutter.model_class }}
-from {{ cookiecutter.project_slug }} import INPUT_VARIABLES, service_container
+from {{ cookiecutter.project_slug }} import INPUT_VARIABLES, OUTPUT_VARIABES, service_container
 
 import copy
 
@@ -32,7 +32,7 @@ def model_predict(formatted_input_vars, settings):
 
     return model.execute(input_variables)
 
-@task(result=MongoDBResult(model_type="impact", results_db=service_container.results_db()))
+@task(result=DBResult(model_type="impact", results_db=service_container.results_db()))
 def store_db_results(model_predict_results):
 
     # format your results into a serializable structure
@@ -45,9 +45,9 @@ def store_db_results(model_predict_results):
 
     return dat
 
-#@task(result=FileResult)
-#def store_result_artifact(model_predict_results):
-#    return model_predict_results["output_filename"]
+@task(result=FileResult)
+def store_result_artifact(model_predict_results):    
+    return model_predict_results["output_filename"]
 
 
 with Flow(
@@ -55,13 +55,9 @@ with Flow(
     ) as flow:
 
 
-    preprocess_variables = Parameter("preprocess_variables", default=False)
     input_variable_parameter_dict = {
         var_name: Parameter(var_name, default=var.default) for var, var_name in INPUT_VARIABLES.items()
-    }
-
-    with case(preprocess_variables, True):
-        
+    }   
 
 
     model_settings = Parameter("model_settings", default=None)
