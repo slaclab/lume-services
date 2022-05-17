@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture(scope="module", autouse=True)
 def model_dict():
     return {
@@ -7,19 +8,20 @@ def model_dict():
         "laboratory": "slac",
         "facility": "lcls",
         "beampath": "cu_hxr",
-        "description": "test model"
+        "description": "test model",
     }
+
 
 @pytest.fixture(scope="module", autouse=True)
 def deployment_dict():
     return {
         "version": "v0.0",
         "sha256": "placeholder",
-        "url": "http://mytest.com",
-        "package_name": "test_package",
-        "asset_dir": None, # opt
-        "asset_url": None, # opt
+        "asset_dir": None,  # opt
+        "source": "my source",
+        "is_live": 1,
     }
+
 
 @pytest.fixture(scope="module", autouse=True)
 def project_dict():
@@ -28,6 +30,7 @@ def project_dict():
         "description": "placeholder",
     }
 
+
 @pytest.fixture(scope="module", autouse=True)
 def flow_dict():
     return {
@@ -35,6 +38,7 @@ def flow_dict():
         "flow_name": "my_test_flow",
         "project_name": "my_projcet",
     }
+
 
 @pytest.fixture(scope="module", autouse=True)
 def test_store_model(model_service, model_dict):
@@ -81,7 +85,9 @@ def test_store_project(model_service, project_dict):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def test_store_flow(model_service, flow_dict, test_store_deployment, test_store_project):
+def test_store_flow(
+    model_service, flow_dict, test_store_deployment, test_store_project
+):
 
     flow_dict["project_name"] = test_store_project
     flow_dict["deployment_ids"] = [test_store_deployment]
@@ -98,6 +104,7 @@ def test_get_latest_deployment(model_service, test_store_model, test_store_deplo
     deployment = model_service.get_latest_deployment(model_id=test_store_model)
 
     assert deployment.deployment_id == test_store_deployment
+
 
 def test_get_project(model_service, test_store_project):
 

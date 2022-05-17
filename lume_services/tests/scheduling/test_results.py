@@ -33,23 +33,17 @@ def test_generic_everything_is_pickleable_after_init(
     assert cloudpickle.loads(cloudpickle.dumps(result)) == result
 
 
-def test_impact_everything_is_pickleable_after_init(
-    results_service, test_impact_result_document
-):
+def test_write_generic_result(results_service, test_generic_result_document):
+    result = DBResult(model_type="Generic", results_service=results_service)
+    result.write(test_generic_result_document)
+    return result
+
+
+def test_write_impact_result(results_service, test_impact_result_document):
     result = DBResult(
         value=test_impact_result_document,
         model_type="Impact",
         results_service=results_service,
     )
-
-    assert cloudpickle.loads(cloudpickle.dumps(result)) == result
-
-
-def test_write_generic_result(results_service, test_generic_result_document):
-    result = DBResult(model_type="Generic", results_service=results_service)
-    result.write(test_generic_result_document)
-
-
-def test_write_impact_result(results_service, test_impact_result_document):
-    result = DBResult(model_type="Impact", results_service=results_service)
     result.write(test_impact_result_document)
+    return result

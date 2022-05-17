@@ -1,14 +1,10 @@
-"""From https://github.com/ClearcodeHQ/pytest-mysql 
+"""From https://github.com/ClearcodeHQ/pytest-mysql
 and partially https://github.com/ClearcodeHQ/mirakuru
 
 under GNU 3
 
-
-
-
-Adapted here for maintenance and to avoid conda/pip installation 
+Adapted here for maintenance and to avoid conda/pip installation
 """
-
 import re
 import subprocess
 import signal
@@ -20,24 +16,36 @@ import uuid
 import py
 import time
 import psutil
-from typing import Union, Optional, IO, Any, Dict, Tuple, List, Set, Type, Iterator, TypeVar, Callable
+from typing import (
+    Union,
+    Optional,
+    IO,
+    Any,
+    Dict,
+    Tuple,
+    List,
+    Set,
+    Type,
+    Iterator,
+    TypeVar,
+    Callable,
+)
 import platform
 from types import TracebackType
 import errno
 from pytest import FixtureRequest, TempPathFactory
 import pytest
 
-from multiprocessing import Process
-
 
 # Windows does not have SIGKILL, fall back to SIGTERM.
 SIGKILL = getattr(signal, "SIGKILL", signal.SIGTERM)
 
-MySQLProcessManagerType = TypeVar("MySQLProcessManagerType", bound="MySQLProcessManager")
+MySQLProcessManagerType = TypeVar(
+    "MySQLProcessManagerType", bound="MySQLProcessManager"
+)
 
 # used to mark our subprocesses
 ENV_UUID = "lume_services_uuid"
-
 
 
 PS_XE_PID_MATCH = re.compile(r"^.*?(\d+).+$")
@@ -71,7 +79,6 @@ def processes_with_env(env_name: str, env_value: str) -> Set[int]:
 
 
 class MySQLProcessManager:
-
     def __init__(
         self,
         command: str,
@@ -88,7 +95,7 @@ class MySQLProcessManager:
     ) -> None:
 
         self.command = command
-     #   self.command_parts = command_parts =
+        #   self.command_parts = command_parts =
         self._cwd = cwd
 
         self._timeout = timeout
@@ -106,19 +113,8 @@ class MySQLProcessManager:
 
         self._uuid = f"{os.getpid()}:{uuid.uuid4()}"
 
-        self.host = host 
+        self.host = host
         self.port = port
-
-
-
-    def start(self, command):
-
-        if self.process is None:
-            command_parts = command.split(" ")
-            self.process = subprocess.Popen(command_parts, **self._popen_kwargs)
-
-        self._set_timeout()
-
 
     def pre_start_check(self) -> bool:
         try:
@@ -134,10 +130,8 @@ class MySQLProcessManager:
     def post_start_check(self) -> False:
         return self.pre_start_check()
 
-
     def check_subprocess(self) -> bool:
-        """ Make sure the process didn't exit with an error and run the checks.
-        """
+        """Make sure the process didn't exit with an error and run the checks."""
         if self.process is None:  # pragma: no cover
             # No process was started.
             return False
@@ -207,7 +201,7 @@ class MySQLProcessManager:
             kwargs["stderr"] = self._stderr
         kwargs["universal_newlines"] = True
 
-      #  kwargs["shell"] = self._shell
+        #  kwargs["shell"] = self._shell
 
         env = os.environ.copy()
         env.update(self._envvars)
@@ -240,7 +234,6 @@ class MySQLProcessManager:
         if self.process is None:
             command: Union[str, List[str], Tuple[str, ...]] = self.command
             command_parts = command.split(" ")
-            print(command_parts)
             self.process = subprocess.Popen(command_parts, **self._popen_kwargs)
 
         self._set_timeout()
@@ -261,7 +254,6 @@ class MySQLProcessManager:
 
         self._endtime = None
 
-
     def stop(
         self: MySQLProcessManagerType,
         stop_signal: Optional[int] = None,
@@ -269,7 +261,6 @@ class MySQLProcessManager:
     ) -> MySQLProcessManagerType:
         if self.process is None:
             return self
-
 
         try:
             os.killpg(self.process.pid, signal.SIGINT)
@@ -286,7 +277,7 @@ class MySQLProcessManager:
         self._set_timeout()
         try:
             self.wait_for(process_stopped)
-        except:
+        except:  # noqa: E722
             # at this moment, process got killed,
             pass
 
@@ -412,7 +403,6 @@ class DatabaseExists(PytestMySQLException):
     """Raise this exception, when the database already exists"""
 
 
-
 class MySQLExecutor(MySQLProcessManager):
     """MySQL Executor for running MySQL server."""
 
@@ -475,12 +465,11 @@ class MySQLExecutor(MySQLProcessManager):
         print(timeout)
         super().__init__(command, host, port, timeout=timeout)
 
-
     def version(self):
         """Read MySQL's version."""
-        version_output = subprocess.check_output(
-            [self.mysqld, "--version"]
-        ).decode("utf-8")
+        version_output = subprocess.check_output([self.mysqld, "--version"]).decode(
+            "utf-8"
+        )
         try:
             return self.VERSION_RE.search(version_output).groupdict()["version"]
         except AttributeError as exc:
@@ -488,9 +477,9 @@ class MySQLExecutor(MySQLProcessManager):
 
     def implementation(self):
         """Detect MySQL Implementation."""
-        version_output = subprocess.check_output(
-            [self.mysqld, "--version"]
-        ).decode("utf-8")
+        version_output = subprocess.check_output([self.mysqld, "--version"]).decode(
+            "utf-8"
+        )
         if self.IMPLEMENTATION_RE.search(version_output):
             return "mariadb"
         return "mysql"
@@ -537,9 +526,9 @@ class MySQLExecutor(MySQLProcessManager):
     def start(self):
         """Trigger initialisation during start."""
         implementation = self.implementation()
-        if implementation == "mysql" and parse_version(
-            self.version()
-        ) > parse_version("5.7.6"):
+        if implementation == "mysql" and parse_version(self.version()) > parse_version(
+            "5.7.6"
+        ):
             self.initialize_mysqld()
         elif implementation in ["mysql", "mariadb"]:
             if self.install_db:
@@ -563,8 +552,7 @@ class MySQLExecutor(MySQLProcessManager):
         except subprocess.CalledProcessError:
             # Fallback to using root user for shutdown
             shutdown_command = (
-                f"{self.admin_exec} --socket={self.unixsocket} "
-                f"--user=root shutdown"
+                f"{self.admin_exec} --socket={self.unixsocket} " f"--user=root shutdown"
             )
             subprocess.check_output(shutdown_command, shell=True)
 
@@ -572,7 +560,6 @@ class MySQLExecutor(MySQLProcessManager):
         """Stop the server."""
         self.shutdown()
         super().stop(sig, exp_sig)
-
 
 
 def get_config(request):
@@ -593,9 +580,7 @@ def get_config(request):
     ]
     for option in options:
         option_name = "mysql_" + option
-        conf = request.config.getini(
-            option_name
-        )
+        conf = request.config.getini(option_name)
         config[option] = conf
     return config
 
@@ -632,9 +617,7 @@ def mysql_proc(
     """
 
     @pytest.fixture(scope="session")
-    def mysql_proc_fixture(
-        request: FixtureRequest, tmp_path_factory: TempPathFactory
-    ):
+    def mysql_proc_fixture(request: FixtureRequest, tmp_path_factory: TempPathFactory):
         """
         Process fixture for MySQL server.
         #. Get config.
