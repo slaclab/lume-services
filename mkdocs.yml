@@ -22,10 +22,7 @@ nav:
   - API:
     - scheduling: 
       - scheduling service: api/scheduling.md
-      - backends: 
-        - backend: api/scheduling/backends.md
-        - local: api/scheduling/backends/local.md
-        - kubernetes: api/scheduling/backends/kubernetes.md
+      - backends: api/scheduling/backends.md
   #- Developer:
   #  - 
   #  - Structure:
@@ -35,6 +32,8 @@ nav:
 
 
 plugins:
+  - search:
+      separator: '[\s\-\.]'
   - mkdocstrings:
       default_handler: python
       handlers:
