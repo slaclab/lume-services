@@ -39,11 +39,11 @@ jobs:
         run: |
           lume generate-schema-docs --uml_output_filename=docs/files/model_db_uml.png --schema_output_filename=docs/files/model_db_schema.png
 
-      - name: Push schema docs
-        uses: actions-x/commit@v6
-        with:
-          branch: main
-          files: docs/files/model_db_uml.png docs/files/model_db_schema.png
+     # - name: Push schema docs
+     #   uses: actions-x/commit@v6
+     #   with:
+     #     branch: main
+     #     files: docs/files/model_db_uml.png docs/files/model_db_schema.png
 
       - name: Build docs
         shell: bash -l {0}
