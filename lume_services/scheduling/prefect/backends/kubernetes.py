@@ -15,18 +15,18 @@ from lume_services.scheduling.prefect.backends import Backend
 logger = logging.getLogger(__name__)
 
 KUBERNETES_REQUEST_SUFFIXES = [
-    "E",
-    "P",
-    "T",
-    "G",
-    "M",
-    "k",
-    "Ei",
-    "Pi",
-    "Ti",
-    "Gi",
-    "Mi",
-    "Ki",
+    "EB",
+    "PB",
+    "TB",
+    "GB",
+    "MB",
+    "kB",
+    "EiB",
+    "PiB",
+    "TiB",
+    "GiB",
+    "MiB",
+    "KiB",
 ]
 
 
