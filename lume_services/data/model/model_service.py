@@ -214,7 +214,7 @@ class ModelService:
             Flow:
         """
 
-        query = select(Flow).filter_by(**kwargs).order_by(desc(Flow.deploy_date))
+        query = select(Flow).filter_by(**kwargs)
         result = self._db_service.select(query)
 
         if len(result):
