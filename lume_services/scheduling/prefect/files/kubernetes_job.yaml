@@ -37,8 +37,3 @@ spec:
               value: "prefect.engine.cloud.CloudFlowRunner"
             - name: PREFECT__ENGINE__TASK_RUNNER__DEFAULT_CLASS
               value: "prefect.engine.cloud.CloudTaskRunner"
-          resources:
-            requests:
-              cpu: 1
-            limits:
-              cpu: 1
