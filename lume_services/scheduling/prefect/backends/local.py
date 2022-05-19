@@ -14,7 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class LocalRunConfig(BaseModel):
-    env: Dict[str, str]
+    """Local run configuration.
+
+    Attr:
+        env (Optional[Dict[str, str]]): Dictionary of environment variables to use for run
+        working_dir
+    
+    """
+    env: Optional[Dict[str, str]]
     working_dir: Optional[str]
 
 
