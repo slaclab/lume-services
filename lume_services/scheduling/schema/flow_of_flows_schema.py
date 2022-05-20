@@ -46,21 +46,29 @@ class MappedParameter(BaseModel):
 class Flow(BaseModel):
     name: str
     project_name: str
-    parameters: Dict[str, Parameter]
+    parameters: Optional[Dict[str, Parameter]]
     mapped_parameters: Optional[Dict[str, MappedParameter]]
-    prefect_flow: PrefectFlow
-    task_slugs: Dict[str, str]
+    prefect_flow: Optional[PrefectFlow]
+    task_slugs: Optional[Dict[str, str]]
 
     class Config:
         arbitrary_types_allowed = True
+
+    def load(self):
+        flow = FlowView.from_flow_name(
+            self.name, project_name=self.project_name, last_updated=True
+        ).flow
+
+        # assign attributes
+        self.prefect_flow = flow
+        self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
+        self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
 
 
 class FlowOfFlows(BaseModel):
     name: str
     project_name: str
     composing_flows: dict
-
-    _flows: dict = {}
 
     @validator("composing_flows", pre=True)
     def validate(cls, v: List[dict]):
@@ -69,29 +77,17 @@ class FlowOfFlows(BaseModel):
 
         # validate composing flow existence
         for flow in v:
-            deserialized_flow = FlowView.from_flow_name(
-                flow["name"], project_name=flow["project_name"], last_updated=True
-            ).flow
-
-            # organize data
-            parameters = {
-                parameter.name: parameter
-                for parameter in deserialized_flow.parameters()
-            }
-
-            task_slugs = {
-                task.name: task.slug for task in deserialized_flow.get_tasks()
-            }
 
             # compose flow objects
-            flows[flow["name"]] = Flow(
+            flow_obj = Flow(
                 name=flow["name"],
-                prefect_flow=deserialized_flow,
-                parameters=parameters,
-                task_slugs=task_slugs,
                 project_name=flow["project_name"],
                 mapped_parameters=flow.get("mapped_parameters"),
             )
+
+            # load Prefect parameters
+            flow_obj.load()
+            flows[flow["name"]] = flow_obj
 
         # validate flow parameters
         for flow_name, flow in flows.items():
