@@ -39,7 +39,6 @@ class TaskNotInFlowError(Exception):
 
 
 class MappedParameter(BaseModel):
-    name: str
     parent_flow_name: str
     parent_task_name: str
 
