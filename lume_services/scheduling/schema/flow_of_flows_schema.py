@@ -204,6 +204,18 @@ class FlowOfFlows(BaseModel):
         # flow_id = flow_of_flows.register(project_name=self.project_name)
         return flow_of_flows
 
+    def compose_and_register(self):
+        """Compose flow and register with project.
+
+        Returns:
+            str: Registered flow id
+
+        """
+
+        flow = self.compose()
+        flow_id = flow.register(self.project_name)
+        return flow_id
+
     def compose_local(self):
         """
 
