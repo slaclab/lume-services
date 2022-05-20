@@ -65,6 +65,7 @@ class FlowOfFlows(BaseModel):
 
     @validator("composing_flows", pre=True)
     def validate(cls, v: List[dict]):
+        """Validate composing flow data against Prefect server."""
         flows = {}
 
         # validate composing flow existence
@@ -79,12 +80,6 @@ class FlowOfFlows(BaseModel):
                 for parameter in deserialized_flow.parameters()
             }
 
-            mapped_parameters = None
-            if flow.get("mapped_parameters") is not None:
-                mapped_parameters = {
-                    param["name"]: param for param in flow.get("mapped_parameters")
-                }
-
             task_slugs = {
                 task.name: task.slug for task in deserialized_flow.get_tasks()
             }
@@ -96,7 +91,7 @@ class FlowOfFlows(BaseModel):
                 parameters=parameters,
                 task_slugs=task_slugs,
                 project_name=flow["project_name"],
-                mapped_parameters=mapped_parameters,
+                mapped_parameters=flow.get("mapped_parameters"),
             )
 
         # validate flow parameters
