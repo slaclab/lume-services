@@ -12,8 +12,7 @@ class PrefectConfig(BaseSettings):
     backend: Backend
 
     def apply(self):
-        prefect.config.update(backend = self.backend)
-        prefect.config.cloud.update(api = self.api)
-        prefect.config.cloud.update(graphql = self.graphql)
-        prefect.config.server.ui.update(endpoint = self.ui)
-
+        prefect.config.update(backend=self.backend)
+        prefect.config.cloud.update(api=self.api)
+        prefect.config.cloud.update(graphql=self.graphql)
+        prefect.config.server.ui.update(endpoint=self.ui)
