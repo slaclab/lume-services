@@ -2,11 +2,11 @@ from prefect import Flow, task
 from prefect import Parameter
 
 from lume_services.scheduling.prefect.results import DBResult
-from prefect.tasks.control_flow import case
+from prefect.storage import Module
 import os
 
 from {{ cookiecutter.project_slug }}.model import {{ cookiecutter.model_class }}
-from {{ cookiecutter.project_slug }} import INPUT_VARIABLES, OUTPUT_VARIABES, service_container
+from {{ cookiecutter.project_slug }} import INPUT_VARIABLES, OUTPUT_VARIABLES, service_container
 
 import copy
 
@@ -52,6 +52,7 @@ def store_result_artifact(model_predict_results):
 
 with Flow(
         {{ cookiecutter.repo_name }},
+        storage=Module(__name__)
     ) as flow:
 
 
