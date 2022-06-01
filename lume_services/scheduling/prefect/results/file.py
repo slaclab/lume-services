@@ -7,9 +7,45 @@ from lume_services.context import Context
 
 from prefect.engine.result import Result
 from lume_services.data.file import FileService
+
+
+from typing import TypeVar, Optional, Generic
+from pydantic import root_validator, Field
+from pydantic.generics import GenericModel
+
 from lume.serializers.base import SerializerBase
+from lume_services.data.file.serializers import TextSerializer
+from lume_services.utils import ObjLoader, JSON_ENCODERS
+
 
 logger = logging.getLogger(__name__)
+
+SerializerType = TypeVar("SerializerType", bound=SerializerBase)
+
+
+class File(
+    GenericModel,
+    Generic[SerializerType],
+    arbitrary_types_allowed=True,
+    json_encoders=JSON_ENCODERS,
+):
+    filename: str
+    loader: Optional[ObjLoader[SerializerType]]
+    file_serializer: SerializerType = Field(exclude=True)
+
+    @root_validator(pre=True)
+    def validate_all(cls, values):
+        serializer_type = cls.__fields__["serializer"].type_
+        values["loader"] = ObjLoader[serializer_type]()
+        values["serializer"] = values["loader"].load()
+
+        return values
+
+    def write(self, obj):
+        self.serializer.serialize(self.filename, obj)
+
+
+TextFile = File[TextSerializer]
 
 
 class FileResult(Result):

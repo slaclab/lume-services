@@ -1,1 +1,1 @@
-from .flow_of_flows_schema import FlowOfFlows
+from .flow_of_flows_schema import FlowOfFlows, Flow

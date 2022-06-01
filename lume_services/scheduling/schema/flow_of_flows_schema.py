@@ -34,7 +34,7 @@ class TaskNotInFlowError(Exception):
     def __init__(self, flow_name: str, task_name: str):
         self.flow_name = flow_name
         self.task_name = task_name
-        self.message = f"Task {flow_name} not in flow {task_name}."
+        self.message = f"Task {task_name} not in flow {flow_name}."
         super().__init__(self.message)
 
 
@@ -50,6 +50,7 @@ class Flow(BaseModel):
     mapped_parameters: Optional[Dict[str, MappedParameter]]
     prefect_flow: Optional[PrefectFlow]
     task_slugs: Optional[Dict[str, str]]
+    labels: List[str] = ["lume-services"]
 
     class Config:
         arbitrary_types_allowed = True
@@ -69,6 +70,10 @@ class FlowOfFlows(BaseModel):
     name: str
     project_name: str
     composing_flows: dict
+    prefect_flow: Optional[PrefectFlow]
+
+    class Config:
+        arbitrary_types_allowed = True
 
     @validator("composing_flows", pre=True)
     def validate(cls, v: List[dict]):
@@ -108,6 +113,7 @@ class FlowOfFlows(BaseModel):
 
                     # validate task is in the parent flow
                     task = parent_flow.task_slugs.get(parameter.parent_task_name)
+
                     if task is None:
                         raise TaskNotInFlowError(
                             parameter.parent_flow_name, parameter.parent_task_name
@@ -158,6 +164,7 @@ class FlowOfFlows(BaseModel):
                         flow_name=flow_name,
                         project_name=flow.project_name,
                         parameters=flow_params,
+                        labels=flow.labels,
                     )
 
                 # setup other tasks
@@ -188,6 +195,7 @@ class FlowOfFlows(BaseModel):
                             flow_name=flow_name,
                             project_name=flow.project_name,
                             parameters=flow_params,
+                            labels=flow.labels,
                         )
 
                     # configure upstreams if any
@@ -200,6 +208,9 @@ class FlowOfFlows(BaseModel):
 
         # validate flow of flows
         flow_of_flows.validate()
+
+        # assign to obj
+        self.prefect_flow = flow_of_flows
 
         # flow_id = flow_of_flows.register(project_name=self.project_name)
         return flow_of_flows

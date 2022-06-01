@@ -1,2 +1,2 @@
-from .db import DBResult  # noqa: F401
-from .file import FileResult  # noqa: F401
+from .db import DBResult
+from .file import FileResult, TextFile
