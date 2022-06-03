@@ -7,7 +7,7 @@ import pytest
 
 from lume_services.utils import (
     JSON_ENCODERS,
-    validate_and_compose_kwargs,
+    validate_and_compose_signature,
     CallableModel,
     ObjLoader,
     ObjType,
@@ -15,20 +15,20 @@ from lume_services.utils import (
 )
 
 
-def misc_fn(x):
-    return x
+def misc_fn(x, y=1, *args, **kwargs):
+    pass
 
 
 class MiscClass:
     @staticmethod
-    def _misc_static_method():
+    def misc_static_method(x, y=1, *args, **kwargs):
         return
 
     @classmethod
-    def _misc_cls_method(cls):
+    def misc_cls_method(cls, x, y=1, *args, **kwargs):
         return cls
 
-    def _misc_method(self):
+    def misc_method(self, x, y=1, *args, **kwargs):
         return
 
 
@@ -40,9 +40,9 @@ class TestJsonEncoders:
         ("fn",),
         [
             (misc_fn,),
-            pytest.param(misc_class._misc_method, marks=pytest.mark.xfail),
-            (misc_class._misc_static_method,),
-            pytest.param(misc_class._misc_cls_method, marks=pytest.mark.xfail),
+            pytest.param(misc_class.misc_method, marks=pytest.mark.xfail(strict=True)),
+            (misc_class.misc_static_method,),
+            pytest.param(misc_class.misc_cls_method, marks=pytest.mark.xfail(strict=True)),
         ],
     )
     def test_function_type(self, fn):
@@ -58,10 +58,10 @@ class TestJsonEncoders:
     @pytest.mark.parametrize(
         ("fn",),
         [
-            pytest.param(misc_class._misc_static_method, marks=pytest.mark.xfail),
-            pytest.param(misc_fn, marks=pytest.mark.xfail),
-            (misc_class._misc_method,),
-            (misc_class._misc_cls_method,),
+            pytest.param(misc_class.misc_static_method, marks=pytest.mark.xfail(strict=True)),
+            pytest.param(misc_fn, marks=pytest.mark.xfail(strict=True)),
+            (misc_class.misc_method,),
+            (misc_class.misc_cls_method,),
         ],
     )
     def test_method_type(self, fn):
@@ -77,10 +77,10 @@ class TestJsonEncoders:
     @pytest.mark.parametrize(
         ("fn",),
         [
-            (misc_class._misc_static_method,),
+            (misc_class.misc_static_method,),
             (misc_fn,),
-            (misc_class._misc_method,),
-            (misc_class._misc_cls_method,),
+            (misc_class.misc_method,),
+            (misc_class.misc_cls_method,),
         ],
     )
     def test_full_encoder(self, fn):
@@ -100,63 +100,129 @@ class TestJsonEncoders:
 
 
 class TestSignatureValidateAndCompose:
-    def validate_kwarg_only():
+
+    misc_class = MiscClass()
+
+    @pytest.mark.parametrize(
+        ("args","kwargs"),
+        [
+            pytest.param((5, 2, 1), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((), ({"y": 2}), marks=pytest.mark.xfail(strict=True)),
+            pytest.param((2,), ({"x": 2}), marks=pytest.mark.xfail(strict=True)),
+            ((), ({"x": 2})),
+            ((), {}),
+        ],
+    )
+    def test_validate_kwarg_only(self, args, kwargs):
+
+        def run(*, x: int = 4):
+            pass
+
+        returned_args, returned_kwargs = validate_and_compose_signature(run, *args, **kwargs)
+        assert len(returned_args) == 0
+        assert len(returned_kwargs) == len(kwargs)
+        assert all([returned_kwargs[i] == kwargs[i] for i in returned_kwargs])
+        # run
+        run(*returned_args, **returned_kwargs)
+
+    @pytest.mark.parametrize(
+        ("args","kwargs"),
+        [
+            pytest.param((5,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((2,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((), {}, marks=pytest.mark.xfail(strict=True)),
+            ((2,), {}),
+        ],
+    )
+    def test_validate_positional_only(self, args, kwargs):
+
+        def run(x, /):
+            pass
+
+        returned_args, returned_kwargs = validate_and_compose_signature(run, *args, **kwargs)
+        assert len(returned_kwargs) == 0
+        assert len(returned_args) == len(args)
+
+        # run
+        run(*returned_args, **returned_kwargs)
+
+
+    @pytest.mark.parametrize(
+        ("args","kwargs"),
+        [
+            pytest.param((5,3,2,), {"x": 1}, marks=pytest.mark.xfail(strict=True)),
+            ((2, 1, 0), {}),
+            ((), {})
+        ],
+    )
+    def test_validate_var_positional(self, args, kwargs):
+
+        def run(*args):
+            pass
+
+        returned_args, returned_kwargs = validate_and_compose_signature(run, *args, **kwargs)
+        assert len(returned_kwargs) == 0
+        assert len(returned_args) == len(args)
+
+        # run
+        run(*returned_args, **returned_kwargs)
+
+    @pytest.mark.parametrize(
+        ("args","kwargs"),
+        [
+            pytest.param((5,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((2,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((), {"x": 2, "y": 3}, marks=pytest.mark.xfail(strict=True)),
+            pytest.param((), {}, marks=pytest.mark.xfail(strict=True)),
+            ((2, 4,), {}),
+            ((2,), {"y": 4, "extra": True}),
+            ((2,), {"y": 4}),
+            ((2,), {"y": 4, "z": 3}),
+        ],
+    )
+    def test_validate_full_sig(self, args, kwargs):
+
+        def run(x, /, y, z=4, *args, **kwargs):
+            pass
+
+        returned_args, returned_kwargs = validate_and_compose_signature(run, *args, **kwargs)
+
+        # run
+        run(*returned_args, **returned_kwargs)
+
+
+    @pytest.mark.parametrize(
+        ("args","kwargs"),
+        [
+            pytest.param((5, 1), {"y": 2}, marks=pytest.mark.xfail(strict=True)),
+            ((2, 4,), {}),
+            ((5,), {"y": 2})
+        ],
+    )
+    def test_validate_classmethod(self, args, kwargs):
+
+        returned_args, returned_kwargs = validate_and_compose_signature(self.misc_class.misc_cls_method, *args, **kwargs)
+        self.misc_class.misc_cls_method(*returned_args, **returned_kwargs)
+
+    
+
+
+
+
+
+
+
+def TestCallableModel():
+
+    def call(self):
         ...
 
-    def validate_positional_only():
-        ...
 
-    def validate_mixed_kwarg_and_positional():
-        ...
-
-    def validate_var_positional():
-        ...
-
-    def validate_var_kwarg():
-        ...
-
-    def validate_mixed():
-        ...
 
 
 """
 
-
-@validate_arguments(config={"arbitrary_types_allowed": True})
-def validate_and_compose_kwargs(signature: inspect.Signature, kwargs: Dict[str, Any]):
-    required_kwargs = [
-        kwarg.name
-        for kwarg in signature.parameters.values()
-        if (kwarg.POSITIONAL_OR_KEYWORD or kwarg.KEYWORD_ONLY)
-        and kwarg.default is inspect.Parameter.empty
-    ]
-
-    if any([required_kwarg not in kwargs.keys() for required_kwarg in kwargs.keys()]):
-        raise ValueError(
-            "All required kwargs not provided: %s", ", ".join(required_kwargs)
-        )
-
-    # check (kwarg.VAR_KEYWORD and kwarg.default is inspect.Parameter.empty) is not
-    # empty **kwargs
-    sig_kwargs = {
-        kwarg.name: kwarg.default
-        for kwarg in signature.parameters.values()
-        if (kwarg.POSITIONAL_OR_KEYWORD or kwarg.KEYWORD_ONLY)
-        and not kwarg.kind == inspect.Parameter.VAR_KEYWORD
-    }
-
-    # validate kwargs
-    if any([kwarg not in sig_kwargs.keys() for kwarg in kwargs.keys()]):
-        raise ValueError(
-            "Kwargs must be members of function signature. Accepted kwargs \
-                are: %s, Provided: %s",
-            ", ".join(sig_kwargs.keys()),
-            ", ".join(kwargs.keys()),
-        )
-
-    sig_kwargs.update(kwargs)
-
-    return sig_kwargs
 
 
 class CallableModel(BaseModel):

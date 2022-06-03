@@ -74,7 +74,8 @@ JSON_ENCODERS = {
 
 
 def get_callable_from_string(callable: str) -> Callable:
-    """Get callable from a string.
+    """Get callable from a string. In the case that the callable points to a bound method,
+    the function returns a callable taking the bind instance as the first arg.
 
     Args:
         callable: String representation of callable abiding convention __module__:callable
@@ -134,41 +135,13 @@ def get_callable_from_string(callable: str) -> Callable:
     return callable
 
 
-@validate_arguments(config={"arbitrary_types_allowed": True})
-def validate_and_compose_kwargs(signature: inspect.Signature, kwargs: Dict[str, Any]):
-    required_kwargs = [
-        kwarg.name
-        for kwarg in signature.parameters.values()
-        if (kwarg.POSITIONAL_OR_KEYWORD or kwarg.KEYWORD_ONLY)
-        and kwarg.default is inspect.Parameter.empty
-    ]
+def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 
-    if any([required_kwarg not in kwargs.keys() for required_kwarg in kwargs.keys()]):
-        raise ValueError(
-            "All required kwargs not provided: %s", ", ".join(required_kwargs)
-        )
+    signature = inspect.signature(callable)
+    bound_sig = signature.bind(*args, **kwargs)
+    # signature.apply_defaults()
 
-    # check (kwarg.VAR_KEYWORD and kwarg.default is inspect.Parameter.empty) is not
-    # empty **kwargs
-    sig_kwargs = {
-        kwarg.name: kwarg.default
-        for kwarg in signature.parameters.values()
-        if (kwarg.POSITIONAL_OR_KEYWORD or kwarg.KEYWORD_ONLY)
-        and not kwarg.kind == inspect.Parameter.VAR_KEYWORD
-    }
-
-    # validate kwargs
-    if any([kwarg not in sig_kwargs.keys() for kwarg in kwargs.keys()]):
-        raise ValueError(
-            "Kwargs must be members of function signature. Accepted kwargs \
-                are: %s, Provided: %s",
-            ", ".join(sig_kwargs.keys()),
-            ", ".join(kwargs.keys()),
-        )
-
-    sig_kwargs.update(kwargs)
-
-    return sig_kwargs
+    return bound_sig.args, bound_sig.kwargs
 
 
 class CallableModel(BaseModel):
@@ -200,13 +173,11 @@ class CallableModel(BaseModel):
             # for function loading
             callable = get_callable_from_string(callable)
 
-        sig = inspect.signature(callable)
-
         # for reloading:
         if values.get("kwargs") is not None:
             values = values["kwargs"]
 
-        kwargs = validate_and_compose_kwargs(sig, values)
+        kwargs = validate_and_compose_signature(callable, values)
 
         return {"callable": callable, "kwargs": kwargs}
 
