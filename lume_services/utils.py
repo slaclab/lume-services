@@ -4,13 +4,11 @@ import inspect
 import logging
 from importlib import import_module
 from pydantic import BaseSettings
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+from typing import Any, Callable, Generic, Optional, Tuple, TypeVar
 from types import FunctionType, MethodType
-from functools import partial
 from pydantic import (
     BaseModel,
     root_validator,
-    validate_arguments,
 )
 from pydantic.generics import GenericModel
 
@@ -73,12 +71,13 @@ JSON_ENCODERS = {
 }
 
 
-def get_callable_from_string(callable: str) -> Callable:
+def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
     """Get callable from a string. In the case that the callable points to a bound method,
     the function returns a callable taking the bind instance as the first arg.
 
     Args:
-        callable: String representation of callable abiding convention __module__:callable
+        callable: String representation of callable abiding convention
+             __module__:callable
 
     Returns:
         Callable
@@ -114,18 +113,30 @@ def get_callable_from_string(callable: str) -> Callable:
         callable = getattr(bound_class, callable_name)
         params = inspect.signature(callable).parameters
 
+        # check bindings
         is_bound = params.get("self", None) is not None
+        if not is_bound and bind is not None:
+            raise ValueError("Cannot bind %s to %s.", callable_name, bind)
 
-        # if not static method, create a partial to attach to instance downstream
-        # calling bound object
-        if not isinstance(callable, (FunctionType,)):
+        # bound, return partial
+        if bind is not None:
+            if not isinstance(bind, (bound_class,)):
+                raise ValueError(
+                    "Provided bind %s is not instance of %s",
+                    bind,
+                    bound_class.__qualname__,
+                )
+
+        if is_bound and isinstance(callable, (FunctionType,)) and bind is None:
             callable = rpartial(getattr, callable_name)
 
-        # unbound, return partial
-        elif is_bound and isinstance(callable, (FunctionType,)):
-            callable = rpartial(getattr, callable_name)
+        elif is_bound and isinstance(callable, (FunctionType,)) and bind is not None:
+            callable = getattr(bind, callable_name)
 
     else:
+        if bind is not None:
+            raise ValueError("Cannot bind %s to %s.", callable_name, type(bind))
+
         try:
             callable = getattr(module, callable_name)
         except Exception as e:
@@ -135,18 +146,25 @@ def get_callable_from_string(callable: str) -> Callable:
     return callable
 
 
+def validate_partial_signature(callable: Callable, *args, **kwargs):
+    signature = inspect.signature(callable)
+    bound_sig = signature.bind_partial(*args, **kwargs)
+
+    return bound_sig.args, bound_sig.kwargs
+
+
 def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 
     signature = inspect.signature(callable)
     bound_sig = signature.bind(*args, **kwargs)
-    # signature.apply_defaults()
 
     return bound_sig.args, bound_sig.kwargs
 
 
 class CallableModel(BaseModel):
     callable: Callable
-    kwargs: dict
+    args: Tuple
+    kwargs: Optional[dict]
 
     class Config:
         arbitrary_types_allowed = True
@@ -171,18 +189,34 @@ class CallableModel(BaseModel):
         if isinstance(callable, (str,)):
 
             # for function loading
-            callable = get_callable_from_string(callable)
+            if "bind" in values:
+                callable = get_callable_from_string(callable, bind=values["bind"])
+
+            else:
+                callable = get_callable_from_string(callable)
 
         # for reloading:
-        if values.get("kwargs") is not None:
+        kwargs = {}
+        args = ()
+        if "kwargs" in values:
             values = values["kwargs"]
 
-        kwargs = validate_and_compose_signature(callable, values)
+        if "args" in values:
+            values = values["args"]
 
-        return {"callable": callable, "kwargs": kwargs}
+        args, kwargs = validate_partial_signature(callable, *args, **kwargs)
 
-    def __call__(self, **kwargs):
-        return self.callable(**{**self.kwargs, **kwargs})
+        return {"callable": callable, "args": args, "kwargs": kwargs}
+
+    def __call__(self, *args, **kwargs):
+        # Args will override positions in self.args
+        if len(self.args) > len(args):
+            args = args + self.args[len(args) :]
+
+        args, kwargs = validate_and_compose_signature(
+            self.callable, *args, **{**self.kwargs, **kwargs}
+        )
+        return self.callable(*args, **kwargs)
 
 
 class ObjLoader(
