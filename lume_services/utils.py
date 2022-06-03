@@ -5,7 +5,8 @@ import logging
 from importlib import import_module
 from pydantic import BaseSettings
 from typing import Any, Callable, Dict, Generic, Optional, TypeVar
-from types import FunctionType
+from types import FunctionType, MethodType
+from functools import partial
 from pydantic import (
     BaseModel,
     root_validator,
@@ -60,14 +61,77 @@ ObjType = TypeVar("ObjType")
 
 
 JSON_ENCODERS = {
-    FunctionType: lambda x: f"{x.__module__}:{x.__name__}",
+    FunctionType: lambda x: f"{x.__module__}:{x.__qualname__}",
+    classmethod: lambda x: f"{x.__func__.__module__}:{x.__func__.__qualname__}",
     # for encoding functions
-    Callable: lambda x: f"{x.__module__}:{type(x).__name__}",
+    MethodType: lambda x: f"{x.__module__}:{x.__qualname__}",
+    Callable: lambda x: f"{x.__module__}:{type(x).__qualname__}",
     # for encoding a type
     type: lambda x: f"{x.__module__}:{x.__name__}",
     # for encoding instances of the ObjType}
-    ObjType: lambda x: f"{x.__module__}:{x.__class__.__name__}",
+    ObjType: lambda x: f"{x.__module__}:{x.__class__.__qualname__}",
 }
+
+
+def get_callable_from_string(callable: str) -> Callable:
+    """Get callable from a string.
+
+    Args:
+        callable: String representation of callable abiding convention __module__:callable
+
+    Returns:
+        Callable
+    """
+    callable_split = callable.rsplit(":")
+
+    if len(callable_split) != 2:
+        raise ValueError(f"Improperly formatted callable string: {callable_split}")
+
+    module_name, callable_name = callable_split
+
+    try:
+        module = import_module(module_name)
+    except ModuleNotFoundError as err:
+        logger.error("Unable to import module %s", module_name)
+        raise err
+
+    # construct partial in case of bound method
+    if "." in callable_name:
+        bound_class, callable_name = callable_name.rsplit(".")
+
+        try:
+            bound_class = getattr(module, bound_class)
+        except Exception as e:
+            logger.error("Unable to get %s from %s", bound_class, module_name)
+            raise e
+
+        # require right partial for assembly of callable
+        # https://funcy.readthedocs.io/en/stable/funcs.html#rpartial
+        def rpartial(func, *args):
+            return lambda *a: func(*(a + args))
+
+        callable = getattr(bound_class, callable_name)
+        params = inspect.signature(callable).parameters
+
+        is_bound = params.get("self", None) is not None
+
+        # if not static method, create a partial to attach to instance downstream
+        # calling bound object
+        if not isinstance(callable, (FunctionType,)):
+            callable = rpartial(getattr, callable_name)
+
+        # unbound, return partial
+        elif is_bound and isinstance(callable, (FunctionType,)):
+            callable = rpartial(getattr, callable_name)
+
+    else:
+        try:
+            callable = getattr(module, callable_name)
+        except Exception as e:
+            logger.error("Unable to get %s from %s", callable_name, module_name)
+            raise e
+
+    return callable
 
 
 @validate_arguments(config={"arbitrary_types_allowed": True})
@@ -117,27 +181,26 @@ class CallableModel(BaseModel):
 
     @root_validator(pre=True)
     def validate_all(cls, values):
-        fn = values.pop("callable")
+        callable = values.pop("callable")
 
         if not isinstance(
-            fn,
+            callable,
             (
                 str,
                 Callable,
             ),
         ):
             raise ValueError(
-                "Callable must be object or a string. Provided %s", type(fn)
+                "Callable must be object or a string. Provided %s", type(callable)
             )
 
         # parse string to callable
-        if isinstance(fn, (str,)):
+        if isinstance(callable, (str,)):
 
             # for function loading
-            module_name, fn_name = fn.rsplit(":", 1)
-            fn = getattr(import_module(module_name), fn_name)
+            callable = get_callable_from_string(callable)
 
-        sig = inspect.signature(fn)
+        sig = inspect.signature(callable)
 
         # for reloading:
         if values.get("kwargs") is not None:
@@ -145,7 +208,7 @@ class CallableModel(BaseModel):
 
         kwargs = validate_and_compose_kwargs(sig, values)
 
-        return {"callable": fn, "kwargs": kwargs}
+        return {"callable": callable, "kwargs": kwargs}
 
     def __call__(self, **kwargs):
         return self.callable(**{**self.kwargs, **kwargs})
@@ -171,7 +234,6 @@ class ObjLoader(
             loader = CallableModel(callable=obj_type, **values)
 
         else:
-            print("Here")
             # validate loader callable is same as obj type
             if isinstance(values["loader"], (CallableModel,)):
                 loader = values["loader"]
