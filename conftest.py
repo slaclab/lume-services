@@ -1,4 +1,5 @@
 import pytest
+import os
 from sqlalchemy import create_engine
 from string import Template
 from datetime import datetime
@@ -261,3 +262,17 @@ def test_impact_result_document():
         "pv_collection_isotime": datetime.now(),
         "config": {"config1": 1, "config2": 2},
     }
+
+
+from glob import glob
+
+
+def refactor(string: str) -> str:
+    return string.replace("/", ".").replace("\\", ".").replace(".py", "")
+
+
+pytest_plugins = [
+    refactor(fixture)
+    for fixture in glob("lume_services/tests/fixtures/*.py")
+    if "__" not in fixture
+]
