@@ -2,6 +2,7 @@ import json
 import hashlib
 import inspect
 import logging
+import copy
 from importlib import import_module
 from pydantic import BaseSettings
 from typing import Any, Callable, Generic, Optional, Tuple, TypeVar
@@ -60,11 +61,8 @@ ObjType = TypeVar("ObjType")
 
 JSON_ENCODERS = {
     FunctionType: lambda x: f"{x.__module__}:{x.__qualname__}",
-    classmethod: lambda x: f"{x.__func__.__module__}:{x.__func__.__qualname__}",
-    # for encoding functions
     MethodType: lambda x: f"{x.__module__}:{x.__qualname__}",
     Callable: lambda x: f"{x.__module__}:{type(x).__qualname__}",
-    # for encoding a type
     type: lambda x: f"{x.__module__}:{x.__name__}",
     # for encoding instances of the ObjType}
     ObjType: lambda x: f"{x.__module__}:{x.__class__.__qualname__}",
@@ -198,11 +196,14 @@ class CallableModel(BaseModel):
         # for reloading:
         kwargs = {}
         args = ()
-        if "kwargs" in values:
-            values = values["kwargs"]
-
         if "args" in values:
-            values = values["args"]
+            args = values.pop("args")
+
+        if "kwargs" in values:
+            kwargs = values["kwargs"]
+        else:
+            # use remaining values as kwargs
+            kwargs = values
 
         args, kwargs = validate_partial_signature(callable, *args, **kwargs)
 
@@ -213,9 +214,16 @@ class CallableModel(BaseModel):
         if len(self.args) > len(args):
             args = args + self.args[len(args) :]
 
-        args, kwargs = validate_and_compose_signature(
-            self.callable, *args, **{**self.kwargs, **kwargs}
-        )
+        if kwargs is None:
+            kwargs = {}
+
+        # update stored kwargs
+        if self.kwargs is not None:
+            base_kwargs = copy.copy(kwargs)
+            kwargs = self.kwargs
+            kwargs.update(base_kwargs)
+
+        args, kwargs = validate_and_compose_signature(self.callable, *args, **kwargs)
         return self.callable(*args, **kwargs)
 
 
