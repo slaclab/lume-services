@@ -2,15 +2,11 @@ import json
 import hashlib
 import inspect
 import logging
-import copy
 from importlib import import_module
 from pydantic import BaseSettings
-from typing import Any, Callable, Generic, Optional, Tuple, TypeVar
+from typing import Any, Callable, Generic, Optional, TypeVar
 from types import FunctionType, MethodType
-from pydantic import (
-    BaseModel,
-    root_validator,
-)
+from pydantic import BaseModel, root_validator, create_model, Field, Extra
 from pydantic.generics import GenericModel
 
 logger = logging.getLogger(__name__)
@@ -60,6 +56,8 @@ ObjType = TypeVar("ObjType")
 
 
 JSON_ENCODERS = {
+    # function/method type distinguished for class members and not recognized as
+    # callables
     FunctionType: lambda x: f"{x.__module__}:{x.__qualname__}",
     MethodType: lambda x: f"{x.__module__}:{x.__qualname__}",
     Callable: lambda x: f"{x.__module__}:{type(x).__qualname__}",
@@ -70,12 +68,13 @@ JSON_ENCODERS = {
 
 
 def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
-    """Get callable from a string. In the case that the callable points to a bound method,
-    the function returns a callable taking the bind instance as the first arg.
+    """Get callable from a string. In the case that the callable points to a bound
+    method, the function returns a callable taking the bind instance as the first arg.
 
     Args:
         callable: String representation of callable abiding convention
              __module__:callable
+        bind: Class to bind as self
 
     Returns:
         Callable
@@ -144,29 +143,39 @@ def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
     return callable
 
 
-def validate_partial_signature(callable: Callable, *args, **kwargs):
-    signature = inspect.signature(callable)
-    bound_sig = signature.bind_partial(*args, **kwargs)
-
-    return bound_sig.args, bound_sig.kwargs
-
-
 def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 
+    # try partial bind to validate
     signature = inspect.signature(callable)
-    bound_sig = signature.bind(*args, **kwargs)
+    bound_args = signature.bind_partial(*args, **kwargs)
 
-    return bound_sig.args, bound_sig.kwargs
+    sig_pos_or_kw = {}
+    sig_kw_only = bound_args.arguments.get("kwargs", {})
+    sig_args_only = bound_args.arguments.get("args", ())
+
+    # Now go parameter by parameter and assemble kwargs
+    for i, param in enumerate(signature.parameters.values()):
+
+        if param.kind == param.POSITIONAL_OR_KEYWORD:
+            sig_pos_or_kw[param.name] = (
+                param.default if not param.default == param.empty else None
+            )
+
+            # assign via binding
+            if param.name in bound_args.arguments:
+                sig_pos_or_kw[param.name] = bound_args.arguments[param.name]
+
+    return sig_pos_or_kw, sig_kw_only, sig_args_only
 
 
 class CallableModel(BaseModel):
     callable: Callable
-    args: Tuple
-    kwargs: Optional[dict]
+    kwargs: BaseModel
 
     class Config:
         arbitrary_types_allowed = True
         json_encoders = JSON_ENCODERS
+        extra = Extra.forbid
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -188,10 +197,12 @@ class CallableModel(BaseModel):
 
             # for function loading
             if "bind" in values:
-                callable = get_callable_from_string(callable, bind=values["bind"])
+                callable = get_callable_from_string(callable, bind=values.pop("bind"))
 
             else:
                 callable = get_callable_from_string(callable)
+
+        values["callable"] = callable
 
         # for reloading:
         kwargs = {}
@@ -201,30 +212,45 @@ class CallableModel(BaseModel):
 
         if "kwargs" in values:
             kwargs = values["kwargs"]
-        else:
-            # use remaining values as kwargs
-            kwargs = values
 
-        args, kwargs = validate_partial_signature(callable, *args, **kwargs)
+        # ignore kwarg-only and arg-only args for now
+        sig_kwargs, _, _ = validate_and_compose_signature(callable, *args, **kwargs)
 
-        return {"callable": callable, "args": args, "kwargs": kwargs}
+        # fix for pydantic handling...
+        kwargs = {}
+        for key, value in sig_kwargs.items():
+            if isinstance(value, (tuple,)):
+                kwargs[key] = (tuple, Field(None))
+
+            elif value is None:
+                kwargs[key] = (Any, Field(None))
+
+            else:
+                kwargs[key] = value
+
+        values["kwargs"] = create_model(f"Kwargs_{callable.__qualname__}", **kwargs)()
+
+        return values
 
     def __call__(self, *args, **kwargs):
-        # Args will override positions in self.args
-        if len(self.args) > len(args):
-            args = args + self.args[len(args) :]
-
         if kwargs is None:
             kwargs = {}
 
-        # update stored kwargs
-        if self.kwargs is not None:
-            base_kwargs = copy.copy(kwargs)
-            kwargs = self.kwargs
-            kwargs.update(base_kwargs)
+        # create self.kwarg copy
+        fn_kwargs = self.kwargs.dict()
 
-        args, kwargs = validate_and_compose_signature(self.callable, *args, **kwargs)
-        return self.callable(*args, **kwargs)
+        # update pos/kw kwargs with args
+        if len(args):
+
+            stored_kwargs = list(fn_kwargs.keys())
+
+            for i, arg in enumerate(args[: len(fn_kwargs)]):
+                fn_kwargs[stored_kwargs[i]] = arg
+
+        # update stored kwargs
+        fn_kwargs.update(kwargs)
+
+        return self.callable(**fn_kwargs)
 
 
 class ObjLoader(
@@ -248,10 +274,7 @@ class ObjLoader(
 
         else:
             # validate loader callable is same as obj type
-            if isinstance(values["loader"], (CallableModel,)):
-                loader = values["loader"]
-
-            elif values["loader"].get("callable") is not None:
+            if values["loader"].get("callable") is not None:
                 # unparameterized callable will handle parsing
                 callable = CallableModel(callable=values["loader"]["callable"])
 
@@ -265,8 +288,8 @@ class ObjLoader(
                 # opt for obj type
                 values["loader"].pop("callable")
 
-                # re-init drop callable from loader vals to use new instance
-                loader = CallableModel(callable=obj_type, **values["loader"])
+            # re-init drop callable from loader vals to use new instance
+            loader = CallableModel(callable=obj_type, **values["loader"])
 
         # update the class json encoders. Will only execute on initial type construction
         if obj_type not in cls.__config__.json_encoders:
