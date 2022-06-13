@@ -17,6 +17,7 @@ from lume.serializers.base import SerializerBase
 from lume_services.data.file.serializers import TextSerializer
 from lume_services.utils import ObjLoader, JSON_ENCODERS
 
+from lume.serializers.hdf5 import HDF5Servializer
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class File(
     filename: str
     loader: Optional[ObjLoader[SerializerType]]
     file_serializer: SerializerType = Field(exclude=True)
+    file_system_identifier: str
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -39,13 +41,29 @@ class File(
         values["loader"] = ObjLoader[serializer_type]()
         values["serializer"] = values["loader"].load()
 
+        # check for filesystem identifier
+        # if not values.get("file_system_identifier"):
+
+        #    if values.get("filename") and ":" in values.get("filename"):
+        #        values["file_system_identifier"] = values["filename"].spit(":")
+
+        # update the class json encoders. Will only execute on initial type construction
+        if serializer_type not in cls.__config__.json_encoders:
+            cls.__config__.json_encoders[
+                serializer_type
+            ] = cls.__config__.json_encoders.pop(SerializerType)
+
         return values
 
     def write(self, obj):
         self.serializer.serialize(self.filename, obj)
 
+    def read(self):
+        return self.serializer.deserialize(self.filename)
+
 
 TextFile = File[TextSerializer]
+HDF5File = File[HDF5Servializer]
 
 
 class FileResult(Result):
