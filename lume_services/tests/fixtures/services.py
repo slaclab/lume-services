@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from datetime import datetime
 import mongomock
 import pymysql
+import logging
 from mongoengine import connect
 
 from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
@@ -24,6 +25,9 @@ from lume_services.context import Context, LUMEServicesConfig
 from lume.serializers.base import SerializerBase
 
 
+logger = logging.getLogger(__name__)
+
+
 def is_database_ready(docker_ip, mysql_user, mysql_password):
     try:
         pymysql.connect(
@@ -32,7 +36,8 @@ def is_database_ready(docker_ip, mysql_user, mysql_password):
             password=mysql_password,
         )
         return True
-    except:
+    except Exception as e:
+        logger.error(e.message)
         return False
 
 
@@ -135,11 +140,6 @@ class TextSerializer(SerializerBase):
         return text
 
 
-@pytest.fixture(scope="module", autouse=True)
-def text_serializer():
-    return TextSerializer()
-
-
 @pytest.fixture(scope="module")
 def file_service(local_filesystem_handler):
     filesystems = [local_filesystem_handler]
@@ -170,7 +170,7 @@ def context(
 
     context = Context(
         results_db_service=mongodb_service,
-        model_db_service=mysql_service,
+        model_db_service=mysql_server,
         file_service=file_service,
     )
 
