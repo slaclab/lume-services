@@ -1,40 +1,37 @@
-from lume_services.scheduling.prefect.results.file import FileResult
-import cloudpickle
+from lume_services.scheduling.prefect.results.file import (
+    TextFile,
+    load_file_result,
+)
+from lume_services.data.file.serializers import TextSerializer
+import os
 
 
-def test_local_filesystem_result_service_injection(context, tmp_path, text_serializer):
+def test_local_filesystem_result(context, tmp_path):
 
     filepath = f"{tmp_path}/tmp_file.txt"
     text = "test text"
-    FileResult("local", value=text, location=filepath, serializer=text_serializer)
+    text_serializer = TextSerializer()
+    txt_file = TextFile(
+        filename=filepath, file_system_identifier="local", serializer=text_serializer
+    )
+    txt_file.write(text, file_service=context.file_service())
+
+    assert os.path.isfile(filepath)
 
 
-def test_local_filesystem_everything_is_pickleable_after_init(
-    file_service, tmp_path, text_serializer
-):
+def test_load_file_result_task(context, tmp_path):
     filepath = f"{tmp_path}/tmp_file.txt"
     text = "test text"
-    result = FileResult(
-        "local",
-        value=text,
-        location=filepath,
-        serializer=text_serializer,
-        file_service=file_service,
+    text_serializer = TextSerializer()
+    txt_file = TextFile(
+        filename=filepath, file_system_identifier="local", serializer=text_serializer
+    )
+    txt_file.write(text, file_service=context.file_service())
+
+    txt_file_json = txt_file.json()
+
+    loaded_text = load_file_result.run(
+        txt_file_json, file_service=context.file_service()
     )
 
-    assert cloudpickle.loads(cloudpickle.dumps(result)) == result
-
-
-def test_write_local_filesystem_result(file_service, tmp_path, text_serializer):
-    filepath = f"{tmp_path}/tmp_file.txt"
-    text = "test text"
-    result = FileResult(
-        "local",
-        location=filepath,
-        serializer=text_serializer,
-        file_service=file_service,
-    )
-    result.write(text)
-
-    # test read
-    result.value == text
+    assert loaded_text == text
