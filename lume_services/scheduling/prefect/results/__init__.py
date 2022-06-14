@@ -1,2 +1,2 @@
 from .db import DBResult
-from .file import FileResult, TextFile
+from .file import TextFile, HDF5File
