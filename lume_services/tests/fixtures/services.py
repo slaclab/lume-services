@@ -37,7 +37,7 @@ def is_database_ready(docker_ip, mysql_user, mysql_password):
         )
         return True
     except Exception as e:
-        logger.error(e.message)
+        logger.error(e)
         return False
 
 
@@ -49,6 +49,22 @@ def mysql_server(docker_ip, docker_services, mysql_user, mysql_password):
         check=lambda: is_database_ready(docker_ip, mysql_user, mysql_password),
     )
     return
+
+
+def test_mysql(
+    mysql_user, mysql_host, mysql_password, docker_ip, docker_services, mysql_server
+):
+    """Ensure that HTTP service is up and responsive."""
+
+    port = docker_services.port_for("mysql", 3306)
+
+    connect_str = (
+        f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{str(port)}"
+    )
+    engine = create_engine(connect_str)
+
+    conn = engine.connect()
+    conn.close()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -170,7 +186,7 @@ def context(
 
     context = Context(
         results_db_service=mongodb_service,
-        model_db_service=mysql_server,
+        model_db_service=mysql_service,
         file_service=file_service,
     )
 
