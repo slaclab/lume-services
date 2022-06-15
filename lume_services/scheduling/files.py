@@ -106,9 +106,7 @@ _FileResultTypeMap = {
 
 
 @task()
-def load_file_result(
-    file_json_rep, file_service: FileService = Provide[Context.file_service]
-):
+def load_file(file_json_rep, file_service: FileService = Provide[Context.file_service]):
 
     json_loaded = json.loads(file_json_rep)
     result_type = _FileResultTypeMap.get(json_loaded["serializer_type"])
