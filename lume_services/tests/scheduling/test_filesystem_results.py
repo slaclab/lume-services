@@ -1,4 +1,4 @@
-from lume_services.scheduling.files import (
+from lume_services.scheduling.file import (
     TextFile,
     load_file,
 )
