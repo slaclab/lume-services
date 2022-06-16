@@ -6,16 +6,16 @@ import pymysql
 import logging
 from mongoengine import connect
 
-from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
-from lume_services.data.model.model_service import ModelService
+from lume_services.services.data.model.db.mysql import MySQLConfig, MySQLService
+from lume_services.services.data.model.model_service import ModelService
 from lume_services.data.results.db.db_service import DBServiceConfig
 from lume_services.data.results.db.mongodb.service import MongodbService
 from lume_services.data.results.results_service import (
     ResultsService,
     ResultsServiceConfig,
 )
-from lume_services.data.file.systems.local import LocalFilesystem
-from lume_services.data.file.service import FileService
+from lume_services.services.data.files.filesystems import LocalFilesystem
+from lume_services.services.data.files import FileService
 from lume_services.data.results.db.mongodb.models import ModelDocs as MongoDBModelDocs
 from lume_services.context import Context, LUMEServicesConfig
 from lume.serializers.base import SerializerBase
