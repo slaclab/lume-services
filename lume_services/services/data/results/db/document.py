@@ -1,10 +1,12 @@
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
 class DocumentBase(ABC):
-    """Fields should be stored as attributes and able to be initialized with passed kwargs.
+    """Fields should be stored as attributes and able to be initialized with passed
+    kwargs.
 
-    At present, this isn't subclassed for implementing docs because of metaclass conflicts
+    At present, this isn't subclassed for implementing docs because of metaclass
+    conflicts
     TODO: Fix metaclass conflict
 
     """

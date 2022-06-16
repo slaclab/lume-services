@@ -56,7 +56,10 @@ class ResultDocument(Document):
             if index["name"] == cls.unique_result_idx:
                 return [field[0] for field in index["fields"]]
 
-        raise ValidationError(f"Unique result index {cls.unique_result_idx} not found.")
+        raise ValidationError(
+            f"Unique result index {cls.unique_result_idx} not \
+            found."
+        )
 
     def get_unique_result_index(self) -> dict:
         index_fields = self.get_unique_result_index_fields()
@@ -85,4 +88,5 @@ class GenericResultDocument(ResultDocument):
     meta = {"collection": "Generic"}
 
 
+# Use signal to create unique hash entry
 signals.post_init.connect(ResultDocument.post_init, sender=GenericResultDocument)

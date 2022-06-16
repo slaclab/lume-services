@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from contextvars import ContextVar
 from contextlib import contextmanager
 
-from lume_services.data.results.db.db_service import DBService, DBServiceConfig
+from lume_services.services.data.results.db.db_service import DBService, DBServiceConfig
 from mongoengine import Document
 
 import mongoengine
@@ -24,7 +24,8 @@ class MongodbConfig(DBServiceConfig):
 #  authentication_source
 # authentication_mechanism
 # is_mock
-# kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s MongoClient for a full list.
+# kwargsfor example maxpoolsize, tz_aware, etc. See the documentation for pymongo’s
+# MongoClient for a full list.
 
 
 class MongodbService(DBService):
@@ -49,7 +50,10 @@ class MongodbService(DBService):
         return cxn
 
     def _check_mp(self) -> None:
-        """Check for multiprocessing. If PID is different that object PID, create new engine connection."""
+        """Check for multiprocessing. If PID is different that object PID, create new
+        engine connection.
+
+        """
 
         if os.getpid() != self.pid:
             self._connect()
@@ -71,7 +75,10 @@ class MongodbService(DBService):
 
     @contextmanager
     def connection(self) -> MongoClient:
-        """Context manager for mongoclient. Will check for multiprocessing and restart accordingly."""
+        """Context manager for mongoclient. Will check for multiprocessing and restart
+        accordingly.
+
+        """
         self._check_mp()
 
         # get connection
@@ -104,7 +111,7 @@ class MongodbService(DBService):
             Document: Saved document
 
         """
-        with self.connection() as cxn:
+        with self.connection():
             res = doc.save(validate=True)
 
         return res
@@ -124,7 +131,7 @@ class MongodbService(DBService):
 
         """
 
-        with self.connection() as cxn:
+        with self.connection():
             results = model_doc_type.objects(**query)
 
         if fields is not None and len(fields):
@@ -145,7 +152,7 @@ class MongodbService(DBService):
 
         """
 
-        with self.connection() as cxn:
+        with self.connection():
             results = model_doc_type.objects()
 
         return results
