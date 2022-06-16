@@ -1,1 +1,1 @@
-from .scheduling_service import SchedulingService # noqa: F401
+from .scheduling_service import SchedulingService
