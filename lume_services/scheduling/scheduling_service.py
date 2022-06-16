@@ -1,10 +1,7 @@
-from prefect import Flow
-from prefect.tasks.prefect import create_flow_run, wait_for_flow_run
 from prefect import Client
 from prefect.backend import FlowRunView
 from typing import List
 
-from prefect.run_configs import RunConfig
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
@@ -12,7 +9,7 @@ from typing import Optional
 from lume_services.scheduling.prefect.config import PrefectConfig
 import yaml
 
-from .schema import FlowOfFlows
+from .schema import FlowOfFlows, Flow
 
 # from prefect.schedules import CronSchedule
 # weekday_schedule = CronSchedule(
@@ -22,18 +19,22 @@ from .schema import FlowOfFlows
 
 class FlowConfig(BaseModel):
     image: Optional[str]
+    env: Optional[List[str]]
 
 
 class FlowRunConfig(BaseModel):
-    flow_name: str
-    project_name: str
- #   parameters: ...
- #   run_config: RunConfig
- #   wait: ...
- #   new_flow_context: ...
+    flow: Optional[Flow]
+    #   parameters: ...
+    #   run_config: RunConfig
+    #   wait: ...
+    #   new_flow_context: ...
     run_name: str = None
     scheduled_start_time: datetime = None
     poll_interval: timedelta = timedelta(seconds=10)
+
+
+class FlowRunResult(BaseModel):
+    ...
 
 
 class SchedulingService:
@@ -84,9 +85,7 @@ class SchedulingService:
 
         return flow_id
 
-    def register_flow_of_flows(
-        self, project_name: str, flow_of_flows: FlowOfFlows
-    ) -> str:
+    def register_flow_of_flows(self, flow_of_flows: FlowOfFlows) -> str:
         """Register flow-of-flows in series.
 
         Args:
@@ -94,32 +93,8 @@ class SchedulingService:
 
         """
 
-        # validate flow parameters
-        parameters = [flow.parameters for flow in flows]
-
-
-        # create composite flow
-        with Flow(name) as flow_of_flows:
-
-            flow_runs = []
-            flow_waits = []
-            for i, flow in enumerate(flows):
-                # flow_run = create_flow_run(flow_name="", project_name="")
-                flow_run = create_flow_run(flow=flow,  parameters = ...)
-                flow_wait = wait_for_flow_run(flow_run, raise_final_state=True)
-
-
-                if i >= 1:
-                    flow_run.set_upstream(flow_waits[i - 1])
-
-                flow_runs.append(flow_run)
-                flow_waits.append(flow_wait)
-
-        # validate flow of flows
-        flow_of_flows.validate()
-        flow_id = flow_of_flows.register(project_name=project_name)
-
-        return flow_id
+        flow = flow_of_flows.compose_and_register()
+        return flow
 
     def schedule_run(
         self,
@@ -182,9 +157,8 @@ class SchedulingService:
         flow_runs = FlowRunView._query_for_flow_run(where={"flow_id": {"_eq": id}})
 
 
-def load_flow_of_flows_from_yaml(filename):
-    with open(filename, 'r') as file:
-        flow_of_flow_config = yaml.safe_load(file)
+def load_flow_of_flows_from_yaml(yaml_obj):
+    flow_of_flow_config = yaml.safe_load(yaml_obj)
 
     # now validate
     return FlowOfFlows(**flow_of_flow_config)
