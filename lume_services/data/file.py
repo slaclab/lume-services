@@ -9,7 +9,11 @@ import copy
 
 from lume_services.context import Context
 from lume_services.services.data.files import FileService
-from lume_services.data.files.serializers import TextSerializer
+from lume_services.data.files.serializers import (
+    TextSerializer,
+    ImageSerializer,
+    YAMLSerializer,
+)
 from lume_services.utils import ObjLoader, ObjType, JSON_ENCODERS
 
 from lume.serializers.hdf5 import HDF5Serializer
@@ -96,11 +100,15 @@ class File(
 
 TextFile = File[TextSerializer]
 HDF5File = File[HDF5Serializer]
+ImageFile = File[ImageSerializer]
+YAMLFile = File[YAMLSerializer]
 
 # create map of type import path to type
 _FileSerializerTypeStringMap = {
     f"{TextSerializer.__module__}:{TextSerializer.__name__}": TextFile,
     f"{HDF5Serializer.__module__}:{HDF5Serializer.__name__}": HDF5File,
+    f"{ImageSerializer.__module__}:{ImageSerializer.__name__}": ImageFile,
+    f"{YAMLSerializer.__module__}:{YAMLSerializer.__name__}": YAMLFile,
 }
 
 
