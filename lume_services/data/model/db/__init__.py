@@ -1,5 +1,5 @@
-from .mysql import MySQLService  # noqa: F401
-from .schema import (  # noqa: F401
+from .mysql import MySQLService
+from .schema import (
     Flow,
     Model,
     Deployment,
