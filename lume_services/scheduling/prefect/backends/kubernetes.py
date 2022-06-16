@@ -7,7 +7,7 @@ from lume_services.data.file import FileService
 from lume_services.context import Context
 from dependency_injector.wiring import Provide
 
-from lume_services.data.file.serializers.yaml import YAMLSerializer
+from lume_services.data.files.serializers.yaml import YAMLSerializer
 from lume_services.scheduling.prefect.files import KUBERNETES_JOB_TEMPLATE_FILE
 
 from lume_services.scheduling.prefect.backends import Backend
