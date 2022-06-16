@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 from prefect.backend.flow import FlowView
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Literal
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -41,6 +41,7 @@ class TaskNotInFlowError(Exception):
 class MappedParameter(BaseModel):
     parent_flow_name: str
     parent_task_name: str
+    map_type: Literal["file", "db_query"]
 
 
 class Flow(BaseModel):
@@ -184,7 +185,6 @@ class FlowOfFlows(BaseModel):
                             task_run_result = get_task_run_result(
                                 flow_runs[mapped_param.parent_flow_name], task_slug
                             )
-
                             # track param name with result
                             flow_params[param_name] = task_run_result
 
