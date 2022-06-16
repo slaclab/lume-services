@@ -11,7 +11,7 @@ from sqlalchemy.engine.base import Connection
 
 from typing import List
 
-from lume_services.data.model.db.db_service import DBServiceConfig, DBService
+from lume_services.services.data.model.db.db_service import DBServiceConfig, DBService
 
 
 logger = logging.getLogger(__name__)
