@@ -112,13 +112,13 @@ _FileSerializerTypeStringMap = {
 }
 
 
-def get_file_from_serializer_string(serializer_type_string=str):
+def get_file_from_serializer_string(serializer_type_string: str):
 
     if not _FileSerializerTypeStringMap.get(serializer_type_string):
         raise ValueError(
             "Serializer string not in file types. %s, %s",
             serializer_type_string,
-            _FileSerializerTypeStringMap.keys(),
+            list(_FileSerializerTypeStringMap.keys()),
         )
 
     else:
