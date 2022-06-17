@@ -1,0 +1,33 @@
+# arbitrary lume-epics yaml file
+input_variables:
+  input1:
+      name: input1
+      type: scalar
+      default: 1
+      range: [0, 256]
+
+  input2:
+      name: input2
+      type: scalar
+      default: 2.0
+      range: [0, 256]
+
+output_variables:
+  output1:
+    name: output1
+    type: image
+    x_label: "value1"
+    y_label: "value2"
+    axis_units: ["mm", "mm"]
+    x_min: 0
+    x_max: 10
+    y_min: 0
+    y_max: 10
+
+  output2:
+    name: output2
+    type: scalar
+
+  output3:
+    name: output3
+    type: scalar
