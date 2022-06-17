@@ -8,7 +8,7 @@ class GenericResult(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
     # points to field that establishes uniqueness
-    target_field: str = Field(["unique_result_hash"], const=True)
+    target_field: str = Field("unique_result_hash", const=True)
     collection: str
 
     # db fields

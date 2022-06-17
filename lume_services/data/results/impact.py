@@ -5,7 +5,7 @@ from typing import Optional
 
 from lume_services.data.results.generic import GenericResult
 from lume_services.utils import JSON_ENCODERS
-from lume_services.data.file import HDF5File, ImageFile
+from lume_services.data.files import HDF5File, ImageFile
 
 
 class ImpactResult(GenericResult):
