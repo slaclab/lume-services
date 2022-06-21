@@ -1,9 +1,9 @@
 import os
 from pydantic import root_validator, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from urllib.parse import quote_plus
 
-from pymongo import MongoClient
+from pymongo import DESCENDING, MongoClient
 
 from contextvars import ContextVar
 from contextlib import contextmanager
@@ -59,7 +59,7 @@ class MongodbResultsDBService(ResultsDBService):
         self.config = db_config
 
         # track pid to make multiprocessing safe
-        self.pid = os.getpid()
+        self._pid = os.getpid()
         self._client = ContextVar("client", default=None)
         self._connect()
 
@@ -76,7 +76,7 @@ class MongodbResultsDBService(ResultsDBService):
 
         """
 
-        if os.getpid() != self.pid:
+        if os.getpid() != self._pid:
             self._connect()
 
     @property
@@ -192,3 +192,21 @@ class MongodbResultsDBService(ResultsDBService):
 
         """
         return self.find(collection=collection)
+
+    def configure(self, collection_indices: Dict[str, List[str]]) -> None:
+        """Configure the results database from collections and their indices.
+
+        Args:
+            collection_indices (Dict[str, List[str]]): Dictionary mapping collection to
+                index rep.
+
+        """
+
+        with self.connection() as client:
+            db = client[self.config.database]
+
+            for collection, index in collection_indices.items():
+
+                formatted_index = [(idx, DESCENDING) for idx in index]
+
+                db[collection].create_index(formatted_index, unique=True)

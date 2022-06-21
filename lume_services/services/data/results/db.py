@@ -65,3 +65,7 @@ class ResultsDBService(ABC):
         Returns:
             List[dict]: List of result items represented as dict.
         """
+
+    @abstractmethod
+    def configure(self, **kwargs) -> None:
+        """Configure the results db service."""
