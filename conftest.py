@@ -12,6 +12,13 @@ def pytest_addoption(parser):
     parser.addini("mysql_database", default="model_db", help="Model database name")
     parser.addini("mysql_poolsize", default=1, help="MySQL client poolsize")
     parser.addini(name="mysql_mysqld", help="mysqld command", default="mysqld")
+
+    parser.addini("mongodb_host", default="127.0.0.1", help="MySQL host")
+    parser.addini("mongodb_port", default=3306, help="MySQL port")
+    parser.addini("mongodb_user", default="root", help="MySQL user")
+    parser.addini("mongodb_password", default="root", help="MySQL password")
+    parser.addini(name="mongodb_dbname", help="Mysql database name", default="test")
+
     parser.addini(
         name="mysql_mysqld_safe", help="mysqld safe command", default="mysqld_safe"
     )
@@ -41,33 +48,6 @@ def mysql_password(request):
     return user
 
 
-@pytest.fixture(scope="session", autouse=True)
-def mysql_host(request):
-    return request.config.getini("mysql_host")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mysql_port(request):
-    port = request.config.getini("mysql_port")
-    os.environ["PYTEST_MYSQL_PORT"] = port
-    return int(port)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mysql_database(request):
-    return request.config.getini("mysql_database")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mysql_pool_size(request):
-    return int(request.config.getini("mysql_poolsize"))
-
-
-@pytest.fixture(scope="session", autouse=True)
-def base_mysql_uri(mysql_user, mysql_password, mysql_host, mysql_port):
-    return f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}"
-
-
 from glob import glob
 
 
@@ -77,6 +57,6 @@ def refactor(string: str) -> str:
 
 pytest_plugins = [
     refactor(fixture)
-    for fixture in glob("lume_services/tests/fixtures/*.py")
+    for fixture in glob("lume_services/tests/fixtures/*.py", recursive=True)
     if "__" not in fixture
 ]
