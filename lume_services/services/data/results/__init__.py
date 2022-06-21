@@ -1,12 +1,11 @@
-from .db import ResultsDBService, ResultsDBServiceConfig
-from .mongodb import MongodbResultsDBService, MongodbResultsDBServiceConfig
+from .db import ResultsDB, ResultsDBConfig
+from .mongodb import MongodbResultsDB, MongodbResultsDBConfig
 
 
 from typing import List, Type
 import json
 import logging
 
-from lume_services.data.results.db import ResultsDB
 from lume_services.utils import flatten_dict
 
 from lume_services.config import LUMESettings
