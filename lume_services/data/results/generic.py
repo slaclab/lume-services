@@ -28,6 +28,9 @@ class GenericResult(BaseModel):
     # establishes uniqueness
     unique_hash: str
 
+    # store result type
+    result_type: type
+
     @root_validator(pre=True)
     def validate_all(cls, values):
         unique_fields = cls.__fields__["unique_on"].default
@@ -43,22 +46,24 @@ class GenericResult(BaseModel):
                 {index: values[index] for index in unique_fields}
             )
 
+        values["result_type"] = cls
+
         return values
 
     def get_unique_result_index(self) -> dict:
         return {field: getattr(self, field) for field in self.unique_on}
 
     def insert(
-        self, results_service: ResultsDBService = Provide[Context.results_db_service]
+        self, results_db_service: ResultsDBService = Provide[Context.results_db_service]
     ):
         rep = self.dict()
-        results_service.insert_one(item=rep, collection=self.collection)
+        results_db_service.insert_one(item=rep, collection=self.collection)
 
     @classmethod
     def load_result(
         cls,
         query,
-        results_service: ResultsDBService = Provide[Context.results_db_service],
+        results_db_service: ResultsDBService = Provide[Context.results_db_service],
     ):
-        res = results_service.find(collection=cls.collection, query=query)
+        res = results_db_service.find(collection=cls.collection, query=query)
         return cls(**res)
