@@ -1,63 +1,64 @@
 from pydantic import BaseModel, root_validator, Field
 from datetime import datetime
+from lume_services.services.data.results import ResultsDBService
 from lume_services.utils import fingerprint_dict
 from typing import List
+from dependency_injector.wiring import Provide
+
+from lume_services.context import Context
 
 
 class GenericResult(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
-    # points to field that establishes uniqueness
-    target_field: str = Field("unique_result_hash", const=True)
-    collection: str
+    model_type: str = Field("generic", alias="collection", exclude=True)
+    # id: Optional[ObjectId]
 
     # db fields
     flow_id: str
     inputs: dict
     outputs: dict
+    date_modified: datetime = datetime.utcnow()
+
+    # set of establishes uniqueness
+    unique_on: List[str] = Field(
+        ["inputs", "outputs", "flow_id"], const=True, alias="index", exclude=True
+    )
 
     # establishes uniqueness
-    index_fields: List[str] = Field(["inputs", "outputs", "flow_id"], const=True)
-
-    date_modified: datetime = datetime.utcnow()
-    meta: dict = {"ordering": ["-date_modified"]}
-
-    # Used for identifying index
-    unique_result_hash: str
+    unique_hash: str
 
     @root_validator(pre=True)
     def validate_all(cls, values):
-        index_fields = cls.__fields__["index_fields"].default
+        unique_fields = cls.__fields__["unique_on"].default
 
         # create index hash
-        if not values.get("unique_result_hash"):
+        if not values.get("unique_hash"):
 
-            for field in index_fields:
+            for field in unique_fields:
                 if not values.get(field):
                     raise ValueError("%s not provided.", field)
 
-            values["unique_result_hash"] = fingerprint_dict(
-                {index: values[index] for index in index_fields}
+            values["unique_hash"] = fingerprint_dict(
+                {index: values[index] for index in unique_fields}
             )
 
         return values
 
-    @root_validator(pre=False)
-    def populate_meta(cls, values):
-        values["meta"]["indexes"] = [
-            # enforce uniqueness
-            {
-                "fields": values[
-                    "index_fields"
-                ],  # may need to account for _ in field name with - preceedng
-                "unique": True,
-                "name": "unique_result",
-            },
-        ]
-
-        values["meta"]["collection"] = values["collection"]
-
-        return values
-
     def get_unique_result_index(self) -> dict:
-        return {field: getattr(self, field) for field in self.index_fields}
+        return {field: getattr(self, field) for field in self.unique_on}
+
+    def insert(
+        self, results_service: ResultsDBService = Provide[Context.results_db_service]
+    ):
+        rep = self.dict()
+        results_service.insert_one(item=rep, collection=self.collection)
+
+    @classmethod
+    def load_result(
+        cls,
+        query,
+        results_service: ResultsDBService = Provide[Context.results_db_service],
+    ):
+        res = results_service.find(collection=cls.collection, query=query)
+        return cls(**res)

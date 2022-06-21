@@ -11,7 +11,7 @@ from lume_services.data.files import HDF5File, ImageFile
 class ImpactResult(GenericResult):
     """Extends GenericResult base and implements Impact specific attributes"""
 
-    collection: str = "Impact"
+    model_type: str = "Impact"
     plot_file: Optional[ImageFile]
     archive: HDF5File
     pv_collection_isotime: datetime
