@@ -10,8 +10,8 @@ from contextvars import ContextVar
 from contextlib import contextmanager
 
 from lume_services.services.data.results.db import (
-    ResultsDBServiceConfig,
-    ResultsDBService,
+    ResultsDBConfig,
+    ResultsDB,
 )
 
 import logging
@@ -20,13 +20,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MongodbResultsDBServiceConfig(ResultsDBServiceConfig):
+class MongodbResultsDBConfig(ResultsDBConfig):
     # excluded in serialization bc not used to initialize cxn
     database: str = Field(exclude=True)
     user: Optional[str]
     host: Optional[str]
     port: Optional[int]
-    uri: Optional[str]
+    uri: Optional[str] = Field(exclude=True)
     tz_aware: Optional[bool]
     maxPoolSize: Optional[int]
 
@@ -60,10 +60,10 @@ class MongodbCollection(BaseModel):
     indices: dict
 
 
-class MongodbResultsDBService(ResultsDBService):
+class MongodbResultsDB(ResultsDB):
     # Note: pymongo is threadsafe
 
-    def __init__(self, db_config: MongodbResultsDBServiceConfig):
+    def __init__(self, db_config: MongodbResultsDBConfig):
         self.config = db_config
 
         # track pid to make multiprocessing safe
@@ -74,7 +74,12 @@ class MongodbResultsDBService(ResultsDBService):
 
     def _connect(self) -> MongoClient:
         """Establish connection and set _client."""
-        client = MongoClient(**self.config.dict(exclude_none=True))
+
+        if self.config.uri is not None:
+            client = MongoClient(self.config.uri, **self.config.dict(exclude_none=True))
+        else:
+            client = MongoClient(**self.config.dict(exclude_none=True))
+
         self._client.set(client)
         db = client[self.config.database]
 
