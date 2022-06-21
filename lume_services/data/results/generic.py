@@ -60,10 +60,19 @@ class GenericResult(BaseModel):
         results_db_service.insert_one(item=rep, collection=self.collection)
 
     @classmethod
-    def load_result(
+    def load_result_from_query(
         cls,
         query,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
     ):
         res = results_db_service.find(collection=cls.collection, query=query)
         return cls(**res)
+
+    def load_result(
+        self,
+        results_db_service: ResultsDBService = Provide[Context.results_db_service],
+    ):
+        res = results_db_service.find(
+            collection=self.collection, query={"unique_hash": self.unique_hash}
+        )
+        return res
