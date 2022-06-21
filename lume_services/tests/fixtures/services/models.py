@@ -54,7 +54,7 @@ def is_database_ready(docker_ip, mysql_user, mysql_password):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_server(docker_ip, docker_services, mysql_user, mysql_password):
     docker_services.wait_until_responsive(
-        timeout=10.0,
+        timeout=20.0,
         pause=0.1,
         check=lambda: is_database_ready(docker_ip, mysql_user, mysql_password),
     )
