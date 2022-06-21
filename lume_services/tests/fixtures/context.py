@@ -1,8 +1,5 @@
 import pytest
 
-from lume_services.services.data.results.results_service import (
-    ResultsServiceConfig,
-)
 from lume_services.context import Context, LUMEServicesConfig
 
 
@@ -12,17 +9,11 @@ def context(
     mysql_service,
     mysql_config,
     mongodb_config,
-    model_docs,
     file_service,
 ):
     # don't use factory here because want to use pytest fixture management
 
-    results_service_config = ResultsServiceConfig(
-        model_docs=model_docs,
-    )
-
     config = LUMEServicesConfig(
-        results_service_config=results_service_config,
         model_db_service_config=mysql_config,
         results_db_service_config=mongodb_config,
     )

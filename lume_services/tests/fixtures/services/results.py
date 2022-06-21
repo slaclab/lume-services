@@ -1,10 +1,10 @@
 import pytest
 import mongomock
-from mongoengine import connect
+from datetime import datetime
 
-from lume_services.services.data.results.db import MongodbService, MongoDBConfig
-from lume_services.services.data.results.results_service import (
-    ResultsService,
+from lume_services.services.data.results import (
+    MongodbResultsDBServiceConfig,
+    MongodbResultsDBService,
 )
 
 
@@ -21,30 +21,28 @@ def mongodb_port(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_database(request):
-    return request.config.getini("mongodb_database")
+    return request.config.getini("mongodb_dbname")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_config(mongodb_host, mongodb_port, mongodb_database):
     uri = f"mongomock://{mongodb_host}@{mongodb_port}"
-    return MongoDBConfig(uri=uri, database=mongodb_database)
+    return MongodbResultsDBServiceConfig(uri=uri, database=mongodb_database)
 
 
 @mongomock.patch(servers=(("localhost", 27017),))
 @pytest.fixture(scope="module", autouse=True)
 def mongodb_service(mongodb_config):
-    return MongodbService(mongodb_config)
+    return MongodbResultsDBService(mongodb_config)
 
 
 @pytest.fixture(scope="module", autouse=True)
 def results_service(mongodb_service):
 
-    results_service = ResultsService(mongodb_service)
+    yield mongodb_service
 
-    yield results_service
-
-    cxn = connect("test", host="mongomock://localhost")
-    cxn.drop_database("test")
+    with mongodb_service.db_service.connection() as client:
+        client.drop_database("test")
 
 
 @pytest.fixture(scope="session", autouse=True)
