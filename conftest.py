@@ -57,6 +57,6 @@ def refactor(string: str) -> str:
 
 pytest_plugins = [
     refactor(fixture)
-    for fixture in glob("lume_services/tests/fixtures/*.py", recursive=True)
+    for fixture in glob("lume_services/tests/fixtures/**/*.py", recursive=True)
     if "__" not in fixture
 ]
