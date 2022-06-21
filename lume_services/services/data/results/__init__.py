@@ -1,2 +1,2 @@
-from .db import ResultsDBService
-from .mongodb import MongodbResultsDBService
+from .db import ResultsDBService, ResultsDBServiceConfig
+from .mongodb import MongodbResultsDBService, MongodbResultsDBConfig

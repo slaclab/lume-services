@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MongoDBConfig(ResultsDBServiceConfig):
+class MongodbResultsDBConfig(ResultsDBServiceConfig):
     # excluded in serialization bc not used to initialize cxn
     database: str = Field(exclude=True)
     user: Optional[str]
@@ -55,7 +55,7 @@ class MongoDBConfig(ResultsDBServiceConfig):
 class MongodbResultsDBService(ResultsDBService):
     # Note: pymongo is threadsafe
 
-    def __init__(self, db_config: MongoDBConfig):
+    def __init__(self, db_config: MongodbResultsDBConfig):
         self.config = db_config
 
         # track pid to make multiprocessing safe
