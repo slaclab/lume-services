@@ -8,7 +8,10 @@ from pymongo import MongoClient
 from contextvars import ContextVar
 from contextlib import contextmanager
 
-from lume_services.services.data.results.db import DBServiceConfig, DBService
+from lume_services.services.data.results.db import (
+    ResultsDBServiceConfig,
+    ResultsDBService,
+)
 
 import logging
 
@@ -16,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MongoDBConfig(DBServiceConfig):
+class MongoDBConfig(ResultsDBServiceConfig):
     # excluded in serialization bc not used to initialize cxn
     database: str = Field(exclude=True)
     user: Optional[str]
@@ -49,7 +52,7 @@ class MongoDBConfig(DBServiceConfig):
         return values
 
 
-class MongodbService(DBService):
+class MongodbResultsDBService(ResultsDBService):
     # Note: pymongo is threadsafe
 
     def __init__(self, db_config: MongoDBConfig):

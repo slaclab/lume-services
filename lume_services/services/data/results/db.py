@@ -9,15 +9,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class DBServiceConfig(LUMESettings):
+class ResultsDBServiceConfig(LUMESettings):
     ...
 
 
-class DBService(ABC):
+class ResultsDBService(ABC):
     """Implementation of the database service."""
 
     @abstractmethod
-    def __init__(self, db_config: DBServiceConfig):
+    def __init__(self, db_config: ResultsDBServiceConfig):
         ...
 
     @abstractmethod
