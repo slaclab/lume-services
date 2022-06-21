@@ -1,8 +1,8 @@
 import pytest
 import os
-from sqlalchemy import create_engine
 import pymysql
 import logging
+from sqlalchemy import create_engine
 
 from lume_services.services.data.model.db.mysql import MySQLConfig, MySQLService
 from lume_services.services.data.model.model_service import ModelService
@@ -59,22 +59,6 @@ def mysql_server(docker_ip, docker_services, mysql_user, mysql_password):
         check=lambda: is_database_ready(docker_ip, mysql_user, mysql_password),
     )
     return
-
-
-def test_mysql(
-    mysql_user, mysql_host, mysql_password, docker_ip, docker_services, mysql_server
-):
-    """Ensure that HTTP service is up and responsive."""
-
-    port = docker_services.port_for("mysql", 3306)
-
-    connect_str = (
-        f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{str(port)}"
-    )
-    engine = create_engine(connect_str)
-
-    conn = engine.connect()
-    conn.close()
 
 
 @pytest.fixture(scope="session", autouse=True)

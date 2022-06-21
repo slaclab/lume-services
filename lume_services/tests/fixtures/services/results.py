@@ -7,6 +7,8 @@ from lume_services.services.data.results import (
     MongodbResultsDBService,
 )
 
+from lume_services.data.results import get_collections
+
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_host(request):
@@ -37,7 +39,10 @@ def mongodb_service(mongodb_config):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def results_service(mongodb_service):
+def results_db_service(mongodb_service):
+
+    collections = get_collections()
+    mongodb_service.configure(collections=collections)
 
     yield mongodb_service
 
