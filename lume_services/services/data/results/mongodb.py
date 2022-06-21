@@ -4,6 +4,7 @@ from typing import List, Optional, Dict
 from urllib.parse import quote_plus
 
 from pymongo import DESCENDING, MongoClient
+from pydantic import BaseModel
 
 from contextvars import ContextVar
 from contextlib import contextmanager
@@ -19,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class MongodbResultsDBConfig(ResultsDBServiceConfig):
+class MongodbResultsDBServiceConfig(ResultsDBServiceConfig):
     # excluded in serialization bc not used to initialize cxn
     database: str = Field(exclude=True)
     user: Optional[str]
@@ -52,21 +53,41 @@ class MongodbResultsDBConfig(ResultsDBServiceConfig):
         return values
 
 
+class MongodbCollection(BaseModel):
+    database: str
+    name: str
+    # index info
+    indices: dict
+
+
 class MongodbResultsDBService(ResultsDBService):
     # Note: pymongo is threadsafe
 
-    def __init__(self, db_config: MongodbResultsDBConfig):
+    def __init__(self, db_config: MongodbResultsDBServiceConfig):
         self.config = db_config
 
         # track pid to make multiprocessing safe
         self._pid = os.getpid()
         self._client = ContextVar("client", default=None)
+        self._collections = ContextVar("collections", default={})
         self._connect()
 
     def _connect(self) -> MongoClient:
         """Establish connection and set _client."""
         client = MongoClient(**self.config.dict(exclude_none=True))
         self._client.set(client)
+        db = client[self.config.database]
+
+        collections = {}
+
+        for collection_name in db.list_collection_names():
+            collection = db[collection_name]
+            index_info = collection.index_information()
+            collections[collection_name] = MongodbCollection(
+                database=self.config.database, name=collection_name, indices=index_info
+            )
+
+        self._collections.set(collections)
 
         return client
 
@@ -90,6 +111,7 @@ class MongodbResultsDBService(ResultsDBService):
         client = self._client.get()
         client.disconnect()
         self._client.set(None)
+        self._collections.set(None)
 
     def disconnect(self):
         """Disconnect mongodb connection."""
@@ -106,7 +128,7 @@ class MongodbResultsDBService(ResultsDBService):
         # get connection
         client = self._client.get()
 
-        if client is None:  # why clean up here? Hmm...
+        if client is None:
             client = self._connect()
             cleanup = True
 
@@ -202,11 +224,21 @@ class MongodbResultsDBService(ResultsDBService):
 
         """
 
+        collections = {}
+
         with self.connection() as client:
             db = client[self.config.database]
 
-            for collection, index in collection_indices.items():
+            for collection_name, index in collection_indices.items():
 
                 formatted_index = [(idx, DESCENDING) for idx in index]
+                db[collection_name].create_index(formatted_index, unique=True)
 
-                db[collection].create_index(formatted_index, unique=True)
+        for collection_name in collection_indices:
+            index_info = db[collection_name].index_information()
+
+            collections[collection_name] = MongodbCollection(
+                database=self.config.database, name=collection_name, indices=index_info
+            )
+
+        self._collections.set(collections)
