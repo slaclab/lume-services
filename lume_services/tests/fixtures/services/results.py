@@ -45,3 +45,33 @@ def results_service(mongodb_service):
 
     cxn = connect("test", host="mongomock://localhost")
     cxn.drop_database("test")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def test_generic_result_document():
+    return {
+        "flow_id": "test_flow_id",
+        "inputs": {"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
+        "outputs": {
+            "output1": 2.0,
+            "output2": [1, 2, 3, 4, 5],
+            "ouptut3": "my_file.txt",
+        },
+    }
+
+
+@pytest.fixture(scope="module", autouse=True)
+def test_impact_result_document():
+    return {
+        "flow_id": "test_flow_id",
+        "inputs": {"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
+        "outputs": {
+            "output1": 2.0,
+            "output2": [1, 2, 3, 4, 5],
+            "ouptut3": "my_file.txt",
+        },
+        "plot_file": "my_plot_file.txt",
+        "archive": "archive_file.txt",
+        "pv_collection_isotime": datetime.now(),
+        "config": {"config1": 1, "config2": 2},
+    }
