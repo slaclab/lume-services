@@ -1,33 +1,19 @@
+import json
 from pydantic import BaseModel, root_validator, Field
-from pydantic.fields import ModelField
 from datetime import datetime
 from lume_services.services.data.results import ResultsDB
 from lume_services.utils import fingerprint_dict
-from typing import List, Optional
+from typing import List
 from dependency_injector.wiring import Provide
 
 from lume_services.context import Context
 from lume_services.utils import JSON_ENCODERS
 
 
-class ResultType(type):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value, field: ModelField):
-        return cls(value)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema, field: Optional[ModelField]):
-        field_schema.update(type="type")
-
-
 class GenericResult(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
-    model_type: str = Field("generic", alias="collection", exclude=True)
+    model_type: str = Field("generic", alias="collection")
     # id: Optional[ObjectId]
 
     # db fields
@@ -45,7 +31,7 @@ class GenericResult(BaseModel):
     unique_hash: str
 
     # store result type
-    result_type: ResultType
+    result_type_string: str
 
     class Config:
         json_encoders = JSON_ENCODERS
@@ -65,7 +51,7 @@ class GenericResult(BaseModel):
                 {index: values[index] for index in unique_fields}
             )
 
-        values["result_type"] = cls
+        values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
 
         return values
 
@@ -75,8 +61,10 @@ class GenericResult(BaseModel):
     def insert(
         self, results_db_service: ResultsDB = Provide[Context.results_db_service]
     ):
-        rep = self.dict()
-        results_db_service.insert_one(item=rep, collection=self.collection)
+
+        # must convert to jsonable dict
+        rep = json.loads(self.json(by_alias=True))
+        results_db_service.insert_one(rep)
 
     @classmethod
     def load_result_from_query(
@@ -84,7 +72,7 @@ class GenericResult(BaseModel):
         query,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
-        res = results_db_service.find(collection=cls.collection, query=query)
+        res = results_db_service.find(collection=cls.model_type, query=query)
         return cls(**res)
 
     def load_result(
@@ -92,6 +80,6 @@ class GenericResult(BaseModel):
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
         res = results_db_service.find(
-            collection=self.collection, query={"unique_hash": self.unique_hash}
+            collection=self.model_type, query={"unique_hash": self.unique_hash}
         )
         return res
