@@ -1,13 +1,70 @@
 import pytest
 import mongomock
 from datetime import datetime
+from typing import List, Dict
 
 from lume_services.services.data.results import (
-    MongodbResultsDBServiceConfig,
-    MongodbResultsDBService,
+    ResultsService,
+    ResultsDB,
+    MongodbResultsDBConfig,
 )
+from lume_services.services.data.results.mongodb import MongodbCollection
+from pymongo import DESCENDING
 
 from lume_services.data.results import get_collections
+
+
+class MongoMockResultsDB(ResultsDB):
+    def __init__(self, db_config: MongodbResultsDBConfig):
+        self._collections = {}
+        self.config = db_config
+        self._client = mongomock.MongoClient(**db_config.dict(exclude_none=True))
+
+    def insert_one(self, *, collection: str, **kwargs) -> str:
+        db = self._client[self.config.database]
+        inserted_id = db[collection].insert_one(kwargs).inserted_id
+
+        return inserted_id
+
+    def insert_many(self, *, collection: str, items: List[dict]) -> List[str]:
+        db = self._client[self.config.database]
+        inserted_ids = db[collection].insert_many(items).inserted_ids
+
+        return [inserted_id.str for inserted_id in inserted_ids]
+
+    def find(
+        self, *, collection: str, query: dict, fields: List[str] = None
+    ) -> List[dict]:
+
+        db = self._client[self.config.database]
+        if fields is None:
+            results = db[collection].find(query)
+        else:
+            results = db[collection].find(query, projection=fields)
+
+        return results
+
+    def find_all(self, *, collection: str) -> List[dict]:
+        return self.find(collection=collection)
+
+    def configure(self, collections: Dict[str, List[str]]) -> None:
+
+        db = self._client[self.config.database]
+        collections = {}
+
+        for collection_name, index in collections.items():
+
+            formatted_index = [(idx, DESCENDING) for idx in index]
+            db[collection_name].create_index(formatted_index, unique=True)
+
+        for collection_name in collections:
+            index_info = db[collection_name].index_information()
+
+            collections[collection_name] = MongodbCollection(
+                database=self.config.database, name=collection_name, indices=index_info
+            )
+
+        self._collections = collections
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -28,26 +85,27 @@ def mongodb_database(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_config(mongodb_host, mongodb_port, mongodb_database):
-    uri = f"mongomock://{mongodb_host}@{mongodb_port}"
-    return MongodbResultsDBServiceConfig(uri=uri, database=mongodb_database)
-
-
-@mongomock.patch(servers=(("localhost", 27017),))
-@pytest.fixture(scope="module", autouse=True)
-def mongodb_service(mongodb_config):
-    return MongodbResultsDBService(mongodb_config)
+    return MongodbResultsDBConfig(
+        host=mongodb_host, port=mongodb_port, database=mongodb_database
+    )
 
 
 @pytest.fixture(scope="module", autouse=True)
-def results_db_service(mongodb_service):
+def mongodb_results_db(mongodb_config):
+    return MongoMockResultsDB(mongodb_config)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def results_db_service(mongodb_results_db, mongodb_database):
 
     collections = get_collections()
-    mongodb_service.configure(collections=collections)
+    mongodb_results_db.configure(collections=collections)
 
-    yield mongodb_service
+    results_db_service = ResultsService(results_db=mongodb_results_db)
 
-    with mongodb_service.db_service.connection() as client:
-        client.drop_database("test")
+    yield results_db_service
+
+    results_db_service._results_db._client.drop_database(mongodb_database)
 
 
 @pytest.fixture(scope="session", autouse=True)
