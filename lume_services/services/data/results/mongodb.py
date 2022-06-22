@@ -63,14 +63,15 @@ class MongodbCollection(BaseModel):
 class MongodbResultsDB(ResultsDB):
     # Note: pymongo is threadsafe
 
-    def __init__(self, db_config: MongodbResultsDBConfig):
+    def __init__(self, db_config: MongodbResultsDBConfig, connect: bool = True):
         self.config = db_config
 
         # track pid to make multiprocessing safe
         self._pid = os.getpid()
         self._client = ContextVar("client", default=None)
         self._collections = ContextVar("collections", default={})
-        self._connect()
+        if connect:
+            self._connect()
 
     def _connect(self) -> MongoClient:
         """Establish connection and set _client."""
@@ -150,7 +151,7 @@ class MongodbResultsDB(ResultsDB):
                 if client:
                     self._disconnect()
 
-    def insert_one(self, *, collection: str, **kwargs) -> str:
+    def insert_one(self, collection: str, **kwargs) -> str:
         """Insert one document into the database.
 
         Args:
@@ -167,7 +168,7 @@ class MongodbResultsDB(ResultsDB):
 
         return inserted_id
 
-    def insert_many(self, *, collection: str, items: List[dict]) -> List[str]:
+    def insert_many(self, collection: str, items: List[dict]) -> List[str]:
         """Insert many documents into the database.
 
         Args:
@@ -178,14 +179,14 @@ class MongodbResultsDB(ResultsDB):
             List[str]: List of saved document ids.
 
         """
-        with self.connection() as client:
+        with self.client() as client:
             db = client[self.config.database]
             inserted_ids = db[collection].insert_many(items).inserted_ids
 
         return [inserted_id.str for inserted_id in inserted_ids]
 
     def find(
-        self, *, collection: str, query: dict, fields: List[str] = None
+        self, collection: str, query: dict, fields: List[str] = None
     ) -> List[dict]:
         """Find a document based on a query.
 
@@ -199,7 +200,7 @@ class MongodbResultsDB(ResultsDB):
 
         """
 
-        with self.connection() as client:
+        with self.client() as client:
             db = client[self.config.database]
             if fields is None:
                 results = db[collection].find(query)
@@ -208,7 +209,7 @@ class MongodbResultsDB(ResultsDB):
 
         return results
 
-    def find_all(self, *, collection: str) -> List[dict]:
+    def find_all(self, collection: str) -> List[dict]:
         """Find all documents for a collection
 
         Args:
@@ -220,7 +221,7 @@ class MongodbResultsDB(ResultsDB):
         """
         return self.find(collection=collection)
 
-    def configure(self, *, collections: Dict[str, List[str]]) -> None:
+    def configure(self, collections: Dict[str, List[str]]) -> None:
         """Configure the results database from collections and their indices.
 
         Args:
@@ -231,7 +232,7 @@ class MongodbResultsDB(ResultsDB):
 
         collections = {}
 
-        with self.connection() as client:
+        with self.client() as client:
             db = client[self.config.database]
 
             for collection_name, index in collections.items():
