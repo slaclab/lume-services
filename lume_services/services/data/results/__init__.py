@@ -15,17 +15,17 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-class ResultsServiceConfig(LUMESettings):
+class ResultsDBServiceConfig(LUMESettings):
     model_docs: dict  # describes documents allowed
 
 
-class ResultsService:
+class ResultsDBService:
     """Results database for use with NoSQL database service"""
 
     def __init__(self, results_db: ResultsDB):
         """Initialize Results DB Service interface
         Args:
-            results_dv (DBService): DB Connection service
+            results_db (DBService): DB Connection service
         """
         self._results_db = results_db
 
@@ -40,7 +40,7 @@ class ResultsService:
             bool: Success of storage operation
         """
 
-        return self._results_db.insert_one(item, **kwargs)
+        return self._results_db.insert_one(**item, **kwargs)
 
     def insert_many(self, items: List[dict], **kwargs) -> List[str]:
         """Insert many documents into the database.
