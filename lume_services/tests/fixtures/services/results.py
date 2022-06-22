@@ -2,16 +2,18 @@ import pytest
 import mongomock
 from datetime import datetime
 from typing import List, Dict
+from lume_services.data.files import HDF5File, ImageFile
 
 from lume_services.services.data.results import (
-    ResultsService,
+    ResultsDBService,
     ResultsDB,
     MongodbResultsDBConfig,
 )
 from lume_services.services.data.results.mongodb import MongodbCollection
 from pymongo import DESCENDING
 
-from lume_services.data.results import get_collections
+from lume_services.data.results import get_collections, GenericResult, ImpactResult
+from lume_services.tests.files import SAMPLE_IMAGE_FILE, SAMPLE_IMPACT_ARCHIVE
 
 
 class MongoMockResultsDB(ResultsDB):
@@ -50,21 +52,15 @@ class MongoMockResultsDB(ResultsDB):
     def configure(self, collections: Dict[str, List[str]]) -> None:
 
         db = self._client[self.config.database]
-        collections = {}
-
         for collection_name, index in collections.items():
 
             formatted_index = [(idx, DESCENDING) for idx in index]
             db[collection_name].create_index(formatted_index, unique=True)
-
-        for collection_name in collections:
             index_info = db[collection_name].index_information()
 
-            collections[collection_name] = MongodbCollection(
+            self._collections[collection_name] = MongodbCollection(
                 database=self.config.database, name=collection_name, indices=index_info
             )
-
-        self._collections = collections
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -90,18 +86,18 @@ def mongodb_config(mongodb_host, mongodb_port, mongodb_database):
     )
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def mongodb_results_db(mongodb_config):
     return MongoMockResultsDB(mongodb_config)
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="class", autouse=True)
 def results_db_service(mongodb_results_db, mongodb_database):
 
     collections = get_collections()
     mongodb_results_db.configure(collections=collections)
 
-    results_db_service = ResultsService(results_db=mongodb_results_db)
+    results_db_service = ResultsDBService(results_db=mongodb_results_db)
 
     yield results_db_service
 
@@ -109,30 +105,31 @@ def results_db_service(mongodb_results_db, mongodb_database):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def test_generic_result_document():
-    return {
-        "flow_id": "test_flow_id",
-        "inputs": {"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
-        "outputs": {
+def generic_result():
+    return GenericResult(
+        flow_id="test_flow_id",
+        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+        outputs={
+            "output1": 2.0,
+            "output2": [1, 2, 3, 4, 5],
+        },
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def impact_result():
+    return ImpactResult(
+        flow_id="test_flow_id",
+        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
+        outputs={
             "output1": 2.0,
             "output2": [1, 2, 3, 4, 5],
             "ouptut3": "my_file.txt",
         },
-    }
-
-
-@pytest.fixture(scope="module", autouse=True)
-def test_impact_result_document():
-    return {
-        "flow_id": "test_flow_id",
-        "inputs": {"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
-        "outputs": {
-            "output1": 2.0,
-            "output2": [1, 2, 3, 4, 5],
-            "ouptut3": "my_file.txt",
-        },
-        "plot_file": "my_plot_file.txt",
-        "archive": "archive_file.txt",
-        "pv_collection_isotime": datetime.now(),
-        "config": {"config1": 1, "config2": 2},
-    }
+        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, file_system_identifier="local"),
+        archive=HDF5File(
+            filename=SAMPLE_IMPACT_ARCHIVE, file_system_identifier="local"
+        ),
+        pv_collection_isotime=datetime.now(),
+        config={"config1": 1, "config2": 2},
+    )
