@@ -220,11 +220,11 @@ class MongodbResultsDB(ResultsDB):
         """
         return self.find(collection=collection)
 
-    def configure(self, collection_indices: Dict[str, List[str]]) -> None:
+    def configure(self, *, collections: Dict[str, List[str]]) -> None:
         """Configure the results database from collections and their indices.
 
         Args:
-            collection_indices (Dict[str, List[str]]): Dictionary mapping collection to
+            collections (Dict[str, List[str]]): Dictionary mapping collection to
                 index rep.
 
         """
@@ -234,12 +234,12 @@ class MongodbResultsDB(ResultsDB):
         with self.connection() as client:
             db = client[self.config.database]
 
-            for collection_name, index in collection_indices.items():
+            for collection_name, index in collections.items():
 
                 formatted_index = [(idx, DESCENDING) for idx in index]
                 db[collection_name].create_index(formatted_index, unique=True)
 
-        for collection_name in collection_indices:
+        for collection_name in collections:
             index_info = db[collection_name].index_information()
 
             collections[collection_name] = MongodbCollection(

@@ -1,4 +1,3 @@
-from numpy import result_type
 from .generic import GenericResult
 from .impact import ImpactResult
 from typing import List, Dict
@@ -27,6 +26,10 @@ def get_result_from_string(result_type_string: str):
         return _ResultTypes.get(result_type_string)
 
 
+def get_result_types():
+    return _ResultTypes
+
+
 def get_collections() -> Dict[str, List[str]]:
     """Utility function for returning result collection info.
 
@@ -37,9 +40,8 @@ def get_collections() -> Dict[str, List[str]]:
     collection_rep = {}
 
     for res_type in _ResultTypes.values():
-        schema = res_type.schema()
-        collection = schema["properties"]["collection"]["default"]
-        collection_index = schema["properties"]["index"]["default"]
+        collection = res_type.__fields__["model_type"].default
+        collection_index = res_type.__fields__["unique_on"].default
         collection_rep[collection] = collection_index
 
     return collection_rep
