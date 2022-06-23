@@ -82,7 +82,7 @@ class TestImpactResult:
         ImpactResult(**jsonable_dict)
 
     def test_load_image(self, impact_result, context):
-        image = impact_result.plot_file.read(context.file_service())
+        image = impact_result.plot_file.read(file_service=context.file_service())
         assert isinstance(image, (Image.Image,))
 
 
@@ -193,13 +193,13 @@ class TestResultsInsertMethods:
             generic_result.insert(results_db_service=results_db_service)
 
     def test_load_generic_result(self, generic_result, results_db_service):
-        new_generic_result = Result.load_result(
+        new_generic_result = Result.load_from_query(
             {
                 "flow_id": generic_result.flow_id,
                 "inputs": generic_result.inputs,
                 "outputs": generic_result.outputs,
             },
-            results_db_service,
+            results_db_service=results_db_service,
         )
 
         assert generic_result.flow_id == new_generic_result.flow_id
@@ -214,13 +214,13 @@ class TestResultsInsertMethods:
             impact_result.insert(results_db_service=results_db_service)
 
     def test_load_impact_result(self, impact_result, results_db_service):
-        new_impact_obj = ImpactResult.load_result(
+        new_impact_obj = ImpactResult.load_from_query(
             {
                 "flow_id": impact_result.flow_id,
                 "inputs": impact_result.inputs,
                 "outputs": impact_result.outputs,
             },
-            results_db_service,
+            results_db_service=results_db_service,
         )
 
         assert impact_result.flow_id == new_impact_obj.flow_id
