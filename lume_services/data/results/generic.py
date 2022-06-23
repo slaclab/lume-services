@@ -1,5 +1,5 @@
 import json
-from pydantic import BaseModel, root_validator, Field
+from pydantic import BaseModel, root_validator, Field, Extra
 from datetime import datetime
 from lume_services.services.data.results import ResultsDB
 from lume_services.utils import fingerprint_dict
@@ -34,7 +34,10 @@ class GenericResult(BaseModel):
     result_type_string: str
 
     class Config:
+        allow_arbitrary_types = True
         json_encoders = JSON_ENCODERS
+        allow_population_by_field_name = True
+        extra = Extra.forbid
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -63,7 +66,7 @@ class GenericResult(BaseModel):
     ):
 
         # must convert to jsonable dict
-        rep = json.loads(self.json(by_alias=True))
+        rep = self.jsonable_dict()
         results_db_service.insert_one(rep)
 
     @classmethod
@@ -83,3 +86,6 @@ class GenericResult(BaseModel):
             collection=self.model_type, query={"unique_hash": self.unique_hash}
         )
         return res
+
+    def jsonable_dict(self):
+        return json.loads(self.json(by_alias=True))
