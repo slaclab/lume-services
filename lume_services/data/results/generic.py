@@ -75,10 +75,10 @@ class Result(BaseModel):
 
         # must convert to jsonable dict
         rep = self.jsonable_dict()
-        results_db_service.insert_one(rep)
+        return results_db_service.insert_one(rep)
 
     @classmethod
-    def load_result(
+    def load_from_query(
         cls,
         query,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
@@ -97,3 +97,10 @@ class Result(BaseModel):
 
     def jsonable_dict(self):
         return json.loads(self.json(by_alias=True))
+
+    def unique_rep(self):
+        """Get minimal representation needed to load result object from database."""
+        return {
+            "result_type_string": self.result_type_string,
+            "query": self.get_unique_result_index(),
+        }
