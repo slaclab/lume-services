@@ -11,7 +11,7 @@ from lume_services.context import Context
 from lume_services.utils import JSON_ENCODERS
 
 
-class GenericResult(BaseModel):
+class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
     model_type: str = Field("generic", alias="collection")

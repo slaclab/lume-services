@@ -1,4 +1,4 @@
-from .generic import GenericResult
+from .generic import Result
 from .impact import ImpactResult
 from typing import List, Dict
 
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # create map of type import path to type
 _ResultTypes = {
-    f"{GenericResult.__module__}:{GenericResult.__name__}": GenericResult,
+    f"{Result.__module__}:{Result.__name__}": Result,
     f"{ImpactResult.__module__}:{ImpactResult.__name__}": ImpactResult,
 }
 
