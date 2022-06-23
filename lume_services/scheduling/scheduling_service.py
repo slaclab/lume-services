@@ -1,9 +1,12 @@
-from prefect import Client
+from prefect import Client, config as prefect_config
 from prefect.backend import FlowRunView
 from typing import List
 
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+from pydantic import BaseSettings
+from lume_services.scheduling.prefect.backends import Backend
+
 
 from typing import Optional
 from lume_services.scheduling.prefect.config import PrefectConfig
@@ -35,6 +38,20 @@ class FlowRunConfig(BaseModel):
 
 class FlowRunResult(BaseModel):
     ...
+
+
+class PrefectConfig(BaseSettings):
+    api: str = "http://localhost:4200"
+    graphql: str = "http://localhost:4200/graphql"
+    ui: str = "http://localhost:8080"
+
+    backend: Backend
+
+    def apply(self):
+        prefect_config.update(backend=self.backend)
+        prefect_config.config.cloud.update(api=self.api)
+        prefect_config.cloud.update(graphql=self.graphql)
+        prefect_config.config.server.ui.update(endpoint=self.ui)
 
 
 class SchedulingService:
