@@ -3,9 +3,9 @@ import pytest
 from lume_services.context import Context, LUMEServicesConfig
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="class")
 def context(
-    mongodb_service,
+    results_db_service,
     mysql_service,
     mysql_config,
     mongodb_config,
@@ -19,7 +19,7 @@ def context(
     )
 
     context = Context(
-        results_db_service=mongodb_service,
+        results_db_service=results_db_service,
         model_db_service=mysql_service,
         file_service=file_service,
     )
