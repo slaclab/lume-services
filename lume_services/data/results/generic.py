@@ -3,8 +3,9 @@ from pydantic import BaseModel, root_validator, Field, Extra
 from datetime import datetime
 from lume_services.services.data.results import ResultsDB
 from lume_services.utils import fingerprint_dict
-from typing import List
+from typing import List, Optional
 from dependency_injector.wiring import Provide
+from bson.objectid import ObjectId
 
 from lume_services.context import Context
 from lume_services.utils import JSON_ENCODERS
@@ -14,7 +15,9 @@ class GenericResult(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
     model_type: str = Field("generic", alias="collection")
-    # id: Optional[ObjectId]
+
+    # database id
+    id: Optional[str] = Field(alias="_id", exclude=True)
 
     # db fields
     flow_id: str
@@ -54,6 +57,11 @@ class GenericResult(BaseModel):
                 {index: values[index] for index in unique_fields}
             )
 
+        if values.get("_id"):
+            id = values["_id"]
+            if isinstance(id, (ObjectId,)):
+                values["_id"] = str(values["_id"])
+
         values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
 
         return values
@@ -70,22 +78,22 @@ class GenericResult(BaseModel):
         results_db_service.insert_one(rep)
 
     @classmethod
-    def load_result_from_query(
+    def load_result(
         cls,
         query,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
-        res = results_db_service.find(collection=cls.model_type, query=query)
-        return cls(**res)
-
-    def load_result(
-        self,
-        results_db_service: ResultsDB = Provide[Context.results_db_service],
-    ):
         res = results_db_service.find(
-            collection=self.model_type, query={"unique_hash": self.unique_hash}
+            collection=cls.__fields__["model_type"].default, query=query
         )
-        return res
+
+        if len(res) == 0:
+            raise ValueError("Provided query returned no results. %s", query)
+
+        elif len(res) > 1:
+            raise ValueError("Provided query returned multiple results. %s", query)
+
+        return cls(**res[0])
 
     def jsonable_dict(self):
         return json.loads(self.json(by_alias=True))
