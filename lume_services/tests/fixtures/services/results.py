@@ -22,20 +22,20 @@ class MongoMockResultsDB(ResultsDB):
         self.config = db_config
         self._client = mongomock.MongoClient(**db_config.dict(exclude_none=True))
 
-    def insert_one(self, *, collection: str, **kwargs) -> str:
+    def insert_one(self, collection: str, **kwargs) -> str:
         db = self._client[self.config.database]
         inserted_id = db[collection].insert_one(kwargs).inserted_id
 
         return inserted_id
 
-    def insert_many(self, *, collection: str, items: List[dict]) -> List[str]:
+    def insert_many(self, collection: str, items: List[dict]) -> List[str]:
         db = self._client[self.config.database]
         inserted_ids = db[collection].insert_many(items).inserted_ids
 
         return [inserted_id.str for inserted_id in inserted_ids]
 
     def find(
-        self, *, collection: str, query: dict, fields: List[str] = None
+        self, collection: str, query: dict = None, fields: List[str] = None
     ) -> List[dict]:
 
         db = self._client[self.config.database]
@@ -44,9 +44,9 @@ class MongoMockResultsDB(ResultsDB):
         else:
             results = db[collection].find(query, projection=fields)
 
-        return results
+        return list(results)
 
-    def find_all(self, *, collection: str) -> List[dict]:
+    def find_all(self, collection: str) -> List[dict]:
         return self.find(collection=collection)
 
     def configure(self, collections: Dict[str, List[str]]) -> None:
