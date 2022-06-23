@@ -1,4 +1,5 @@
 import logging
+from multiprocessing.sharedctypes import Value
 from dependency_injector.wiring import Provide
 
 from typing import Optional, Generic, Any
@@ -96,6 +97,9 @@ class File(
         create_dir=False,
     ):
         if not obj:
+            if not self.obj:
+                raise ValueError("Must provide object to write.")
+
             file_service.write(
                 self.file_system_identifier,
                 self.filename,
