@@ -128,6 +128,22 @@ class TestResultsDBService:
                 generic_result.jsonable_dict()
             )
 
+    def test_generic_result_query(self, results_db_service, generic_result):
+        res = results_db_service.find(
+            collection=generic_result.model_type,
+            query={
+                "flow_id": generic_result.flow_id,
+                "inputs": generic_result.inputs,
+                "outputs": generic_result.outputs,
+            },
+        )
+
+        new_generic_obj = GenericResult(**res[0])
+
+        assert generic_result.flow_id == new_generic_obj.flow_id
+        assert generic_result.inputs == new_generic_obj.inputs
+        assert generic_result.outputs == new_generic_obj.outputs
+
     def test_impact_result_insert_by_service(self, impact_result, results_db_service):
 
         test_impact_result_insert = results_db_service.insert_one(
@@ -141,6 +157,32 @@ class TestResultsDBService:
                 impact_result.jsonable_dict()
             )
 
+    def test_impact_result_query(self, results_db_service, impact_result):
+        res = results_db_service.find(
+            collection=impact_result.model_type,
+            query={
+                "flow_id": impact_result.flow_id,
+                "inputs": impact_result.inputs,
+                "outputs": impact_result.outputs,
+            },
+        )
+
+        new_impact_obj = ImpactResult(**res[0])
+
+        assert impact_result.flow_id == new_impact_obj.flow_id
+        assert impact_result.inputs == new_impact_obj.inputs
+        assert impact_result.outputs == new_impact_obj.outputs
+        assert impact_result.archive == new_impact_obj.archive
+        assert impact_result.plot_file == new_impact_obj.plot_file
+        assert (
+            impact_result.pv_collection_isotime == new_impact_obj.pv_collection_isotime
+        )
+        assert impact_result.config == new_impact_obj.config
+
+    def test_find_all(self, generic_result, results_db_service):
+        res = results_db_service.find_all(collection=generic_result.model_type)
+        assert isinstance(res, list)
+
 
 class TestResultsInsertMethods:
     def test_generic_result_insert_by_method(self, generic_result, results_db_service):
@@ -150,9 +192,43 @@ class TestResultsInsertMethods:
         with pytest.raises(DuplicateKeyError):
             generic_result.insert(results_db_service=results_db_service)
 
+    def test_load_generic_result(self, generic_result, results_db_service):
+        new_generic_result = GenericResult.load_result(
+            {
+                "flow_id": generic_result.flow_id,
+                "inputs": generic_result.inputs,
+                "outputs": generic_result.outputs,
+            },
+            results_db_service,
+        )
+
+        assert generic_result.flow_id == new_generic_result.flow_id
+        assert generic_result.inputs == new_generic_result.inputs
+        assert generic_result.outputs == new_generic_result.outputs
+
     def test_impact_result_insert_by_method(self, impact_result, results_db_service):
         impact_result.insert(results_db_service=results_db_service)
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             impact_result.insert(results_db_service=results_db_service)
+
+    def test_load_impact_result(self, impact_result, results_db_service):
+        new_impact_obj = ImpactResult.load_result(
+            {
+                "flow_id": impact_result.flow_id,
+                "inputs": impact_result.inputs,
+                "outputs": impact_result.outputs,
+            },
+            results_db_service,
+        )
+
+        assert impact_result.flow_id == new_impact_obj.flow_id
+        assert impact_result.inputs == new_impact_obj.inputs
+        assert impact_result.outputs == new_impact_obj.outputs
+        assert impact_result.archive == new_impact_obj.archive
+        assert impact_result.plot_file == new_impact_obj.plot_file
+        assert (
+            impact_result.pv_collection_isotime == new_impact_obj.pv_collection_isotime
+        )
+        assert impact_result.config == new_impact_obj.config
