@@ -186,7 +186,7 @@ class MongodbResultsDB(ResultsDB):
         return [inserted_id.str for inserted_id in inserted_ids]
 
     def find(
-        self, collection: str, query: dict, fields: List[str] = None
+        self, collection: str, query: dict = None, fields: List[str] = None
     ) -> List[dict]:
         """Find a document based on a query.
 
@@ -204,10 +204,11 @@ class MongodbResultsDB(ResultsDB):
             db = client[self.config.database]
             if fields is None:
                 results = db[collection].find(query)
+
             else:
                 results = db[collection].find(query, projection=fields)
 
-        return results
+        return list(results)
 
     def find_all(self, collection: str) -> List[dict]:
         """Find all documents for a collection
