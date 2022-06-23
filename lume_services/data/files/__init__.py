@@ -1,10 +1,9 @@
 import logging
 from dependency_injector.wiring import Provide
 
-from typing import Optional, Generic
-from pydantic import root_validator, Field
+from typing import Optional, Generic, Any
+from pydantic import root_validator, Field, validator
 from pydantic.generics import GenericModel
-from pydantic.fields import ModelField
 
 import copy
 
@@ -27,12 +26,19 @@ class File(
     Generic[ObjType],
     arbitrary_types_allowed=True,
     json_encoders=JSON_ENCODERS,
+    allow_population_by_field_name=True,
 ):
     filename: str
+
+    # Object to-be-serialized/result of deserialization
+    obj: Optional[Any] = Field(exclude=True)
+
     loader: Optional[ObjLoader[ObjType]]
     serializer: ObjType = Field(exclude=True)
     file_system_identifier: str = "local"
     file_type_string: str
+
+    load: bool = Field(False, exclude=True)
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -63,6 +69,10 @@ class File(
             if "file_system_identifier" in loader_values:
                 loader_values.pop("file_system_identifier")
 
+            # if obj in values, need to remove
+            if "obj" in loader_values:
+                loader_values.pop("obj")
+
             loader = ObjLoader[serializer_type](**loader_values)
 
         values["serializer_type"] = serializer_type
@@ -81,17 +91,27 @@ class File(
 
     def write(
         self,
-        obj,
+        obj=None,
         file_service: FileService = Provide[Context.file_service],
         create_dir=False,
     ):
-        file_service.write(
-            self.file_system_identifier,
-            self.filename,
-            obj,
-            self.serializer,
-            create_dir=create_dir,
-        )
+        if not obj:
+            file_service.write(
+                self.file_system_identifier,
+                self.filename,
+                self.obj,
+                self.serializer,
+                create_dir=create_dir,
+            )
+        else:
+            self.obj = obj
+            file_service.write(
+                self.file_system_identifier,
+                self.filename,
+                obj,
+                self.serializer,
+                create_dir=create_dir,
+            )
 
     def read(self, file_service: FileService = Provide[Context.file_service]):
         return file_service.read(
@@ -99,6 +119,12 @@ class File(
             self.filename,
             self.serializer,
         )
+
+    def load_file(
+        self, file_service: FileService = Provide[Context.file_service]
+    ) -> None:
+        """Load file object from instantiated File."""
+        self.obj = self.read(file_service=file_service)
 
 
 TextFile = File[TextSerializer]
