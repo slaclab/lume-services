@@ -5,11 +5,10 @@ from typing import List
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 from pydantic import BaseSettings
-from lume_services.scheduling.prefect.backends import Backend
+from lume_services.services.scheduling.backends import Backend
 
 
 from typing import Optional
-from lume_services.scheduling.prefect.config import PrefectConfig
 import yaml
 
 from .schema import FlowOfFlows, Flow
