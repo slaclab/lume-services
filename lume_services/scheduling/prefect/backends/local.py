@@ -3,7 +3,7 @@ from prefect.run_configs import LocalRun
 from typing import Optional, Dict
 import logging
 
-from lume_services.data.file import FileService
+from lume_services.data.files import FileService
 from lume_services.context import Context
 from dependency_injector.wiring import Provide
 

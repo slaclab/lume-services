@@ -3,7 +3,7 @@ from prefect.run_configs import KubernetesRun
 from typing import List, Optional, Dict, Union
 import logging
 
-from lume_services.data.file import FileService
+from lume_services.data.files import FileService
 from lume_services.context import Context
 from dependency_injector.wiring import Provide
 
