@@ -4,6 +4,7 @@ from dependency_injector.wiring import Provide
 from typing import Optional, Generic
 from pydantic import root_validator, Field
 from pydantic.generics import GenericModel
+from pydantic.fields import ModelField
 
 import copy
 
@@ -31,7 +32,7 @@ class File(
     loader: Optional[ObjLoader[ObjType]]
     serializer: ObjType = Field(exclude=True)
     file_system_identifier: str = "local"
-    serializer_type: type
+    file_type_string: str
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -67,6 +68,8 @@ class File(
         values["serializer_type"] = serializer_type
         values["loader"] = loader
         values["serializer"] = loader.load()
+
+        values["file_type_string"] = f"{cls.__module__}:{cls.__name__}"
 
         # update the class json encoders. Will only execute on initial type construction
         if serializer_type not in cls.__config__.json_encoders:
@@ -105,21 +108,21 @@ YAMLFile = File[YAMLSerializer]
 
 # create map of type import path to type
 _FileSerializerTypeStringMap = {
-    f"{TextSerializer.__module__}:{TextSerializer.__name__}": TextFile,
-    f"{HDF5Serializer.__module__}:{HDF5Serializer.__name__}": HDF5File,
-    f"{ImageSerializer.__module__}:{ImageSerializer.__name__}": ImageFile,
-    f"{YAMLSerializer.__module__}:{YAMLSerializer.__name__}": YAMLFile,
+    f"{TextFile.__module__}:{TextFile.__name__}": TextFile,
+    f"{HDF5File.__module__}:{HDF5File.__name__}": HDF5File,
+    f"{ImageFile.__module__}:{ImageFile.__name__}": ImageFile,
+    f"{YAMLFile.__module__}:{YAMLFile.__name__}": YAMLFile,
 }
 
 
-def get_file_from_serializer_string(serializer_type_string: str):
+def get_file_from_serializer_string(file_type_string: str):
 
-    if not _FileSerializerTypeStringMap.get(serializer_type_string):
+    if not _FileSerializerTypeStringMap.get(file_type_string):
         raise ValueError(
             "Serializer string not in file types. %s, %s",
-            serializer_type_string,
+            file_type_string,
             list(_FileSerializerTypeStringMap.keys()),
         )
 
     else:
-        return _FileSerializerTypeStringMap.get(serializer_type_string)
+        return _FileSerializerTypeStringMap.get(file_type_string)
