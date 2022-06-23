@@ -1,11 +1,12 @@
-from lume_services.data.files import TextFile, ImageFile, YAMLFile
-from PIL import Image
-
-from lume_services.tests.files import SAMPLE_IMAGE_FILE, SAMPLE_YAML_FILE
 import os
-
-# Skipping H5PYFile because h5py serializer requires lume-base object
-# see https://github.com/slaclab/lume-base/blob/main/lume/serializers/hdf5.py
+from PIL import Image
+from impact import Impact
+from lume_services.tests.files import (
+    SAMPLE_IMAGE_FILE,
+    SAMPLE_YAML_FILE,
+    SAMPLE_IMPACT_ARCHIVE,
+)
+from lume_services.data.files import TextFile, ImageFile, YAMLFile, HDF5File
 
 
 class TestTextFile:
@@ -54,3 +55,25 @@ class TestYAMLFile:
         yaml_file = YAMLFile(filename=SAMPLE_YAML_FILE, file_system_identifier="local")
         yaml = yaml_file.read(context.file_service())
         assert isinstance(yaml, (dict,))
+
+
+class TestHDF5File:
+    def test_read_hdf5_file(self, context):
+        hdf5_file = HDF5File(
+            filename=SAMPLE_IMPACT_ARCHIVE, file_system_identifier="local"
+        )
+        impact_obj = hdf5_file.read(context.file_service())
+        assert isinstance(impact_obj, (Impact,))
+
+    def test_write_hdf5_file(self, tmp_path, context):
+        hdf5_file = HDF5File(
+            filename=SAMPLE_IMPACT_ARCHIVE, file_system_identifier="local"
+        )
+        impact_obj = hdf5_file.read(context.file_service())
+
+        filepath = f"{tmp_path}/tmp_file.h5"
+        new_hdf5_file = HDF5File(filename=filepath, file_system_identifier="local")
+        new_hdf5_file.write(impact_obj, context.file_service())
+
+        # load existing
+        assert os.path.isfile(filepath)
