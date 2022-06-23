@@ -64,12 +64,19 @@ class TestFileTaskResults:
     def test_save_file_task(self, tmp_path, file_service):
 
         filepath = f"{tmp_path}/tmp_file.txt"
+        text = "text"
         text_file = TextFile(
-            obj="text", filename=filepath, file_system_identifier="local"
+            obj=text, filename=filepath, file_system_identifier="local"
         )
 
         with Flow("save_file_task_flow") as flow:
-            my_task = save_file_task(text_file, file_service=file_service)
+            my_task = save_file_task(
+                obj=text,
+                file_type=TextFile,
+                filename=filepath,
+                file_system_identifier="local",
+                file_service=file_service,
+            )
 
         flow_run = flow.run()
         assert flow_run.is_successful()
