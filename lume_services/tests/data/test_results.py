@@ -2,7 +2,7 @@ from datetime import datetime
 import pytest
 from PIL import Image
 from lume_services.data.results import (
-    GenericResult,
+    Result,
     ImpactResult,
     get_result_from_string,
 )
@@ -15,11 +15,11 @@ from pymongo.errors import DuplicateKeyError
 @pytest.mark.parametrize(
     ("string", "result_class_target"),
     [
-        ("lume_services.data.results.generic:GenericResult", GenericResult),
+        ("lume_services.data.results.generic:Result", Result),
         ("lume_services.data.results.impact:ImpactResult", ImpactResult),
         pytest.param(
             "incorrect.import.string",
-            GenericResult,
+            Result,
             marks=pytest.mark.xfail(strict=True),
         ),
     ],
@@ -29,9 +29,9 @@ def test_get_result_from_string(string, result_class_target):
     assert result_type == result_class_target
 
 
-class TestGenericResult:
+class TestResult:
     def test_create_generic_result_from_alias(self):
-        GenericResult(
+        Result(
             collection="generic",
             flow_id="test_flow_id",
             inputs={"input1": 4, "input2": 3},
@@ -43,11 +43,11 @@ class TestGenericResult:
 
     def test_from_json(self, generic_result):
         json_rep = generic_result.json()
-        GenericResult.parse_raw(json_rep)
+        Result.parse_raw(json_rep)
 
     def test_from_jsonable_dict(self, generic_result):
         jsonable_dict = generic_result.jsonable_dict()
-        GenericResult(**jsonable_dict)
+        Result(**jsonable_dict)
 
 
 class TestImpactResult:
@@ -138,7 +138,7 @@ class TestResultsDBService:
             },
         )
 
-        new_generic_obj = GenericResult(**res[0])
+        new_generic_obj = Result(**res[0])
 
         assert generic_result.flow_id == new_generic_obj.flow_id
         assert generic_result.inputs == new_generic_obj.inputs
@@ -193,7 +193,7 @@ class TestResultsInsertMethods:
             generic_result.insert(results_db_service=results_db_service)
 
     def test_load_generic_result(self, generic_result, results_db_service):
-        new_generic_result = GenericResult.load_result(
+        new_generic_result = Result.load_result(
             {
                 "flow_id": generic_result.flow_id,
                 "inputs": generic_result.inputs,

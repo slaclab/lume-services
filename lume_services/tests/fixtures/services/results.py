@@ -12,7 +12,7 @@ from lume_services.services.data.results import (
 from lume_services.services.data.results.mongodb import MongodbCollection
 from pymongo import DESCENDING
 
-from lume_services.data.results import get_collections, GenericResult, ImpactResult
+from lume_services.data.results import get_collections, Result, ImpactResult
 from lume_services.tests.files import SAMPLE_IMAGE_FILE, SAMPLE_IMPACT_ARCHIVE
 
 
@@ -106,7 +106,7 @@ def results_db_service(mongodb_results_db, mongodb_database):
 
 @pytest.fixture(scope="session", autouse=True)
 def generic_result():
-    return GenericResult(
+    return Result(
         flow_id="test_flow_id",
         inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
         outputs={
