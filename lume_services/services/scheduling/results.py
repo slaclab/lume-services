@@ -8,7 +8,7 @@ from lume_services.services.data.results import ResultsDB
 from lume_services.services.data.files import FileService
 from prefect.engine.results import PrefectResult
 
-from lume_services.data.files import get_file_from_serializer_string, File
+from lume_services.data.files import get_file_from_serializer_string
 from lume_services.data.results import get_result_from_string, Result
 
 logger = logging.getLogger(__name__)
@@ -83,17 +83,28 @@ def load_file_task(
 
 @task(log_stdout=True, result=PrefectResult())
 def save_file_task(
-    file: File, file_service: FileService = Provide[Context.file_service]
+    obj: Any,
+    filename: str,
+    file_system_identifier: str,
+    file_type: type,
+    file_service: FileService = Provide[Context.file_service],
 ):
     """Save a file
 
     Args:
-        file (File): File object
+        obj (Any): Object to be saved
+        filename (str): File path to save
+        file_system_identifier (str): String identifier for filesystem configured with
+            File Service
+        file_type (type): Type of file to save as
         file_service (FileService): File service for interacting w/ filesystems
 
     Returns:
         dict: Loaded file type
 
     """
+    file = file_type(
+        obj=obj, file_system_identifier=file_system_identifier, filename=filename
+    )
     file.write(file_service=file_service)
     return file.jsonable_dict()
