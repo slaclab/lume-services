@@ -8,9 +8,9 @@ from lume_services.context import Context
 from dependency_injector.wiring import Provide
 
 from lume_services.data.files.serializers.yaml import YAMLSerializer
-from lume_services.scheduling.prefect.files import KUBERNETES_JOB_TEMPLATE_FILE
+from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
 
-from lume_services.scheduling.prefect.backends import Backend
+from lume_services.services.scheduling.backends import Backend
 
 logger = logging.getLogger(__name__)
 

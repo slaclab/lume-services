@@ -1,4 +1,5 @@
-from pydantic import BaseModel, validator
+from ast import Param
+from pydantic import BaseModel, validator, Parameter
 from prefect.backend.flow import FlowView
 from typing import List, Optional, Dict, Literal
 from prefect.tasks.prefect import (
@@ -7,7 +8,7 @@ from prefect.tasks.prefect import (
     get_task_run_result,
 )
 from prefect import Flow as PrefectFlow
-from prefect import Parameter
+from lume_services.services.scheduling.tasks import load_db_result_task, load_file_task
 
 # Pydantic schema describing flow of flows composition
 
@@ -41,7 +42,7 @@ class TaskNotInFlowError(Exception):
 class MappedParameter(BaseModel):
     parent_flow_name: str
     parent_task_name: str
-    map_type: Literal["file", "db_query"]
+    map_type: Literal["file", "db", "raw"] = "raw"
 
 
 class Flow(BaseModel):
@@ -181,11 +182,31 @@ class FlowOfFlows(BaseModel):
                                 mapped_param.parent_flow_name
                             ].task_slugs[mapped_param.parent_task_name]
 
+                            if mapped_param.map_type == "raw":
+
+                                ...
+
+                            elif mapped_param.map_type == "db":
+                                ...
+
+                            elif mapped_param.map_type == "file":
+                                parameters = build_parameters(load_file_task, prefix=f"{flow.name}-")
+                                
+                                ...
+
+                                load_file = load_file_task
+
+
                             # use task run result as input param
                             task_run_result = get_task_run_result(
                                 flow_runs[mapped_param.parent_flow_name], task_slug
                             )
                             # track param name with result
+
+
+
+
+
                             flow_params[param_name] = task_run_result
 
                             # add flow to upstream
@@ -236,3 +257,23 @@ class FlowOfFlows(BaseModel):
             once moved to Prefect 2.0, which does support direct subflow run.
         """
         ...
+
+
+def build_parameters(task, prefix: str =None):
+    """
+
+    Args:
+        task: Task for which to build params
+        prefix (str): Prefix to add to parameter names
+    
+    """
+
+    params = {}
+
+    for input_name, input in task.inputs.items():
+        if not prefix:
+            params[input_name] = Parameter(name=input_name, default=input["default"], required=input["required"])
+        else:
+            params[f"{prefix}{input_name}"] = Parameter(name=f"{prefix}{input_name}", default=input["default"], required=input["required"])
+
+    return params
