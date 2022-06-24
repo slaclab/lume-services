@@ -1,10 +1,14 @@
 from dependency_injector import containers, providers
-from lume_services.services.data.model.model_service import ModelService
-from lume_services.services.data.model.db.db_service import DBService as ModelDBService
-from lume_services.services.data.model.db.db_service import (
+from lume_services.services.data.models.model_service import ModelService
+from lume_services.services.data.models.db.db_service import DBService as ModelDBService
+from lume_services.services.data.models.db.db_service import (
     DBServiceConfig as ModelDBServiceConfig,
 )
-from lume_services.services.data.results import ResultsDBService, ResultsDBServiceConfig
+from lume_services.services.data.results import (
+    ResultsDBConfig,
+    ResultsDBService,
+    ResultsDB,
+)
 from lume_services.services.data.files.service import FileService
 
 
@@ -16,7 +20,7 @@ class Context(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    results_db_service = providers.Dependency(instance_of=ResultsDBService)
+    results_db = providers.Dependency(instance_of=ResultsDB)
     model_db_service = providers.Dependency(instance_of=ModelDBService)
     file_service = providers.Dependency(instance_of=FileService)
 
@@ -30,10 +34,14 @@ class Context(containers.DeclarativeContainer):
         ModelService,
         db_service=model_db_service,
     )
+    results_db_service = providers.Singleton(
+        ResultsDBService,
+        results_db=results_db,
+    )
 
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "lume_services.scheduling",
+            "lume_services.services.scheduling",
             "lume_services.services.data.files",
         ],
     )
@@ -54,9 +62,9 @@ class LUMEServicesConfig(BaseSettings):
 
     @validator("results_db_service_config")
     def validate_results_db_service_config(cls, v):
-        if issubclass(type(v), ResultsDBServiceConfig):
+        if issubclass(type(v), ResultsDBConfig):
             return v
 
         raise TypeError(
-            "results_db_service_config must be a sublass of ResultsDBServiceConfig"
+            "results_db_service_config must be a sublass of ResultsDBConfig"
         )
