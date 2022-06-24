@@ -2,7 +2,6 @@ pydantic
 sqlalchemy>=1.4
 pymysql
 pandas
-mongoengine
 pymongo
 click
 blinker
@@ -13,4 +12,3 @@ click
 sqlalchemy_schemadisplay
 graphviz
 pyyaml
-cerberus

@@ -2,3 +2,4 @@ pytest
 mongomock
 pre-commit
 flake8
+lume-impact
