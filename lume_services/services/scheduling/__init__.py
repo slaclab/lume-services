@@ -6,13 +6,14 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from pydantic import BaseSettings
 from lume_services.services.scheduling.backends import Backend
-
+from lume_services.services.scheduling.schema import FlowOfFlows, Flow
 
 from typing import Optional
 import yaml
 
-from .schema import FlowOfFlows, Flow
+import logging
 
+logger = logging.getLogger(__name__)
 # from prefect.schedules import CronSchedule
 # weekday_schedule = CronSchedule(
 #    "30 9 * * 1-5", start_date=pendulum.now(tz="US/Eastern")
@@ -157,7 +158,7 @@ class SchedulingService:
         # https://docs.prefect.io/api/latest/tasks/prefect.html?#wait-for-flow-run
 
         with Flow("schedule-run") as flow:
-            flow_run_id = create_flow_run(
+            flow_run_id = self._client.create_flow_run(
                 flow_name=flow_name, project_name=project_name, parameters=data
             )
 
@@ -167,7 +168,7 @@ class SchedulingService:
             # child_data = get_task_run_result(flow_run_id, slug)
             # print(child_data)
 
-            res = wait_for_flow_run(flow_run_id)
+            res = self._client.wait_for_flow_run(flow_run_id)
             # child_data = get_task_run_result(flow_run_id, slug)
 
         flow_runs = FlowRunView._query_for_flow_run(where={"flow_id": {"_eq": id}})
