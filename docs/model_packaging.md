@@ -10,6 +10,43 @@ Templating allows us to ...
 .json template
 
 
+
+
+
+
+```yaml
+
+"{{cookiecutter.repo_name}}"
+├─ .github/
+|  ├─ workflows/
+|  |  ├─ build_flow_docker.yaml
+│  │  ├─ tests.yaml
+├─ "{{cookiecutter.project_slug}}"
+|  ├─ files/
+|  |  ├─ __init__.py
+|  |  ├─ variables.yaml
+|  ├─ flow/
+|  |  ├─ __init__.py
+|  |  ├─ _entrypoint.sh
+|  |  ├─ Dockerfile
+|  |  ├─ flow.py
+|  ├─ tests/
+|  ├─ __init__.py
+|  ├─ config.py
+|  ├─ model.py
+├─ dev-requirements.txt
+├─ requirements.txt
+├─ README.md
+├─ MANIFEST.in
+├─ setup.cfg
+├─ setup.py
+├─ model.yaml
+
+```
+
+
+
+
 ## 2. Define your model variables
 
 Open `your-project/your_project/files/variables.yml`. The file will look like:
