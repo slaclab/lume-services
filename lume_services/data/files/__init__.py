@@ -1,9 +1,9 @@
 import logging
-from multiprocessing.sharedctypes import Value
+import json
 from dependency_injector.wiring import Provide
 
 from typing import Optional, Generic, Any
-from pydantic import root_validator, Field, validator
+from pydantic import root_validator, Field
 from pydantic.generics import GenericModel
 
 import copy
@@ -129,6 +129,9 @@ class File(
     ) -> None:
         """Load file object from instantiated File."""
         self.obj = self.read(file_service=file_service)
+
+    def jsonable_dict(self) -> dict:
+        return json.loads(self.json(by_alias=True))
 
 
 TextFile = File[TextSerializer]
