@@ -26,7 +26,11 @@ The Scheduling Service is set up to interface with a backend
 
 ### Results
 
-See Prefect documentation for other types of results
+
+- Results stored in Prefect backend
+
+
+#### Files
 
 
 Files
@@ -37,14 +41,20 @@ Packaged with HDF5Result and TextResult
 
 get_file_result task will load results with packaged types
 
-Other results can be created very easily by composing a class from the generic `lume_services.scheduling.prefect.results.file.File` class with a custom serializer with base class `lume.serializers.base.SerializerBase`. For example:
+
+#### DB Result
+
+
+
+
+Other results can be created very easily by composing a class from the generic `lume_services.data.files.File` class with a custom serializer with base class `lume.serializers.base.SerializerBase`. For example:
 
 ```python
 from typing import List
 import csv
 
 from lume.serializers.base import SerializerBase
-from lume_services.scheduling.prefect.results.file import File
+from lume_services.data.files import File
 
 class CSVSerializer(SerializerBase):
 

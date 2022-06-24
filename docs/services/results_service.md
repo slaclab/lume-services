@@ -33,8 +33,8 @@ In the event that a different result storage scheme would like to be used the st
 
 
 ```python
-from lume_services.services.data.results.db.db_service import DBService, BServiceConfig
-from lume_services.services.data.results.results_service import ResultsService
+from lume_services.services.data.results.db import ResultsDBService
+from lume_services.services.data.results.results_service import ResultsDBService
 
 class MyCustomDBService(DBService):
     ...
@@ -49,7 +49,7 @@ custom_db_service_config = CustomDBServiceConfig(
 my_db_service = MyCustomDBService(
     custom_db_service_config
 )
-results_db_service = ResultsService(my_db_service)
+results_db_service = ResultsDBService(my_db_service)
 
 ```
 
