@@ -3,6 +3,5 @@ mkdocs
 mkdocstrings
 mkdocstrings-python
 mkdocs-material
-# need to pin, bug w/ pygments < 2.12
-pymdown-extensions==9.5
-Pygments==2.12
+pymdown-extensions>9.4
+Pygments>=2.12
