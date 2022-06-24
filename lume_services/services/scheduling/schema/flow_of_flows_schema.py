@@ -1,7 +1,8 @@
 from ast import Param
-from pydantic import BaseModel, validator, Parameter
+from pydantic import BaseModel, validator
+from prefect import Parameter
 from prefect.backend.flow import FlowView
-from typing import List, Optional, Dict, Literal
+from typing import List, Optional, Dict, Literal, get_args
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -182,32 +183,21 @@ class FlowOfFlows(BaseModel):
                                 mapped_param.parent_flow_name
                             ].task_slugs[mapped_param.parent_task_name]
 
-                            if mapped_param.map_type == "raw":
-
-                                ...
-
-                            elif mapped_param.map_type == "db":
-                                ...
-
-                            elif mapped_param.map_type == "file":
-                                parameters = build_parameters(load_file_task, prefix=f"{flow.name}-")
-                                
-                                ...
-
-                                load_file = load_file_task
-
-
-                            # use task run result as input param
                             task_run_result = get_task_run_result(
                                 flow_runs[mapped_param.parent_flow_name], task_slug
                             )
-                            # track param name with result
 
+                            if mapped_param.map_type in ["raw", "file"]:
+                                flow_params[param_name] = task_run_result
 
+                            elif mapped_param.map_type == "db":
+                                db_result = load_db_result_task(task_run_result)
+                                # need to add indexing of db result
+                                flow_params[param_name] = db_result
 
-
-
-                            flow_params[param_name] = task_run_result
+                            else:
+                                # should never reach if instantiating MappedParameter
+                                raise ValueError(f"Task type {mapped_param.map_type} not in task types {get_args(MappedParameter.__fields__['map_type']._type)}.")
 
                             # add flow to upstream
                             upstream_flows.add(mapped_param.parent_flow_name)
@@ -217,6 +207,7 @@ class FlowOfFlows(BaseModel):
                             project_name=flow.project_name,
                             parameters=flow_params,
                             labels=flow.labels,
+                            raise_final_state=True
                         )
 
                     # configure upstreams if any
