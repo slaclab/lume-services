@@ -13,3 +13,7 @@ SAMPLE_YAML_FILE = resource_filename("lume_services.tests.files", "sample_yaml.y
 SAMPLE_IMPACT_ARCHIVE = resource_filename(
     "lume_services.tests.files", "sample_impact_archive.h5"
 )
+
+FLOW_OF_FLOWS_YAML = resource_filename(
+    "lume_services.tests.files", "flow_of_flows.yaml"
+)
