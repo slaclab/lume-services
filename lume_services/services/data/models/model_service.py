@@ -2,8 +2,8 @@ from sqlalchemy import insert, select, desc
 from typing import List
 import logging
 
-from lume_services.services.data.model.db.db_service import DBService
-from lume_services.services.data.model.db.schema import (
+from lume_services.services.data.models.db.db_service import DBService
+from lume_services.services.data.models.db.schema import (
     Base,
     Model,
     Deployment,
@@ -12,7 +12,7 @@ from lume_services.services.data.model.db.schema import (
     Project,
 )
 
-from lume_services.services.data.model.utils import validate_kwargs_exist
+from lume_services.services.data.models.utils import validate_kwargs_exist
 
 logger = logging.getLogger(__name__)
 
