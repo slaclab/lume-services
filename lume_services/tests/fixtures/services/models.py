@@ -4,8 +4,8 @@ import pymysql
 import logging
 from sqlalchemy import create_engine
 
-from lume_services.services.data.model.db.mysql import MySQLConfig, MySQLService
-from lume_services.services.data.model.model_service import ModelService
+from lume_services.services.data.models.db.mysql import MySQLConfig, MySQLService
+from lume_services.services.data.models.model_service import ModelService
 
 
 logger = logging.getLogger(__name__)

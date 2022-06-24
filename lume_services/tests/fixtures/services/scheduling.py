@@ -2,7 +2,7 @@ import pytest
 from pkg_resources import resource_filename
 from prefect import Flow, task, Client, Parameter
 from prefect.engine.results import LocalResult
-from lume_services.scheduling.scheduling_service import load_flow_of_flows_from_yaml
+from lume_services.services.scheduling import load_flow_of_flows_from_yaml
 
 
 @pytest.fixture(scope="session", autouse=True)
