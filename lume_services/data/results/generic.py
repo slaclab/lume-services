@@ -95,10 +95,10 @@ class Result(BaseModel):
 
         return cls(**res[0])
 
-    def jsonable_dict(self):
+    def jsonable_dict(self) -> dict:
         return json.loads(self.json(by_alias=True))
 
-    def unique_rep(self):
+    def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
         return {
             "result_type_string": self.result_type_string,
