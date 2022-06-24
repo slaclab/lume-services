@@ -113,37 +113,12 @@ class TestSignatureValidateAndCompose:
         def run(*, x: int = 4):
             pass
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             run, *args, **kwargs
         )
-        assert len(returned_args) == 0
-        assert len(returned_kwargs) == len(kwargs)
-        assert all([returned_kwargs[i] == kwargs[i] for i in returned_kwargs])
+        assert all([sig_pos_or_kw[i] == kwargs[i] for i in sig_pos_or_kw])
         # run
-        run(*returned_args, **returned_kwargs)
-
-    @pytest.mark.parametrize(
-        ("args", "kwargs"),
-        [
-            pytest.param((5,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
-            pytest.param((), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
-            pytest.param((2,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
-            pytest.param((), {}, marks=pytest.mark.xfail(strict=True)),
-            ((2,), {}),
-        ],
-    )
-    def test_validate_positional_only(self, args, kwargs):
-        def run(x, /):
-            pass
-
-        returned_args, returned_kwargs = validate_and_compose_signature(
-            run, *args, **kwargs
-        )
-        assert len(returned_kwargs) == 0
-        assert len(returned_args) == len(args)
-
-        # run
-        run(*returned_args, **returned_kwargs)
+        run(**sig_pos_or_kw, **sig_kw_only)
 
     @pytest.mark.parametrize(
         ("args", "kwargs"),
@@ -165,21 +140,20 @@ class TestSignatureValidateAndCompose:
         def run(*args):
             pass
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             run, *args, **kwargs
         )
-        assert len(returned_kwargs) == 0
-        assert len(returned_args) == len(args)
+        assert len(sig_pos_or_kw) == 0
+        assert len(sig_args_only) == len(args)
 
         # run
-        run(*returned_args, **returned_kwargs)
+        run(*sig_args_only)
 
     @pytest.mark.parametrize(
         ("args", "kwargs"),
         [
             pytest.param((5,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
-            pytest.param((2,), {"x": 2}, marks=pytest.mark.xfail(strict=True)),
-            pytest.param((), {"x": 2, "y": 3}, marks=pytest.mark.xfail(strict=True)),
+            ((), {"x": 2, "y": 3}),
             pytest.param((), {}, marks=pytest.mark.xfail(strict=True)),
             (
                 (
@@ -194,15 +168,15 @@ class TestSignatureValidateAndCompose:
         ],
     )
     def test_validate_full_sig(self, args, kwargs):
-        def run(x, /, y, z=4, *args, **kwargs):
+        def run(x, y, z=4, *args, **kwargs):
             pass
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             run, *args, **kwargs
         )
 
         # run
-        run(*returned_args, **returned_kwargs)
+        run(*sig_args_only, **sig_pos_or_kw, **sig_kw_only)
 
     @pytest.mark.parametrize(
         ("args", "kwargs"),
@@ -220,10 +194,10 @@ class TestSignatureValidateAndCompose:
     )
     def test_validate_classmethod(self, args, kwargs):
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             self.misc_class.misc_cls_method, *args, **kwargs
         )
-        self.misc_class.misc_cls_method(*returned_args, **returned_kwargs)
+        self.misc_class.misc_cls_method(*sig_args_only, **sig_pos_or_kw)
 
     @pytest.mark.parametrize(
         ("args", "kwargs"),
@@ -241,10 +215,11 @@ class TestSignatureValidateAndCompose:
     )
     def test_validate_staticmethod(self, args, kwargs):
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             self.misc_class.misc_static_method, *args, **kwargs
         )
-        self.misc_class.misc_static_method(*returned_args, **returned_kwargs)
+
+        self.misc_class.misc_static_method(*sig_args_only, **sig_pos_or_kw)
 
     @pytest.mark.parametrize(
         ("args", "kwargs"),
@@ -262,10 +237,11 @@ class TestSignatureValidateAndCompose:
     )
     def test_validate_bound_method(self, args, kwargs):
 
-        returned_args, returned_kwargs = validate_and_compose_signature(
+        sig_pos_or_kw, sig_kw_only, sig_args_only = validate_and_compose_signature(
             self.misc_class.misc_method, *args, **kwargs
         )
-        self.misc_class.misc_method(*returned_args, **returned_kwargs)
+
+        self.misc_class.misc_method(*sig_args_only, **sig_pos_or_kw)
 
 
 class TestCallableModel:
