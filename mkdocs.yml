@@ -5,35 +5,30 @@ nav:
   - Overview: index.md
   - Notes: notes.md
   - Configuration: config.md
-  - Services: 
-    - Data: 
-      - File Service: services/file_service.md
-      - Model Registry: model_registry.md
-      - Results DB: services/results_service.md
-    - HPC: 
-      - HPC Service: services/hpc_service.md
-    - Modeling:
-      - Modeling Service: services/modeling_service.md
-      - Preprocessing: preprocessing.md
-      - Packaging: model_packaging.md
-    - Scheduling:
-      - Scheduling Service: services/scheduling_service.md
-      - Results: prefect_results.md
+  - Model Packaging: model_packaging.md
+  - Data: data.md
+  - Services:
+    - File Service: services/file_service.md
+    - Results DB Service: services/results_db_service.md
+    - HPC Service: services/hpc_service.md
+    - Modeling Service: services/modeling_service.md
+    - Scheduling Service: services/scheduling_service.md
   - API:
-    - Scheduling: 
-      - scheduling service: api/scheduling/scheduling.md
-      - backends: api/scheduling/backends.md
     - Data:
-      - file service: api/data/file/file_service.md
-      - file systems: api/data/file/filesystems.md
-
-  #- Developer:
-  #  - 
-  #  - Structure:
-  #  - Configuration Context:
-  #- API:
-  #  - ...
-
+      - files: api/data/files.md
+      - results: api/data/results.md
+    - Services:
+      - Data:
+        - Files: api/services/data/files.md
+        - Results: api/services/data/results.md
+        - Models: api/services/data/models.md
+      - Scheduling: api/services/scheduling.md
+  - Developer:
+    - Setup:  developer/setup.md
+    - Data:  developer/data.md
+    - Testing:  developer/testing.md
+    - Services:
+      - File: developer/services/file.md
 
 plugins:
   - search:
