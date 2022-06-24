@@ -29,6 +29,7 @@ nav:
     - Testing:  developer/testing.md
     - Services:
       - File: developer/services/file.md
+      - Scheduling: developer/services/scheduling.md
 
 plugins:
   - search:
