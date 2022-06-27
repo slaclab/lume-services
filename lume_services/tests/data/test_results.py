@@ -60,11 +60,11 @@ class TestImpactResult:
             outputs={"output1": 1},
             archive={
                 "filename": SAMPLE_IMPACT_ARCHIVE,
-                "file_system_identifier": "local",
+                "filesystem_identifier": "local",
             },
             plot_file={
                 "filename": SAMPLE_IMAGE_FILE,
-                "file_system_identifier": "local",
+                "filesystem_identifier": "local",
             },
             pv_collection_isotime=datetime.utcnow(),
             config={"example_config": 1},
