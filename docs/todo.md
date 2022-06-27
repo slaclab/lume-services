@@ -20,7 +20,6 @@
 ### Databases
 - [ ] Test database failure cases
 - [ ] Rename base classes for DBService
-- [ ] Add flow image to db
 
 ## Backlog
 - [ ] Implement/plan for logging infrastructure
@@ -32,6 +31,7 @@
 ## Scheduler
 - [ ] Refactor scheduler
 - [ ] Flow of flows composition
+- [ ] Create prefect flow image 6/26
 
 ## Maybe TODO
 - [ ] Separate template into own repo?
@@ -75,5 +75,7 @@
 - [x] Action for building docs
 - [x] Automatically generate diagram from .sql schema? 5/6
 - [x] MySQL schema unique key constraints 5/12
-- [x] Flow of flows 5/11
-- [x] Drop prefect subfolder 6/24
+- Scheduling
+    - [x] Drop prefect subfolder 6/24
+    - [x] Create docker backend 6/27
+    - [x] Tesing infrastructure for prefect w/ docker compose 6/27
