@@ -13,13 +13,29 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session", autouse=True)
 def mysql_host(request):
-    return request.config.getini("mysql_host")
+    host = request.config.getini("mysql_host")
+    os.environ["MYSQL_HOST"] = host
+    return host
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mysql_user(request):
+    user = request.config.getini("mysql_user")
+    os.environ["MYSQL_USER"] = user
+    return user
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mysql_password(request):
+    password = request.config.getini("mysql_password")
+    os.environ["MYSQL_PASSWORD"] = password
+    return password
 
 
 @pytest.fixture(scope="session", autouse=True)
 def mysql_port(request):
     port = request.config.getini("mysql_port")
-    os.environ["PYTEST_MYSQL_PORT"] = port
+    os.environ["MYSQL_HOST_PORT"] = port
     return int(port)
 
 

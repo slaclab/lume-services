@@ -18,6 +18,7 @@ def execute(command, success_codes=(0,)):
             command, stderr=subprocess.STDOUT, shell=True, env=os.environ
         )
         status = 0
+
     except subprocess.CalledProcessError as error:
         output = error.output or b""
         status = error.returncode
@@ -166,7 +167,11 @@ def docker_setup():
 
 @contextlib.contextmanager
 def get_docker_services(
-    docker_compose_file, docker_compose_project_name, docker_setup, docker_cleanup
+    docker_compose_file,
+    docker_compose_project_name,
+    docker_setup,
+    docker_cleanup,
+    docker_config,
 ):
     docker_compose = DockerComposeExecutor(
         docker_compose_file, docker_compose_project_name
@@ -191,12 +196,17 @@ def docker_services(
     docker_compose_project_name,
     docker_setup,
     docker_cleanup,
+    docker_config,
 ):
     """Start all services from a docker compose file (`docker-compose up`).
     After test are finished, shutdown all services (`docker-compose down`)."""
 
     with get_docker_services(
-        docker_compose_file, docker_compose_project_name, docker_setup, docker_cleanup
+        docker_compose_file,
+        docker_compose_project_name,
+        docker_setup,
+        docker_cleanup,
+        docker_config,
     ) as docker_service:
         yield docker_service
 
