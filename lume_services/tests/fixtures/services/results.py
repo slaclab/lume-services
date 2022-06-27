@@ -126,10 +126,8 @@ def impact_result():
             "output2": [1, 2, 3, 4, 5],
             "ouptut3": "my_file.txt",
         },
-        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, file_system_identifier="local"),
-        archive=HDF5File(
-            filename=SAMPLE_IMPACT_ARCHIVE, file_system_identifier="local"
-        ),
+        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
+        archive=HDF5File(filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"),
         pv_collection_isotime=datetime.now(),
         config={"config1": 1, "config2": 2},
     )
