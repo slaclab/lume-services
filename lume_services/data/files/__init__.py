@@ -36,7 +36,7 @@ class File(
 
     loader: Optional[ObjLoader[ObjType]]
     serializer: ObjType = Field(exclude=True)
-    file_system_identifier: str = "local"
+    filesystem_identifier: str = "local"
     file_type_string: str
 
     load: bool = Field(False, exclude=True)
@@ -66,9 +66,9 @@ class File(
             if "filename" in loader_values:
                 loader_values.pop("filename")
 
-            # if file_system_identifier in values, need to remove
-            if "file_system_identifier" in loader_values:
-                loader_values.pop("file_system_identifier")
+            # if filesystem_identifier in values, need to remove
+            if "filesystem_identifier" in loader_values:
+                loader_values.pop("filesystem_identifier")
 
             # if obj in values, need to remove
             if "obj" in loader_values:
@@ -101,7 +101,7 @@ class File(
                 raise ValueError("Must provide object to write.")
 
             file_service.write(
-                self.file_system_identifier,
+                self.filesystem_identifier,
                 self.filename,
                 self.obj,
                 self.serializer,
@@ -110,7 +110,7 @@ class File(
         else:
             self.obj = obj
             file_service.write(
-                self.file_system_identifier,
+                self.filesystem_identifier,
                 self.filename,
                 obj,
                 self.serializer,
@@ -119,7 +119,7 @@ class File(
 
     def read(self, file_service: FileService = Provide[Context.file_service]):
         return file_service.read(
-            self.file_system_identifier,
+            self.filesystem_identifier,
             self.filename,
             self.serializer,
         )

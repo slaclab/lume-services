@@ -10,6 +10,8 @@ from bson.objectid import ObjectId
 from lume_services.context import Context
 from lume_services.utils import JSON_ENCODERS
 
+from prefect import context
+
 
 class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
@@ -61,6 +63,10 @@ class Result(BaseModel):
             id = values["_id"]
             if isinstance(id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
+
+        # If flow_id is not passed, check prefect context
+        if not values.get("flow_id"):
+            values["flow_id"] = context.flow_id
 
         values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
 
