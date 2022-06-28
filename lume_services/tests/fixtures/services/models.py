@@ -4,8 +4,8 @@ import pymysql
 import logging
 from sqlalchemy import create_engine
 
-from lume_services.services.data.models.db.mysql import MySQLConfig, MySQLService
-from lume_services.services.data.models.model_service import ModelService
+from lume_services.services.data.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
+from lume_services.services.data.models.model_service import ModelDBService
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +80,7 @@ def mysql_server(docker_ip, docker_services, mysql_user, mysql_password):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_config(base_mysql_uri, mysql_database, mysql_pool_size):
 
-    return MySQLConfig(
+    return MySQLModelDBConfig(
         db_uri=f"{base_mysql_uri}/{mysql_database}",
         pool_size=mysql_pool_size,
     )
@@ -89,7 +89,7 @@ def mysql_config(base_mysql_uri, mysql_database, mysql_pool_size):
 @pytest.mark.usefixtures("mysql_server")
 @pytest.fixture(scope="module", autouse=True)
 def mysql_service(mysql_config):
-    mysql_service = MySQLService(mysql_config)
+    mysql_service = MySQLModelDB(mysql_config)
     return mysql_service
 
 
@@ -101,7 +101,7 @@ def model_service(mysql_service, mysql_database, base_mysql_uri):
     with engine.connect() as connection:
         connection.execute(f"CREATE DATABASE IF NOT EXISTS {mysql_database};")
 
-    model_service = ModelService(mysql_service)
+    model_service = ModelDBService(mysql_service)
     model_service.apply_schema()
 
     # set up database
