@@ -50,23 +50,10 @@ class MountedFilesystem(LocalFilesystem):
 
     """
 
-    def __init__(self, mount_path: str, mount_alias: str, identifier: str = None):
-        """Initialize mounted filesystem with optional custom identifier.
-
-        Args:
-            mount_path (str): Mount path on mounted filesystem
-            mount_alias (str): Directory alias used internally for mount
-            identifier (str): String identifier for filesystem
-
-        """
-        if not identifier:
-            self._identifier = "mounted"
-
-        else:
-            self._identifier = identifier
-
-        self._mount_path = mount_path
-        self._mount_alias = mount_alias
+    identifier: str = "mounted"
+    mount_path: str
+    mount_alis: str
+    mount_type: HostMountType
 
     @property
     def identifier(self):
@@ -151,13 +138,13 @@ class MountedFilesystem(LocalFilesystem):
 
         """
 
-        if self._mount_path in path:
-            return path.replace(self._mount_path, self._mount_alias)
+        if self.mount_path in path:
+            return path.replace(self.mount_path, self.mount_alias)
 
-        elif self._mount_alias in path:
+        elif self.mount_alias in path:
             return path
 
         else:
             raise PathNotInMount(
-                self._identifier, path, self._mount_path, self._mount_alias
+                self._identifier, path, self.mount_path, self.mount_alias
             )

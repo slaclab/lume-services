@@ -1,12 +1,11 @@
 from typing import Any
-from abc import ABC, abstractmethod, abstractproperty
+from pydantic import BaseModel
+from abc import ABC, abstractmethod
 from lume.serializers.base import SerializerBase
 
 
-class Filesystem(ABC):
-    @abstractproperty
-    def identifier(self) -> str:
-        ...
+class Filesystem(ABC, BaseModel):
+    identifier: str
 
     @abstractmethod
     def dir_exists(self, dir: str, create_dir: bool = False) -> bool:

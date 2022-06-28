@@ -11,12 +11,7 @@ logger = logging.getLogger(__name__)
 class LocalFilesystem(Filesystem):
     """Handler for local filesystem."""
 
-    def __init__(self):
-        self._identifier = "local"
-
-    @property
-    def identifier(self):
-        return self._identifier
+    identifier: str = "local"
 
     def dir_exists(self, dir: str, create_dir: bool = False) -> bool:
         """Check that a directory exists on the local filesystem.
