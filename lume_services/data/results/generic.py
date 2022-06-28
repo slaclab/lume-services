@@ -4,7 +4,7 @@ from datetime import datetime
 from lume_services.services.data.results import ResultsDB
 from lume_services.utils import fingerprint_dict
 from typing import List, Optional
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
 
 from lume_services.context import Context
@@ -75,6 +75,7 @@ class Result(BaseModel):
     def get_unique_result_index(self) -> dict:
         return {field: getattr(self, field) for field in self.unique_on}
 
+    @inject
     def insert(
         self, results_db_service: ResultsDB = Provide[Context.results_db_service]
     ):
@@ -83,6 +84,7 @@ class Result(BaseModel):
         rep = self.jsonable_dict()
         return results_db_service.insert_one(rep)
 
+    @inject
     @classmethod
     def load_from_query(
         cls,
