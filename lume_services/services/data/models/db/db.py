@@ -9,13 +9,13 @@ from sqlalchemy.sql.expression import Insert, Select
 logger = logging.getLogger(__name__)
 
 
-class DBServiceConfig(LUMESettings):
+class ModelDBConfig(LUMESettings):
     ...
 
 
-class DBService(ABC):
+class ModelDB(ABC):
     @abstractmethod
-    def __init__(self, db_config: DBServiceConfig):
+    def __init__(self, db_config: ModelDBConfig):
         ...
 
     @abstractmethod

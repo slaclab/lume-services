@@ -2,7 +2,7 @@ from sqlalchemy import insert, select, desc
 from typing import List
 import logging
 
-from lume_services.services.data.models.db.db_service import DBService
+from lume_services.services.data.models.db import ModelDB
 from lume_services.services.data.models.db.schema import (
     Base,
     Model,
@@ -17,9 +17,9 @@ from lume_services.services.data.models.utils import validate_kwargs_exist
 logger = logging.getLogger(__name__)
 
 
-class ModelService:
-    def __init__(self, db_service: DBService):
-        self._db_service = db_service
+class ModelDBService:
+    def __init__(self, model_db: ModelDB):
+        self._model_db = model_db
 
     @validate_kwargs_exist(Model)
     def store_model(self, **kwargs) -> int:
@@ -32,7 +32,7 @@ class ModelService:
         # store in db
         insert_stmt = insert(Model).values(**kwargs)
 
-        result = self._db_service.insert(insert_stmt)
+        result = self._model_db.insert(insert_stmt)
 
         if len(result):
             return result[0]
@@ -51,7 +51,7 @@ class ModelService:
         # store in db
         insert_stmt = insert(Deployment).values(**kwargs)
 
-        result = self._db_service.insert(insert_stmt)
+        result = self._model_db.insert(insert_stmt)
 
         if len(result):
             return result[0]
@@ -70,7 +70,7 @@ class ModelService:
         insert_stmt = insert(Project).values(**kwargs)
 
         # store in db
-        result = self._db_service.insert(insert_stmt)
+        result = self._model_db.insert(insert_stmt)
 
         if len(result):
             return result[0]
@@ -89,7 +89,7 @@ class ModelService:
         insert_stmnts = []
 
         insert_stmt = insert(Flow).values(flow_id=flow_id, **kwargs)
-        result = self._db_service.insert(insert_stmt)
+        result = self._model_db.insert(insert_stmt)
 
         for deployment_id in deployment_ids:
 
@@ -98,7 +98,7 @@ class ModelService:
             )
             insert_stmnts.append(insert_stmnt)
 
-        self._db_service.insert_many(insert_stmnts)
+        self._model_db.insert_many(insert_stmnts)
 
         if len(result):
             return result[0]
@@ -115,7 +115,7 @@ class ModelService:
         """
         # execute query
         query = select(Model).filter_by(**kwargs)
-        result = self._db_service.select(query)
+        result = self._model_db.select(query)
 
         if len(result):
             if len(result) > 1:
@@ -141,7 +141,7 @@ class ModelService:
         """
 
         query = select(Deployment).filter_by(**kwargs)
-        result = self._db_service.select(query)
+        result = self._model_db.select(query)
 
         if len(result):
             if len(result) > 1:
@@ -171,7 +171,7 @@ class ModelService:
             .filter_by(**kwargs)
             .order_by(desc(Deployment.deploy_date))
         )
-        result = self._db_service.select(query)
+        result = self._model_db.select(query)
 
         if len(result):
             return result[0]
@@ -189,7 +189,7 @@ class ModelService:
 
         # execute query
         query = select(Project).filter_by(**kwargs).order_by(desc(Project.create_date))
-        result = self._db_service.select(query)
+        result = self._model_db.select(query)
 
         if len(result):
             if len(result) > 1:
@@ -215,7 +215,7 @@ class ModelService:
         """
 
         query = select(Flow).filter_by(**kwargs)
-        result = self._db_service.select(query)
+        result = self._model_db.select(query)
 
         if len(result):
             if len(result) > 1:
@@ -235,4 +235,4 @@ class ModelService:
     def apply_schema(self) -> None:
         """Applies database schema to connected service."""
 
-        Base.metadata.create_all(self._db_service.engine)
+        Base.metadata.create_all(self._model_db.engine)

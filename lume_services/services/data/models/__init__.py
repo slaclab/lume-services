@@ -1,1 +1,1 @@
-from .model_service import ModelService
+from .model_service import ModelDBService

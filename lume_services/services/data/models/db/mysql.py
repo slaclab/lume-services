@@ -11,13 +11,13 @@ from sqlalchemy.engine.base import Connection
 
 from typing import List
 
-from lume_services.services.data.models.db.db_service import DBServiceConfig, DBService
+from lume_services.services.data.models.db.db import ModelDBConfig, ModelDB
 
 
 logger = logging.getLogger(__name__)
 
 
-class MySQLConfig(DBServiceConfig):
+class MySQLModelDBConfig(ModelDBConfig):
     """Configuration for MySQL connection.
 
     db_uri: uri for establishing db connection
@@ -31,17 +31,17 @@ class MySQLConfig(DBServiceConfig):
     pool_size: int
 
 
-class MySQLService(DBService):
+class MySQLModelDB(ModelDB):
     """MySQL implementation of the DBService client, allowing for Model DB connections
     to MySQL model db.
 
     """
 
-    def __init__(self, config: MySQLConfig):
+    def __init__(self, config: MySQLModelDBConfig):
         """Initialize MySQL client service.
 
         Args:
-            config (MySQLConfig): MySQL connection config
+            config (MySQLModelDBConfig): MySQL connection config
 
         """
         self.config = config
