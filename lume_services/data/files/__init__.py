@@ -1,6 +1,6 @@
 import logging
 import json
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 
 from typing import Optional, Generic, Any
 from pydantic import root_validator, Field
@@ -90,6 +90,7 @@ class File(
 
         return values
 
+    @inject
     def write(
         self,
         obj=None,
@@ -117,6 +118,7 @@ class File(
                 create_dir=create_dir,
             )
 
+    @inject
     def read(self, file_service: FileService = Provide[Context.file_service]):
         return file_service.read(
             self.filesystem_identifier,
@@ -124,6 +126,7 @@ class File(
             self.serializer,
         )
 
+    @inject
     def load_file(
         self, file_service: FileService = Provide[Context.file_service]
     ) -> None:
@@ -152,7 +155,7 @@ def get_file_from_serializer_string(file_type_string: str):
 
     if not _FileSerializerTypeStringMap.get(file_type_string):
         raise ValueError(
-            "Serializer string not in file types. %s, %s",
+            "File string not in file types. %s, %s",
             file_type_string,
             list(_FileSerializerTypeStringMap.keys()),
         )
