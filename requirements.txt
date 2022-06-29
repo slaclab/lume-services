@@ -12,3 +12,4 @@ click
 sqlalchemy_schemadisplay
 graphviz
 pyyaml
+docker-py
