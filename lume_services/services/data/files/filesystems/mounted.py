@@ -52,7 +52,7 @@ class MountedFilesystem(LocalFilesystem):
 
     identifier: str = "mounted"
     mount_path: str
-    mount_alis: str
+    mount_alias: str
     mount_type: HostMountType
 
     @property
