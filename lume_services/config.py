@@ -21,8 +21,8 @@ from lume_services.services.data.files.filesystems import (
 )
 
 
-context = None
-_settings = None
+context: containers.DeclarativeContainer = None
+_settings: BaseSettings = None
 
 
 class Context(containers.DeclarativeContainer):
