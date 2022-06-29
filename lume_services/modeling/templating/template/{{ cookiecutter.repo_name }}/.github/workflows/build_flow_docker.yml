@@ -1,0 +1,35 @@
+name: Publish flow docker image
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    env:
+      flow_image_root: {{ cookiecutter.project_slug }}_{{ "${{ github.ref_name }}" }}
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      
+      - name: Copy environment file
+        run: |
+          cp environment.yml ./{{ cookiecutter.project_slug }}/flow/environment.yml
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: ./{{ cookiecutter.project_slug }}/flow
+          push: false
+          build-args: |
+            VERSION={{ "${{ github.ref_name }}" }}
+          outputs: type=docker,dest=/tmp/{{ "${{ env.flow_image_root }}" }}.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: {{ cookiecutter.project_slug }}_{{ "${{ github.ref_name }}" }}.tar
+          path: /tmp/myimage.tar

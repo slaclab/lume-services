@@ -2,5 +2,14 @@ pydantic
 sqlalchemy>=1.4
 pymysql
 pandas
-mongoengine
 pymongo
+click
+blinker
+dependency_injector
+lume-base
+h5py
+click
+sqlalchemy_schemadisplay
+graphviz
+pyyaml
+docker-py

@@ -1,0 +1,10 @@
+{
+    "author": "Jacqueline Garrahan",
+    "email": "jacquelinegarrahan@gmail.com",
+    "github_username": "jacquelinegarrahan",
+    "github_url": "https://github.com/jacquelinegarrahan/test_project.git",
+    "project_name": "My Package", 
+    "repo_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}", 
+    "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+    "model_class":"{{ cookiecutter.project_name.title().replace(' ', '').replace('-', '') }}"
+}

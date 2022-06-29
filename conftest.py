@@ -1,167 +1,60 @@
-import pytest 
-from sqlalchemy import create_engine
-from string import Template
-
-import mongomock
-
-from lume_services.data.model.db.mysql import MySQLConfig, MySQLService
-from lume_services.data.model.model_db_service import ModelDBService
-from lume_services.data.results.db.service import DBServiceConfig
-from lume_services.data.results.db.mongodb.service import MongodbService
-from lume_services.data.results.results_db_service import ResultsDBService
-
-from lume_services.data.results.db.mongodb.models import ModelDocs
-from lume_services.tests.plugins.mysql import mysql_proc
-
-mysql_server = mysql_proc()
+import pytest
+import os
 
 
 def pytest_addoption(parser):
+    parser.addini("mysql_host", default="127.0.0.1", help="MySQL host")
+    parser.addini("mysql_port", default=3306, help="MySQL port")
+    parser.addini("mysql_user", default="root", help="MySQL user")
+    parser.addini("mysql_password", default="root", help="MySQL password")
+    parser.addini(name="mysql_dbname", help="Mysql database name", default="test")
+    parser.addini("mysql_database", default="model_db", help="Model database name")
+    parser.addini("mysql_poolsize", default=1, help="MySQL client poolsize")
 
+    parser.addini("mongodb_host", default="127.0.0.1", help="MySQL host")
+    parser.addini("mongodb_port", default=3306, help="MySQL port")
+    parser.addini("mongodb_user", default="root", help="MySQL user")
+    parser.addini("mongodb_password", default="root", help="MySQL password")
+    parser.addini(name="mongodb_dbname", help="Mysql database name", default="test")
+
+    # prefect
+    parser.addini(name="postgres_db", help="Prefect postgres db", default="prefect_db")
     parser.addini(
-        "mysql_user", default="root", help="MySQL user"
+        name="postgres_user", help="Prefect postgres user", default="prefect_user"
     )
-
     parser.addini(
-        "mysql_database", default="model_db", help="Model database name"
+        name="postgres_password",
+        help="Prefect postgres password",
+        default="prefect_password",
     )
-
+    parser.addini(name="apollo_host_port", help="Prefect apollo api port", default=4200)
     parser.addini(
-        "mysql_poolsize", default=1, help="MySQL client poolsize"
+        name="hasura_host_port", help="Prefect hasura host port", default=3000
+    )
+    parser.addini(
+        name="postgres_host_port", help="Prefect postgres host port", default=3000
+    )
+    parser.addini(
+        name="graphql_host_port", help="Prefect graphql host port", default=4201
     )
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mysql_user(request):
-    return request.config.getini("mysql_user")
-
-@pytest.fixture(scope="session", autouse=True)
-def mysql_host(request):
-    return request.config.getini("mysql_host")
+def rootdir(request):
+    rootdir = request.config.rootpath
+    os.environ["LUME_SERVICES_ROOTDIR"] = str(rootdir)
+    return rootdir
 
 
-@pytest.fixture(scope="session", autouse=True)
-def mysql_port(request):
-    return int(request.config.getini("mysql_port"))
+from glob import glob
 
 
-@pytest.fixture(scope="session", autouse=True)
-def mysql_database(request):
-    return request.config.getini("mysql_database")
+def refactor(string: str) -> str:
+    return string.replace("/", ".").replace("\\", ".").replace(".py", "")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def mysql_pool_size(request):
-    return int(request.config.getini("mysql_poolsize"))
-
-
-@pytest.fixture(scope="session", autouse=True)
-def base_db_uri(mysql_user, mysql_host, mysql_port):
-    return Template("mysql+pymysql://${user}:@${host}:${port}").substitute(user=mysql_user, host=mysql_host, port=mysql_port)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mysql_config(mysql_user, mysql_host, mysql_port, mysql_database, mysql_pool_size):
-
-    db_uri = Template("mysql+pymysql://${user}:@${host}:${port}/${database}").substitute(user=mysql_user, host=mysql_host, port=mysql_port, database=mysql_database)
-
-    return MySQLConfig(
-        db_uri=db_uri,
-        pool_size=mysql_pool_size,
-    )
-
-
-@pytest.mark.usefixtures("mysql_proc")
-@pytest.fixture(scope="module", autouse=True)
-def mysql_service(mysql_config):
-    mysql_service = MySQLService(mysql_config)
-    return mysql_service
-
-
-@pytest.mark.usefixtures("mysql_proc")
-@pytest.fixture(scope="module", autouse=True)
-def model_db_service(mysql_service, mysql_database, base_db_uri, mysql_proc):
-
-    # start the mysql process if not started
-    if not mysql_proc.running():
-        mysql_proc.start()
-
-    engine = create_engine(base_db_uri, pool_size=1)
-    with engine.connect() as connection:
-        connection.execute("CREATE DATABASE IF NOT EXISTS model_db;")
-
-    model_db_service = ModelDBService(mysql_service)
-    model_db_service.apply_schema()
-
-    # set up database
-    yield model_db_service
-
-    with engine.connect() as connection:
-        connection.execute(f"DROP DATABASE {mysql_database};")
-
-
-class MongomockResultsDBConfig(DBServiceConfig):
-    host: str= 'mongomock://localhost'
-    db: str= "localhost"
-    port: int = 27017
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_config():
-    return MongomockResultsDBConfig()
-
-@mongomock.patch(servers=(('localhost', 27017),))
-@pytest.fixture(scope="module", autouse=True)
-def mongodb_service(mongodb_config):
-    return MongodbService(mongodb_config)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def results_db_service(mongodb_service):
-
-    results_db_service = ResultsDBService(mongodb_service, ModelDocs)
-
-    # no teardown needed because mock is module scoped
-    return results_db_service
-import pytest
-from datetime import datetime
-
-@pytest.fixture(scope="session", autouse=True)
-def test_generic_result_document():
-    return  {
-        "flow_id": "test_flow_id",
-        "inputs": {
-            "input1": 2.0,
-            "input2": [1,2,3,4,5],
-            "input3": "my_file.txt"
-        },
-        "outputs": {
-            "output1": 2.0,
-            "output2": [1,2,3,4,5],
-            "ouptut3": "my_file.txt"
-        },
-    }
-
-
-@pytest.fixture(scope="module", autouse=True)
-def test_impact_result_document():
-    return  {
-        "flow_id": "test_flow_id",
-        "inputs": {
-            "input1": 2.0,
-            "input2": [1,2,3,4,5],
-            "input3": "my_file.txt"
-        },
-        "outputs": {
-            "output1": 2.0,
-            "output2": [1,2,3,4,5],
-            "ouptut3": "my_file.txt"
-        },
-        "plot_file": "my_plot_file.txt",
-        "archive": "archive_file.txt",
-        "pv_collection_isotime": datetime.now(),
-        "config": {
-            "config1": 1,
-            "config2": 2
-        }
-    }
+pytest_plugins = [
+    refactor(fixture)
+    for fixture in glob("lume_services/tests/fixtures/**/*.py", recursive=True)
+    if "__" not in fixture
+]
