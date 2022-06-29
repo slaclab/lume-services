@@ -1,15 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from typing import List
 import logging
-from lume_services.config import LUMESettings
 
+from pydantic import BaseModel
 from sqlalchemy.sql.base import Executable
 from sqlalchemy.sql.expression import Insert, Select
 
 logger = logging.getLogger(__name__)
 
 
-class ModelDBConfig(LUMESettings):
+class ModelDBConfig(BaseModel):
     ...
 
 
@@ -58,3 +58,7 @@ class ModelDB(ABC):
 
         """
         ...
+
+    @abstractclassmethod
+    def from_config_init(cls, *args, **kwargs):
+        """Convenience function for initializing config and db."""
