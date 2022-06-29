@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from lume_services.config import LUMESettings
+from pydantic import BaseModel
 from typing import List
 
 
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ResultsDBConfig(LUMESettings):
+class ResultsDBConfig(BaseModel):
     ...
 
 
