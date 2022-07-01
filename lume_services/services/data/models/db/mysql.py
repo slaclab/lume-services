@@ -45,6 +45,8 @@ class MySQLModelDB(ModelDB):
 
         """
         self.config = config
+
+        breakpoint()
         self._create_engine()
 
     def _create_engine(self) -> None:
@@ -205,3 +207,8 @@ class MySQLModelDB(ModelDB):
             session.commit()
 
         return [res.inserted_primary_key for res in results]
+
+    @classmethod
+    def from_config_init(cls, *args, **kwargs):
+        config = MySQLModelDBConfig(*args, **kwargs)
+        return cls(config=config)
