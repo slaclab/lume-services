@@ -8,7 +8,7 @@ import timeit
 import attr
 
 import pytest
-from lume_services.tests.files import PYTEST_DOCKER_COMPOSE
+from lume_services.docker.files import DOCKER_COMPOSE
 
 
 def execute(command, success_codes=(0,)):
@@ -213,4 +213,4 @@ def docker_services(
 
 @pytest.fixture(scope="session")
 def docker_compose_file():
-    return PYTEST_DOCKER_COMPOSE
+    return DOCKER_COMPOSE
