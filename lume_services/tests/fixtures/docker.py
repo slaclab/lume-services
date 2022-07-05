@@ -11,6 +11,23 @@ import pytest
 from lume_services.docker.files import DOCKER_COMPOSE
 
 
+@pytest.fixture(scope="session", autouse=True)
+def docker_config(
+    mysql_host,
+    mysql_user,
+    mysql_port,
+    mysql_password,
+    apollo_host_port,
+    hasura_host_port,
+    graphql_host_port,
+    postgres_db,
+    postgres_user,
+    postgres_password,
+    postgres_data_path,
+):
+    pass
+
+
 def execute(command, success_codes=(0,)):
     """Run a shell command."""
     try:
@@ -137,9 +154,9 @@ def docker_compose_project_name():
     return "pytest{}".format(os.getpid())
 
 
-def get_cleanup_command():
+def get_cleanup_commands():
 
-    return "down -v"
+    return ["down -v", "rm --stop --force"]
 
 
 @pytest.fixture(scope="session")
@@ -148,7 +165,7 @@ def docker_cleanup():
     Override this fixture in your tests if you need to change clean-up actions.
     Returning anything that would evaluate to False will skip this command."""
 
-    return get_cleanup_command()
+    return get_cleanup_commands()
 
 
 def get_setup_command():
@@ -186,8 +203,9 @@ def get_docker_services(
         yield Services(docker_compose)
     finally:
         # Clean up.
-        if docker_cleanup:
-            docker_compose.execute(docker_cleanup)
+        if docker_cleanup is not None:
+            for cmd in docker_cleanup:
+                docker_compose.execute(cmd)
 
 
 @pytest.fixture(scope="session")
