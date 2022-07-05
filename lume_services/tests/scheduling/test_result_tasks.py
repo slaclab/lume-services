@@ -1,3 +1,5 @@
+from prefect import Flow, task
+
 from lume_services.services.scheduling.tasks import (
     load_db_result_task,
     save_db_result_task,
@@ -6,7 +8,8 @@ from lume_services.services.scheduling.tasks import (
 )
 from lume_services.tests.files import SAMPLE_TEXT_FILE
 from lume_services.data.files import TextFile
-from prefect import Flow, task
+from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
+from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
 
 class TestDBTaskResults:
@@ -65,16 +68,14 @@ class TestFileTaskResults:
 
         filepath = f"{tmp_path}/tmp_file.txt"
         text = "text"
-        text_file = TextFile(
-            obj=text, filename=filepath, file_system_identifier="local"
-        )
+        text_file = TextFile(obj=text, filename=filepath, filesystem_identifier="local")
 
         with Flow("save_file_task_flow") as flow:
             my_task = save_file_task(
                 obj=text,
                 file_type=TextFile,
                 filename=filepath,
-                file_system_identifier="local",
+                filesystem_identifier="local",
                 file_service=file_service,
             )
 
@@ -85,7 +86,7 @@ class TestFileTaskResults:
 
     def test_load_file_task(self, file_service):
 
-        text_file = TextFile(filename=SAMPLE_TEXT_FILE, file_system_identifier="local")
+        text_file = TextFile(filename=SAMPLE_TEXT_FILE, filesystem_identifier="local")
         text_file_rep = text_file.jsonable_dict()
 
         with Flow("load_file_task_flow") as flow:
@@ -100,7 +101,7 @@ class TestFileTaskResults:
 
     def test_file_result_propogation(self, file_service):
 
-        text_file = TextFile(filename=SAMPLE_TEXT_FILE, file_system_identifier="local")
+        text_file = TextFile(filename=SAMPLE_TEXT_FILE, filesystem_identifier="local")
         text_file_rep = text_file.jsonable_dict()
 
         # @task
