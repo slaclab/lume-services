@@ -65,7 +65,7 @@ class MongoMockResultsDB(ResultsDB):
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_host(request):
-    return request.config.getini("mysql_host")
+    return request.config.getini("mongodb_host")
 
 
 @pytest.fixture(scope="session", autouse=True)
