@@ -9,7 +9,7 @@ from lume_services.services.data.files import FileService
 
 @pytest.fixture(scope="module")
 def mount_path(tmp_path_factory):
-    return tmp_path_factory.mktemp("mounted_dir")
+    return str(tmp_path_factory.mktemp("mounted_dir"))
 
 
 @pytest.fixture(scope="module", autouse=True)
