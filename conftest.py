@@ -3,6 +3,12 @@ import os
 import docker
 
 
+from lume_services.services.data.files.filesystems import (
+    LocalFilesystem,
+    MountedFilesystem,
+)
+
+
 def pytest_addoption(parser):
     parser.addini("mysql_host", default="127.0.0.1", help="MySQL host")
     parser.addini("mysql_port", default=3306, help="MySQL port")
@@ -50,7 +56,6 @@ def rootdir(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_host(request):
     host = request.config.getini("mysql_host")
-    os.environ["MYSQL_HOST"] = host
     os.environ["LUME_MODEL_DB__HOST"] = host
     return host
 
@@ -58,7 +63,6 @@ def mysql_host(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_user(request):
     user = request.config.getini("mysql_user")
-    os.environ["MYSQL_USER"] = user
     os.environ["LUME_MODEL_DB__USER"] = user
     return user
 
@@ -66,7 +70,6 @@ def mysql_user(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_password(request):
     password = request.config.getini("mysql_password")
-    os.environ["MYSQL_PASSWORD"] = password
     os.environ["LUME_MODEL_DB__PASSWORD"] = password
     return password
 
@@ -74,7 +77,6 @@ def mysql_password(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_port(request):
     port = request.config.getini("mysql_port")
-    os.environ["MYSQL_HOST_PORT"] = port
     os.environ["LUME_MODEL_DB__PORT"] = port
     return int(port)
 
@@ -96,6 +98,9 @@ def mysql_pool_size(request):
 @pytest.fixture(scope="session", autouse=True)
 def base_mysql_uri(mysql_user, mysql_password, mysql_host, mysql_port):
     return f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}"
+
+
+## Prefect
 
 
 @pytest.fixture(scope="session")
@@ -157,6 +162,9 @@ def graphql_api_str(apollo_host_port):
     return f"http://localhost:{apollo_host_port}/graphql"
 
 
+## mongodb
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_host(request):
     mongodb_host = request.config.getini("mongodb_host")
@@ -212,3 +220,24 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
         target="dev",
     )
     return prefect_docker_tag
+
+
+## Filesystem
+@pytest.fixture(scope="module")
+def mount_path(tmp_path_factory):
+    return str(tmp_path_factory.mktemp("mounted_dir"))
+
+
+@pytest.fixture(scope="module", autouse=True)
+def local_filesystem_handler():
+    return LocalFilesystem()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def mounted_filesystem_handler(mount_path):
+    os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
+    os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
+    os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS"] = "/User/my_user/data"
+    return MountedFilesystem(
+        mount_path=mount_path, mount_alias="/User/my_user/data", identifier="mounted"
+    )
