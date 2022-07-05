@@ -115,7 +115,8 @@ class MongodbResultsDB(ResultsDB):
     def _disconnect(self):
         """Disconnect mongodb connection."""
         client = self._client.get()
-        client.disconnect()
+        if client is not None:
+            client.disconnect()
         self._client.set(None)
         self._collections.set(None)
 
@@ -162,7 +163,7 @@ class MongodbResultsDB(ResultsDB):
             str: saved document id
 
         """
-        with self.connection() as client:
+        with self.client() as client:
             db = client[self.config.database]
             inserted_id = db[collection].insert_one(kwargs).inserted_id
 
@@ -230,8 +231,6 @@ class MongodbResultsDB(ResultsDB):
                 index rep.
 
         """
-
-        collections = {}
 
         with self.client() as client:
             db = client[self.config.database]
