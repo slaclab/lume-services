@@ -15,6 +15,8 @@ from pymongo import DESCENDING
 from lume_services.data.results import get_collections, Result, ImpactResult
 from lume_services.tests.files import SAMPLE_IMAGE_FILE, SAMPLE_IMPACT_ARCHIVE
 
+from lume_services.tests.fixtures.config import *  # noqa: F403, F401
+
 
 class MongoMockResultsDB(ResultsDB):
     def __init__(self, db_config: MongodbResultsDBConfig):
@@ -61,22 +63,6 @@ class MongoMockResultsDB(ResultsDB):
             self._collections[collection_name] = MongodbCollection(
                 database=self.config.database, name=collection_name, indices=index_info
             )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_host(request):
-    return request.config.getini("mongodb_host")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_port(request):
-    port = request.config.getini("mongodb_port")
-    return int(port)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_database(request):
-    return request.config.getini("mongodb_dbname")
 
 
 @pytest.fixture(scope="session", autouse=True)
