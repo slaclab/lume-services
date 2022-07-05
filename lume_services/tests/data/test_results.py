@@ -103,12 +103,12 @@ class TestMongodbResultsDBConfig:
 
 
 class TestMongodbResultsDB:
-    def test_collections_mockmongo(self, results_db_service):
+    def test_collections(self, results_db_service):
         # check collections represented in results service db
         collections = get_collections()
         assert all(
             [
-                collection_name in results_db_service._results_db._collections
+                collection_name in results_db_service._results_db._collections.get()
                 for collection_name in collections.keys()
             ]
         )
