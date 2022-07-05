@@ -7,7 +7,7 @@ from typing import List, Optional
 from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
 
-from lume_services.context import Context
+from lume_services.config import Context
 from lume_services.utils import JSON_ENCODERS
 
 from prefect import context
@@ -84,8 +84,8 @@ class Result(BaseModel):
         rep = self.jsonable_dict()
         return results_db_service.insert_one(rep)
 
-    @inject
     @classmethod
+    @inject
     def load_from_query(
         cls,
         query,
