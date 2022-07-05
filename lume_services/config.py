@@ -19,6 +19,9 @@ from lume_services.services.data.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 context: containers.DeclarativeContainer = None
@@ -31,7 +34,7 @@ class Context(containers.DeclarativeContainer):
     mounted_filesystem = providers.Dependency(
         instance_of=MountedFilesystem, default=None
     )
-    local_filesystem = providers.Factory(
+    local_filesystem = providers.Singleton(
         LocalFilesystem,
     )
 
@@ -43,12 +46,7 @@ class Context(containers.DeclarativeContainer):
 
     # filter on the case that a filesystem is undefiled
     file_service = providers.Singleton(
-        FileService,
-        filesystems=[
-            filesystem
-            for filesystem in [local_filesystem, mounted_filesystem]
-            if filesystem is not None
-        ],
+        FileService, filesystems=providers.List(local_filesystem, mounted_filesystem)
     )
 
     # scheduling_service = providers.Singleton(
@@ -69,7 +67,8 @@ class Context(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         packages=[
             "lume_services.services.scheduling",
-            "lume_services.services.data.files",
+            "lume_services.data.files",
+            "lume_services.data.results",
         ],
     )
 
@@ -90,14 +89,21 @@ class LUMEServicesSettings(BaseSettings):
 
 
 class EnvironmentNotConfiguredError(Exception):
-    def __init__(self, required_env_vars):
+    def __init__(self, env_vars, validation_error: ValidationError):
         self.env = os.environ
-        self.required_env_vars = required_env_vars
+        self.env_vars = []
 
-        self.missing_vars = [var for var in required_env_vars if var not in self.env]
+        for service in env_vars:
+            self.env_vars += env_vars[service]
 
-        self.message = "Required environment variables not defined: %s"
-        super().__init__(self.message, ", ".join(self.missing_vars))
+        self.missing_vars = [var for var in self.env_vars if var not in self.env]
+
+        self.message = """%s. Evironment variables not defined: %s"
+        """
+
+        super().__init__(
+            self.message, str(validation_error), ", ".join(self.missing_vars)
+        )
 
 
 def configure(settings: LUMEServicesSettings = None):
@@ -108,9 +114,10 @@ def configure(settings: LUMEServicesSettings = None):
     if not settings:
         try:
             settings = LUMEServicesSettings()
-        except ValidationError:
+
+        except ValidationError as e:
             raise EnvironmentNotConfiguredError(
-                list_env_vars(LUMEServicesSettings.schema())
+                list_env_vars(LUMEServicesSettings.schema()), validation_error=e
             )
 
     global context, _settings
@@ -130,9 +137,11 @@ def list_env_vars(
     prefix: str = LUMEServicesSettings.Config.env_prefix,
     delimiter: str = LUMEServicesSettings.Config.env_nested_delimiter,
 ) -> list:
-    env_vars = []
+    env_vars = {"base": []}
 
-    def unpack_props(props, env_vars=env_vars, prefix=prefix, delimiter=delimiter):
+    def unpack_props(
+        props, parent, env_vars=env_vars, prefix=prefix, delimiter=delimiter
+    ):
 
         for prop_name, prop in props.items():
 
@@ -144,14 +153,14 @@ def list_env_vars(
             else:
                 if "env_names" in prop:
                     prop_names = list(prop["env_names"])
-                    env_vars += [
+                    env_vars[parent] += [
                         f"{prefix}{delimiter}{name}".upper() for name in prop_names
                     ]
                 else:
-                    env_vars.append(f"{prefix}{delimiter}{prop_name}".upper())
+                    env_vars[parent].append(f"{prefix}{delimiter}{prop_name}".upper())
 
     # iterate over top level definitions
-    for item in schema["properties"].values():
+    for item_name, item in schema["properties"].items():
 
         env_name = list(item["env_names"])[0]
 
@@ -165,10 +174,13 @@ def list_env_vars(
             for reference in sub_prop_reference:
                 reference_locale = reference_locale[reference]
 
-            unpack_props(reference_locale["properties"], prefix=env_name)
+            env_vars[item_name] = []
+            unpack_props(
+                reference_locale["properties"], prefix=env_name, parent=item_name
+            )
 
         else:
-            env_vars.append(env_name.upper())
+            env_vars["base"].append(env_name.upper())
 
     # capitalize
 
