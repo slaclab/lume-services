@@ -1,4 +1,6 @@
 from typing import Any, Literal
+from pydantic import validator
+import os
 import logging
 
 from .local import LocalFilesystem
@@ -10,11 +12,11 @@ logger = logging.getLogger(__name__)
 _HostMountLiteral = Literal[
     "Directory",
     "DirectoryOrCreate",
-    "File",
-    "FileOrCreate",
-    "Socket",
-    "CharDevice",
-    "BlockDevice",
+    # "File",
+    # "FileOrCreate",
+    # "Socket",
+    # "CharDevice",
+    # "BlockDevice",
 ]
 
 
@@ -47,7 +49,16 @@ class MountedFilesystem(LocalFilesystem):
     identifier: str = "mounted"
     mount_path: str
     mount_alias: str
-    mount_type: _HostMountLiteral = "Directory"
+    mount_type: _HostMountLiteral = "DirectoryOrCreate"
+
+    @validator("mount_path", pre=True)
+    def validate_mount_path(cls, v, values):
+        mount_type = values.get("mount_type")
+
+        if mount_type == "DirectoryOrCreate":
+            os.mkdir(v)
+
+        return v
 
     def dir_exists(self, dir: str, create_dir: bool = False) -> bool:
         """Check that a directory exists on the mounted filesystem.
