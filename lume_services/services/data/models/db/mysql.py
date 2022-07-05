@@ -46,7 +46,6 @@ class MySQLModelDB(ModelDB):
         """
         self.config = config
 
-        breakpoint()
         self._create_engine()
 
     def _create_engine(self) -> None:
