@@ -1,7 +1,5 @@
-from typing import Any
-from enum import Enum
+from typing import Any, Literal
 import logging
-from pydantic import BaseSettings
 
 from .local import LocalFilesystem
 from lume.serializers.base import SerializerBase
@@ -9,24 +7,15 @@ from lume.serializers.base import SerializerBase
 logger = logging.getLogger(__name__)
 
 
-class HostMountType(str, Enum):
-    # types associated with mounting host filesystem to kubernetes
-    # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
-    directory = "Directory"  # directory must exist at given path
-    directory_or_create = (
-        "DirectoryOrCreate"  # if directory does not exist, directory created
-    )
-    file = "File"  # file must exist at path
-    file_or_create = "FileOrCreate"  # will create file if does not exist
-    # socket = "Socket" # Unix socket must exist at given path
-    # char_device = "CharDevice" # Character device must exist at given path
-    # block_device = "BlockDevice" # block device must exist at given path
-
-
-class MountPoint(BaseSettings):
-    name: str
-    host_path: str
-    mount_type: HostMountType
+_HostMountLiteral = Literal[
+    "Directory",
+    "DirectoryOrCreate",
+    "File",
+    "FileOrCreate",
+    "Socket",
+    "CharDevice",
+    "BlockDevice",
+]
 
 
 class PathNotInMount(Exception):
@@ -36,10 +25,15 @@ class PathNotInMount(Exception):
         self.filesystem_identifier = filesystem_identifier
         self.mount_path = mount_path
         self.mount_alias = mount_alias
-        self.message = f"Path {path} not in mount for mounted filesystem identifier:\
-            {filesystem_identifier}, Mount path: {mount_path}, Mount alias: \
-                {mount_alias}"
-        super().__init__(self.message)
+        self.message = "Path %s not in mount for mounted filesystem identifier: %s, \
+            Mount path: %s, Mount alias: %s"
+        super().__init__(
+            self.message,
+            self.path,
+            self.filesystem_identifier,
+            self.mount_path,
+            self.mount_alias,
+        )
 
 
 class MountedFilesystem(LocalFilesystem):
@@ -53,11 +47,7 @@ class MountedFilesystem(LocalFilesystem):
     identifier: str = "mounted"
     mount_path: str
     mount_alias: str
-    mount_type: HostMountType
-
-    @property
-    def identifier(self):
-        return self._identifier
+    mount_type: _HostMountLiteral = "Directory"
 
     def dir_exists(self, dir: str, create_dir: bool = False) -> bool:
         """Check that a directory exists on the mounted filesystem.
@@ -146,5 +136,5 @@ class MountedFilesystem(LocalFilesystem):
 
         else:
             raise PathNotInMount(
-                self._identifier, path, self.mount_path, self.mount_alias
+                self.identifier, path, self.mount_path, self.mount_alias
             )
