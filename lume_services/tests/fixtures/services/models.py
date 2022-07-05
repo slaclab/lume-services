@@ -6,7 +6,6 @@ from sqlalchemy import create_engine
 from lume_services.services.data.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
 from lume_services.services.data.models.model_service import ModelDBService
 
-from lume_services.tests.fixtures.config import *  # noqa: F403, F401
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 logger = logging.getLogger(__name__)

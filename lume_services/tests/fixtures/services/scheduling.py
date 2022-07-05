@@ -17,7 +17,6 @@ from lume_services.services.scheduling.backends import (
     DockerHostConfig,
 )
 
-from lume_services.tests.fixtures.config import *  # noqa: F403, F401
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 
