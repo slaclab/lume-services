@@ -67,133 +67,6 @@ JSON_ENCODERS = {
 }
 
 
-class CallableModel(BaseModel):
-    callable: Callable
-    signature: BaseModel
-
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = JSON_ENCODERS
-        extra = Extra.forbid
-
-    @root_validator(pre=True)
-    def validate_all(cls, values):
-        callable = values.pop("callable")
-
-        if not isinstance(
-            callable,
-            (
-                str,
-                Callable,
-            ),
-        ):
-            raise ValueError(
-                "Callable must be object or a string. Provided %s", type(callable)
-            )
-
-        # parse string to callable
-        if isinstance(callable, (str,)):
-
-            # for function loading
-            if "bind" in values:
-                callable = get_callable_from_string(callable, bind=values.pop("bind"))
-
-            else:
-                callable = get_callable_from_string(callable)
-
-        values["callable"] = callable
-
-        # for reloading:
-        kwargs = {}
-        args = []
-        if "args" in values:
-            args = values.pop("args")
-
-        if "kwargs" in values:
-            kwargs = values.pop("kwargs")
-
-        if "signature" in values:
-            if "args" in values["signature"]:
-                args = values["signature"]["args"]
-
-            if "kwargs" in values:
-                kwargs = values["signature"]["kwargs"]
-
-        values["signature"] = validate_and_compose_signature(callable, *args, **kwargs)
-
-        return values
-
-    def __call__(self, *args, **kwargs):
-        if kwargs is None:
-            kwargs = {}
-
-        fn_args, fn_kwargs = self.signature.build(*args, **kwargs)
-
-        return self.callable(*fn_args, **fn_kwargs)
-
-
-class ObjLoader(
-    GenericModel,
-    Generic[ObjType],
-    arbitrary_types_allowed=True,
-    json_encoders=JSON_ENCODERS,
-):
-    object: Optional[ObjType]
-    loader: CallableModel = None
-    object_type: Optional[type]
-
-    @root_validator(pre=True)
-    def validate_all(cls, values):
-        # inspect class init signature
-        obj_type = cls.__fields__["object"].type_
-
-        # adjust for re init from json
-        if "loader" not in values:
-            loader = CallableModel(callable=obj_type, **values)
-
-        else:
-            # if already-initialized callable, do nothing
-            if isinstance(values["loader"], (CallableModel,)):
-                loader = values["loader"]
-
-            else:
-                # validate loader callable is same as obj type
-                if values["loader"].get("callable") is not None:
-                    # unparameterized callable will handle parsing
-                    callable = CallableModel(callable=values["loader"]["callable"])
-
-                    if callable.callable is not obj_type:
-                        raise ValueError(
-                            "Provided loader of type %s. ObjLoader parameterized for \
-                                %s",
-                            callable.callable.__name__,
-                            obj_type,
-                        )
-
-                    # opt for obj type
-                    values["loader"].pop("callable")
-
-                # re-init drop callable from loader vals to use new instance
-                loader = CallableModel(callable=obj_type, **values["loader"])
-
-        # update the class json encoders. Will only execute on initial type construction
-        if obj_type not in cls.__config__.json_encoders:
-            cls.__config__.json_encoders[obj_type] = cls.__config__.json_encoders.pop(
-                ObjType
-            )
-        return {"object_type": obj_type, "loader": loader}
-
-    def load(self, store: bool = False):
-        # store object reference on loader
-        if store:
-            self.object = self.loader.call()
-            return self.object
-
-        # return loaded object w/o storing
-        else:
-            return self.loader()
-
-
 def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
     """Get callable from a string. In the case that the callable points to a bound method,
     the function returns a callable taking the bind instance as the first arg.
@@ -299,15 +172,16 @@ class SignatureModel(BaseModel):
         if "args" in stored_kwargs:
             stored_args = stored_kwargs.pop("args")
 
-        positional_kwargs = []
-
         # adjust for positional
         args = list(args)
-        if len(args) < len(stored_args):
-            stored_args[: len(args)] = args
+        n_pos_only = len(stored_args)
+        positional_kwargs = []
+        if len(args) < n_pos_only:
+            stored_args[:n_pos_only] = args
 
         else:
-            stored_args = args
+            stored_args = args[:n_pos_only]
+            positional_kwargs = args[n_pos_only:]
 
         stored_kwargs.update(kwargs)
 
@@ -315,21 +189,12 @@ class SignatureModel(BaseModel):
         stored_kwargs = {
             key: value
             for key, value in stored_kwargs.items()
-            if not isinstance(
-                value,
-                (
-                    type(
-                        inspect.Parameter.empty,
-                    )
-                ),
-            )
+            if not value == inspect.Parameter.empty
         }
-
         if len(positional_kwargs):
-            kwarg_keys = list(kwargs.keys())
             for i, positional_kwarg in enumerate(positional_kwargs):
 
-                kwargs[kwarg_keys[i]] = positional_kwarg
+                stored_kwargs[self.kwarg_order[i]] = positional_kwarg
 
         return stored_args, stored_kwargs
 
@@ -365,7 +230,10 @@ def validate_and_compose_signature(callable: Callable, *args, **kwargs):
                 sig_kwargs[param.name] = bound_args.arguments[param.name]
 
     # create pydantic model
-    pydantic_fields = {"args": (List[Any], Field(list(sig_args)))}
+    pydantic_fields = {
+        "args": (List[Any], Field(list(sig_args))),
+        "kwarg_order": Field(list(sig_kwargs.keys()), exclude=True),
+    }
     for key, value in sig_kwargs.items():
         if isinstance(value, (tuple,)):
             pydantic_fields[key] = (tuple, Field(None))
@@ -386,3 +254,137 @@ def validate_and_compose_signature(callable: Callable, *args, **kwargs):
     )
 
     return model()
+
+
+class CallableModel(BaseModel):
+    callable: Callable
+    signature: BaseModel
+
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = JSON_ENCODERS
+        extra = Extra.forbid
+
+    @root_validator(pre=True)
+    def validate_all(cls, values):
+        callable = values.pop("callable")
+
+        if not isinstance(
+            callable,
+            (
+                str,
+                Callable,
+            ),
+        ):
+            raise ValueError(
+                "Callable must be object or a string. Provided %s", type(callable)
+            )
+
+        # parse string to callable
+        if isinstance(callable, (str,)):
+
+            # for function loading
+            if "bind" in values:
+                callable = get_callable_from_string(callable, bind=values.pop("bind"))
+
+            else:
+                callable = get_callable_from_string(callable)
+
+        values["callable"] = callable
+
+        # for reloading:
+        kwargs = {}
+        args = []
+        if "args" in values:
+            args = values.pop("args")
+
+        if "kwargs" in values:
+            kwargs = values.pop("kwargs")
+
+        if "signature" in values:
+            if "args" in values["signature"]:
+                args = values["signature"].pop("args")
+
+            # not needed during reserialization
+            if "kwarg_order" in values["signature"]:
+                values["signature"].pop("kwarg_order")
+
+            if "kwargs" in values:
+                kwargs = values["signature"]["kwargs"]
+
+            else:
+                kwargs = values["signature"]
+
+        values["signature"] = validate_and_compose_signature(callable, *args, **kwargs)
+
+        return values
+
+    def __call__(self, *args, **kwargs):
+        if kwargs is None:
+            kwargs = {}
+
+        fn_args, fn_kwargs = self.signature.build(*args, **kwargs)
+
+        return self.callable(*fn_args, **fn_kwargs)
+
+
+class ObjLoader(
+    GenericModel,
+    Generic[ObjType],
+    arbitrary_types_allowed=True,
+    json_encoders=JSON_ENCODERS,
+):
+    object: Optional[ObjType]
+    loader: CallableModel = None
+    object_type: Optional[type]
+
+    @root_validator(pre=True)
+    def validate_all(cls, values):
+        # inspect class init signature
+        obj_type = cls.__fields__["object"].type_
+
+        # adjust for re init from json
+        if "loader" not in values:
+            loader = CallableModel(callable=obj_type, **values)
+
+        else:
+            # if already-initialized callable, do nothing
+            if isinstance(values["loader"], (CallableModel,)):
+                loader = values["loader"]
+
+            else:
+                # validate loader callable is same as obj type
+                if values["loader"].get("callable") is not None:
+                    # unparameterized callable will handle parsing
+                    callable = CallableModel(callable=values["loader"]["callable"])
+
+                    if callable.callable is not obj_type:
+                        raise ValueError(
+                            "Provided loader of type %s. ObjLoader parameterized for \
+                                %s",
+                            callable.callable.__name__,
+                            obj_type,
+                        )
+
+                    # opt for obj type
+                    values["loader"].pop("callable")
+
+                # re-init drop callable from loader vals to use new instance
+                loader = CallableModel(callable=obj_type, **values["loader"])
+
+        # update the class json encoders. Will only execute on initial type construction
+        if obj_type not in cls.__config__.json_encoders:
+            cls.__config__.json_encoders[obj_type] = cls.__config__.json_encoders.pop(
+                ObjType
+            )
+        return {"object_type": obj_type, "loader": loader}
+
+    def load(self, store: bool = False):
+        # store object reference on loader
+        if store:
+            self.object = self.loader.call()
+            return self.object
+
+        # return loaded object w/o storing
+        else:
+            return self.loader()

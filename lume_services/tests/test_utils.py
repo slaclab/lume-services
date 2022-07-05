@@ -1,15 +1,16 @@
-from functools import partial
-from pydantic.json import custom_pydantic_encoder
 import json
+from functools import partial
 from types import FunctionType, MethodType
+
 import pytest
+from pydantic.json import custom_pydantic_encoder
 
 from lume_services.utils import (
-    JSON_ENCODERS,
-    validate_and_compose_signature,
     CallableModel,
-    ObjLoader,
     get_callable_from_string,
+    JSON_ENCODERS,
+    ObjLoader,
+    validate_and_compose_signature,
 )
 
 
