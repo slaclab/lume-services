@@ -36,10 +36,16 @@ def mysql_server(docker_ip, docker_services, mysql_user, mysql_password):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mysql_config(base_mysql_uri, mysql_database, mysql_pool_size):
+def mysql_config(
+    mysql_user, mysql_password, mysql_host, mysql_port, mysql_database, mysql_pool_size
+):
 
     return MySQLModelDBConfig(
-        db_uri=f"{base_mysql_uri}/{mysql_database}",
+        user=mysql_user,
+        password=mysql_password,
+        host=mysql_host,
+        port=mysql_port,
+        database=mysql_database,
         pool_size=mysql_pool_size,
     )
 
