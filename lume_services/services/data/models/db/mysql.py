@@ -3,16 +3,16 @@ import logging
 
 from contextvars import ContextVar
 from contextlib import contextmanager
+from pydantic import root_validator
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import Insert, Select
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Connection
 
-from typing import List
+from typing import List, Optional
 
 from lume_services.services.data.models.db.db import ModelDBConfig, ModelDB
-
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +20,33 @@ logger = logging.getLogger(__name__)
 class MySQLModelDBConfig(ModelDBConfig):
     """Configuration for MySQL connection.
 
-    db_uri: uri for establishing db connection
+    uri: uri for establishing db connection
     pool_size: Number of connections to maintain in the connection pool. Establishing
         connections is expensive and maintaining multiple connections in a pool
         allows for availability.
 
     """
 
-    db_uri: str
+    uri: Optional[str]
+    host: str
+    port: str
+    user: str
+    password: str
+    database: str
+
     pool_size: int
+
+    @root_validator(pre=True)
+    def build_uri(cls, values):
+
+        database = values.get("database")
+        host = values.get("host")
+        user = values.get("user")
+        password = values.get("password")
+        port = values.get("port")
+
+        values["uri"] = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+        return values
 
 
 class MySQLModelDB(ModelDB):
@@ -49,7 +67,7 @@ class MySQLModelDB(ModelDB):
         self._create_engine()
 
     def _create_engine(self) -> None:
-        """Create sqlalchemy engine using db_uri."""
+        """Create sqlalchemy engine using uri."""
         self.pid = os.getpid()
 
         # can possible pass args here...
@@ -60,10 +78,10 @@ class MySQLModelDB(ModelDB):
 
         # pool_pre_ping provides liveliness check
         self.engine = create_engine(
-            self.config.db_uri,
+            self.config.uri,
             *connect_args,
             pool_pre_ping=True,
-            pool_size=self.config.pool_size
+            pool_size=self.config.pool_size,
         )
 
         # sessionmaker for orm operations
