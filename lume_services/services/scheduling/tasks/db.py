@@ -1,8 +1,8 @@
 import logging
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from prefect import task
 
-from lume_services.context import Context
+from lume_services.config import Context
 from lume_services.services.data.results import ResultsDB
 from prefect.engine.results import PrefectResult
 
@@ -11,8 +11,9 @@ from lume_services.data.results import get_result_from_string, Result
 logger = logging.getLogger(__name__)
 
 
+@inject
 @task(log_stdout=True, result=PrefectResult())
-def save_db_result_task(
+def save_db_result(
     result: Result, results_db_service: ResultsDB = Provide[Context.results_db_service]
 ) -> dict:
     """Insert result into the results database service. Creates a PrefectResult that
@@ -32,8 +33,9 @@ def save_db_result_task(
     return result.unique_rep()
 
 
+@inject
 @task(log_stdout=True)
-def load_db_result_task(
+def load_db_result(
     result_rep: dict,
     results_db_service: ResultsDB = Provide[Context.results_db_service],
 ) -> Result:

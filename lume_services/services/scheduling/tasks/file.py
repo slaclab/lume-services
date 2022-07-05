@@ -1,22 +1,30 @@
 import logging
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from prefect import task
 from typing import Any
 
-from lume_services.context import Context
+from lume_services.config import Context
 from lume_services.services.data.files import FileService
 from prefect.engine.results import PrefectResult
 
 from lume_services.data.files import get_file_from_serializer_string
+from lume_services.utils import fingerprint_dict
 
 logger = logging.getLogger(__name__)
 
 
-@task(log_stdout=True, result=PrefectResult())
-def save_file_task(
+def unique_file_location(flow_id, parameters):
+    parameters["flow_id"] = flow_id
+    hash = fingerprint_dict(parameters)
+    return f"{hash}.prefect"
+
+
+@inject
+@task(log_stdout=True, result=PrefectResult(location=unique_file_location))
+def save_file(
     obj: Any,
     filename: str,
-    file_system_identifier: str,
+    filesystem_identifier: str,
     file_type: type,
     file_service: FileService = Provide[Context.file_service],
 ):
@@ -25,7 +33,7 @@ def save_file_task(
     Args:
         obj (Any): Object to be saved
         filename (str): File path to save
-        file_system_identifier (str): String identifier for filesystem configured with
+        filesystem_identifier (str): String identifier for filesystem configured with
             File Service
         file_type (type): Type of file to save as
         file_service (FileService): File service for interacting w/ filesystems
@@ -35,14 +43,15 @@ def save_file_task(
 
     """
     file = file_type(
-        obj=obj, file_system_identifier=file_system_identifier, filename=filename
+        obj=obj, filesystem_identifier=filesystem_identifier, filename=filename
     )
     file.write(file_service=file_service)
     return file.jsonable_dict()
 
 
+@inject
 @task()
-def load_file_task(
+def load_file(
     file_rep: dict, file_service: FileService = Provide[Context.file_service]
 ) -> Any:
     """Load a file
