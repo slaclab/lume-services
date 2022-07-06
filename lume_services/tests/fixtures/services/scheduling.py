@@ -5,6 +5,7 @@ from subprocess import Popen, PIPE
 import time
 
 from prefect import Client
+import docker
 
 from lume_services.services.scheduling import (
     PrefectConfig,
@@ -21,6 +22,29 @@ from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="session", autouse=True)
+def prefect_docker_tag():
+    return "pytest-prefect"
+
+
+@pytest.fixture(scope="session")
+def prefect_job_docker(rootdir, prefect_docker_tag):
+    client = docker.from_env()
+    image, _ = client.images.build(
+        path=str(rootdir),
+        dockerfile=f"{rootdir}/Dockerfile",
+        nocache=False,
+        tag=prefect_docker_tag,
+        quiet=False,
+        target="dev",
+        rm=True,
+        forcerm=True,
+    )
+    yield image
+
+    client.images.remove(image.id, noprune=False)
+
+
+@pytest.fixture(scope="session", autouse=True)
 def prefect_config(apollo_host_port, graphql_host_port):
     config = PrefectConfig(
         backend=DockerBackend(),
@@ -33,21 +57,36 @@ def prefect_config(apollo_host_port, graphql_host_port):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def docker_run_config(prefect_job_docker, docker_services):
+def docker_run_config(
+    prefect_docker_tag, docker_services, prefect_job_docker, file_service
+):
     lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
 
     # Need to convert to docker network hostnames
     lume_env["LUME_RESULTS_DB__HOST"] = "mongodb"
     lume_env["LUME_MODEL_DB__HOST"] = "mysql"
 
+    mounted_filesystems = file_service.get_mounted_filesystems()
+    mounts = []
+    for filesystem in mounted_filesystems.values():
+        mounts.append(
+            {
+                "target": filesystem.mount_alias,
+                "source": filesystem.mount_path,
+                "type": "bind",
+            }
+        )
+
+    host_config = DockerHostConfig(mounts=mounts)
+
     return DockerRunConfig(
-        image=prefect_job_docker, env=lume_env, host_config=DockerHostConfig()
+        image=prefect_docker_tag, env=lume_env, host_config=host_config
     )
 
 
 @pytest.fixture(scope="session", autouse=True)
-def docker_backend(prefect_job_docker, docker_run_config):
-    return DockerBackend(default_image=prefect_job_docker, run_config=docker_run_config)
+def docker_backend(prefect_docker_tag, docker_run_config):
+    return DockerBackend(default_image=prefect_docker_tag, run_config=docker_run_config)
 
 
 @pytest.fixture(scope="session")
