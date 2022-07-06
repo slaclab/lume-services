@@ -22,7 +22,7 @@ def pytest_addoption(parser):
     parser.addini("mongodb_port", default=3306, help="MySQL port")
     parser.addini("mongodb_user", default="root", help="MySQL user")
     parser.addini("mongodb_password", default="password", help="MySQL password")
-    parser.addini(name="mongodb_dbname", help="Mysql database name", default="test")
+    parser.addini(name="mongodb_database", help="Mysql database name", default="test")
 
     # prefect
     parser.addini(name="postgres_db", help="Prefect postgres db", default="prefect_db")
@@ -182,7 +182,7 @@ def mongodb_port(request):
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_user(request):
     mongodb_user = request.config.getini("mongodb_user")
-    os.environ["LUME_RESULTS_DB__USER"] = mongodb_user
+    os.environ["LUME_RESULTS_DB__USERNAME"] = mongodb_user
     return mongodb_user
 
 
@@ -195,7 +195,7 @@ def mongodb_password(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_database(request):
-    database = request.config.getini("mongodb_dbname")
+    database = request.config.getini("mongodb_database")
     os.environ["LUME_RESULTS_DB__DATABASE"] = database
     return database
 
@@ -241,3 +241,10 @@ def mounted_filesystem_handler(mount_path):
     return MountedFilesystem(
         mount_path=mount_path, mount_alias="/User/my_user/data", identifier="mounted"
     )
+
+
+## ENVIRONMENT VARIABLES:
+# @pytest.fixture(autouse=True)
+# def mock_settings_env_vars():
+#    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
+#        yield

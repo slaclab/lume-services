@@ -33,12 +33,80 @@ class TestLumeSettings:
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
 
+        assert config._settings.model_db.user == model_db_service._model_db.config.user
+        assert (
+            config._settings.model_db.password
+            == model_db_service._model_db.config.password
+        )
+        assert config._settings.model_db.host == model_db_service._model_db.config.host
+        assert config._settings.model_db.port == model_db_service._model_db.config.port
+        assert (
+            config._settings.model_db.database
+            == model_db_service._model_db.config.database
+        )
+        assert (
+            config._settings.model_db.pool_size
+            == model_db_service._model_db.config.pool_size
+        )
+
+        assert (
+            config._settings.results_db.host
+            == results_db_service._results_db.config.host
+        )
+        assert (
+            config._settings.results_db.port
+            == results_db_service._results_db.config.port
+        )
+        assert (
+            config._settings.results_db.username
+            == results_db_service._results_db.config.username
+        )
+        assert (
+            config._settings.results_db.password
+            == results_db_service._results_db.config.password
+        )
+        assert (
+            config._settings.results_db.database
+            == results_db_service._results_db.config.database
+        )
+
     def test_configure_from_settings(self, lume_service_settings):
         config.context = None
         assert config.context is None
         config.configure(lume_service_settings)
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
+
+        assert config._settings.model_db.user == lume_service_settings.model_db.user
+        assert (
+            config._settings.model_db.password
+            == lume_service_settings.model_db.password
+        )
+        assert config._settings.model_db.host == lume_service_settings.model_db.host
+        assert config._settings.model_db.port == lume_service_settings.model_db.port
+        assert (
+            config._settings.model_db.database
+            == lume_service_settings.model_db.database
+        )
+        assert (
+            config._settings.model_db.pool_size
+            == lume_service_settings.model_db.pool_size
+        )
+
+        assert config._settings.results_db.host == lume_service_settings.results_db.host
+        assert config._settings.results_db.port == lume_service_settings.results_db.port
+        assert (
+            config._settings.results_db.username
+            == lume_service_settings.results_db.username
+        )
+        assert (
+            config._settings.results_db.password
+            == lume_service_settings.results_db.password
+        )
+        assert (
+            config._settings.results_db.database
+            == lume_service_settings.results_db.database
+        )
 
     def test_configure_from_env_failure(self):
         mongodb_host = os.environ.pop("LUME_RESULTS_DB__HOST")

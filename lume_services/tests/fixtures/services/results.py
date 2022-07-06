@@ -25,7 +25,7 @@ def mongodb_config(
     return MongodbResultsDBConfig(
         host=mongodb_host,
         port=mongodb_port,
-        user=mongodb_user,
+        username=mongodb_user,
         password=mongodb_password,
         database=mongodb_database,
     )
@@ -34,7 +34,12 @@ def mongodb_config(
 def is_database_ready(docker_ip, mongodb_config):
     try:
         MongoClient(
-            mongodb_config.uri, **mongodb_config.dict(exclude_none=True), connect=True
+            **mongodb_config.dict(
+                by_alias=True, exclude_none=True, exclude={"database"}
+            ),
+            password=mongodb_config.password.get_secret_value(),
+            connectTimeoutMS=20000,
+            connect=True
         )
         return True
     except Exception as e:
@@ -45,7 +50,7 @@ def is_database_ready(docker_ip, mongodb_config):
 @pytest.fixture(scope="session", autouse=True)
 def mongodb_server(docker_ip, docker_services, mongodb_config):
     docker_services.wait_until_responsive(
-        timeout=20.0,
+        timeout=40.0,
         pause=0.1,
         check=lambda: is_database_ready(docker_ip, mongodb_config),
     )

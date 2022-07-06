@@ -93,7 +93,7 @@ class TestMongodbResultsDBConfig:
         config = MongodbResultsDBConfig(
             database="results",
             host="localhost",
-            user="user",
+            username="user",
             port=3030,
             password="test",
         )
