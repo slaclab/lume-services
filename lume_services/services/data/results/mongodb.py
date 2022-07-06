@@ -1,7 +1,6 @@
 import os
-from pydantic import root_validator, Field
+from pydantic import SecretStr, Field
 from typing import List, Optional, Dict
-from urllib.parse import quote_plus
 
 from pymongo import DESCENDING, MongoClient
 from pydantic import BaseModel
@@ -22,35 +21,16 @@ logger = logging.getLogger(__name__)
 
 class MongodbResultsDBConfig(ResultsDBConfig):
     # excluded in serialization bc not used to initialize cxn
-    database: str = Field(exclude=True)
-    user: Optional[str]
-    host: Optional[str]
-    port: Optional[int]
-    uri: Optional[str] = Field(exclude=True)
-    tz_aware: Optional[bool]
-    maxPoolSize: Optional[int]
+    database: Optional[str] = Field(exclude=True)
+    username: str
+    host: str
+    password: SecretStr = Field(exclude=True)
+    port: int
+    authMechanism: str = "SCRAM-SHA-256"
+    options: dict = Field({}, exclude=True)
 
-    @root_validator(pre=True)
-    def validate_config(cls, values):
-
-        if not values.get("host") and not values.get("uri"):
-            raise ValueError("Must provide host or uri")
-
-        if values.get("password"):
-
-            # require host, user, and password
-
-            user = values.pop("user")
-            password = values.pop("password")
-            host = values.pop("host")
-
-            values["uri"] = "mongodb://%s:%s@%s" % (
-                quote_plus(user),
-                quote_plus(password),
-                host,
-            )
-
-        return values
+    class Config:
+        allow_population_by_field_name = True
 
 
 class MongodbCollection(BaseModel):
@@ -76,10 +56,11 @@ class MongodbResultsDB(ResultsDB):
     def _connect(self) -> MongoClient:
         """Establish connection and set _client."""
 
-        if self.config.uri is not None:
-            client = MongoClient(self.config.uri, **self.config.dict(exclude_none=True))
-        else:
-            client = MongoClient(**self.config.dict(exclude_none=True))
+        client = MongoClient(
+            **self.config.dict(exclude_none=True, by_alias=True),
+            password=self.config.password.get_secret_value(),
+            **self.config.options
+        )
 
         self._client.set(client)
         db = client[self.config.database]
@@ -115,7 +96,8 @@ class MongodbResultsDB(ResultsDB):
     def _disconnect(self):
         """Disconnect mongodb connection."""
         client = self._client.get()
-        client.disconnect()
+        if client is not None:
+            client.disconnect()
         self._client.set(None)
         self._collections.set(None)
 
@@ -162,7 +144,7 @@ class MongodbResultsDB(ResultsDB):
             str: saved document id
 
         """
-        with self.connection() as client:
+        with self.client() as client:
             db = client[self.config.database]
             inserted_id = db[collection].insert_one(kwargs).inserted_id
 
@@ -230,8 +212,6 @@ class MongodbResultsDB(ResultsDB):
                 index rep.
 
         """
-
-        collections = {}
 
         with self.client() as client:
             db = client[self.config.database]

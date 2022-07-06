@@ -1,64 +1,48 @@
 import pytest
 import os
-from lume_services.tests.files.flows import flow1, flow2, flow3
-from subprocess import Popen, PIPE, STDOUT
+
+from subprocess import Popen, PIPE
 import time
 
 from prefect import Client
 
+from lume_services.services.scheduling import (
+    PrefectConfig,
+    PrefectGraphQLConfig,
+    PrefectServerConfig,
+)
+from lume_services.services.scheduling.backends import (
+    DockerBackend,
+    DockerRunConfig,
+    DockerHostConfig,
+)
 
-@pytest.fixture(scope="session")
-def apollo_host_port(request):
-    port = request.config.getini("apollo_host_port")
-    os.environ["APOLLO_HOST_PORT"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def hasura_host_port(request):
-    port = request.config.getini("hasura_host_port")
-    os.environ["HASURA_HOST_PORT"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def graphql_host_port(request):
-    port = request.config.getini("graphql_host_port")
-    os.environ["GRAPHQL_HOST_PORT"] = port
-    return port
+from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 
-@pytest.fixture(scope="session")
-def postgres_db(request):
-    db = request.config.getini("postgres_db")
-    os.environ["POSTGRES_DB"] = db
-    return db
+@pytest.fixture(scope="session", autouse=True)
+def prefect_config(apollo_host_port, graphql_host_port):
+    config = PrefectConfig(
+        backend=DockerBackend(),
+        server=PrefectServerConfig(host_port=apollo_host_port),
+        graphql=PrefectGraphQLConfig(host_port=graphql_host_port),
+    )
+    config.apply()
+
+    return config
 
 
-@pytest.fixture(scope="session")
-def postgres_user(request):
-    user = request.config.getini("postgres_user")
-    os.environ["POSTGRES_USER"] = user
-    return user
+@pytest.fixture(scope="session", autouse=True)
+def docker_run_config(prefect_job_docker):
+    lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
+    return DockerRunConfig(
+        image=prefect_job_docker, env=lume_env, host_config=DockerHostConfig()
+    )
 
 
-@pytest.fixture(scope="session")
-def postgres_password(request):
-    password = request.config.getini("postgres_password")
-    os.environ["POSTGRES_PASSWORD"] = password
-    return password
-
-
-@pytest.fixture(scope="session")
-def postgres_data_path(tmp_path_factory):
-    temp_path = tmp_path_factory.mktemp("postgres_data_path")
-    os.environ["POSTGRES_DATA_PATH"] = str(temp_path)
-    return temp_path
-
-
-@pytest.fixture(scope="session")
-def prefect_api_str(apollo_host_port):
-    return f"http://localhost:{apollo_host_port}"
+@pytest.fixture(scope="session", autouse=True)
+def docker_backend(prefect_job_docker, docker_run_config):
+    return DockerBackend(default_image=prefect_job_docker, run_config=docker_run_config)
 
 
 @pytest.fixture(scope="session")
@@ -80,8 +64,8 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
             "agent",
             "docker",
             "start",
-            "--label",
-            "lume-services",
+            #  "--label",
+            #  "lume-services",
             "--network",
             "prefect-server",
             "--no-pull",
@@ -89,7 +73,7 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
             prefect_api_str,
         ],
         stdout=PIPE,
-        stderr=STDOUT,
+        stderr=PIPE,
     )
     # Give the agent time to start
     time.sleep(2)
@@ -99,12 +83,3 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
     yield agent_proc
     # Shut it down at the end of the pytest session
     agent_proc.terminate()
-
-
-@pytest.fixture(scope="session")
-def registered_flows(prefect_docker_agent):
-
-    # add module storage
-    flow1.register()
-    flow2.register()
-    flow3.register()

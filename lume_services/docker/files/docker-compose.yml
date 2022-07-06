@@ -3,12 +3,12 @@ services:
   mysql:
     image: mysql/mysql-server:8.0
     ports:
-        - ${MYSQL_HOST_PORT}:3306
+        - ${LUME_MODEL_DB__PORT:-3306}:3306
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD}
       MYSQL_ROOT_HOST: '%'
-      MYSQL_ROOT_USER: "${MYSQL_USER}"
+      MYSQL_ROOT_USER: ${LUME_MODEL_DB_USER}
 
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
@@ -124,6 +124,15 @@ services:
     depends_on:
       - graphql
       - hasura
+
+  # Mongodb
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
+    ports:
+      - ${LUME_RESULTS_DB__PORT:-27017}:27017
 
 networks:
   prefect-server:

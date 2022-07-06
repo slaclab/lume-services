@@ -8,7 +8,7 @@ from pydantic.generics import GenericModel
 
 import copy
 
-from lume_services.context import Context
+from lume_services.config import Context
 from lume_services.services.data.files import FileService
 from lume_services.data.files.serializers import (
     TextSerializer,

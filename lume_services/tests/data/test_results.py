@@ -10,6 +10,8 @@ from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.data.results import MongodbResultsDBConfig, MongodbResultsDB
 from lume_services.data.results import get_collections
 from pymongo.errors import DuplicateKeyError
+from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
+from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
 
 @pytest.mark.parametrize(
@@ -81,8 +83,8 @@ class TestImpactResult:
         jsonable_dict = impact_result.jsonable_dict()
         ImpactResult(**jsonable_dict)
 
-    def test_load_image(self, impact_result, context):
-        image = impact_result.plot_file.read(file_service=context.file_service())
+    def test_load_image(self, impact_result, file_service):
+        image = impact_result.plot_file.read(file_service=file_service)
         assert isinstance(image, (Image.Image,))
 
 
@@ -91,7 +93,7 @@ class TestMongodbResultsDBConfig:
         config = MongodbResultsDBConfig(
             database="results",
             host="localhost",
-            user="user",
+            username="user",
             port=3030,
             password="test",
         )
@@ -101,12 +103,12 @@ class TestMongodbResultsDBConfig:
 
 
 class TestMongodbResultsDB:
-    def test_collections_mockmongo(self, results_db_service):
+    def test_collections(self, results_db_service):
         # check collections represented in results service db
         collections = get_collections()
         assert all(
             [
-                collection_name in results_db_service._results_db._collections
+                collection_name in results_db_service._results_db._collections.get()
                 for collection_name in collections.keys()
             ]
         )

@@ -8,15 +8,9 @@ import logging
 
 from lume_services.utils import flatten_dict
 
-from lume_services.config import LUMESettings
-
 import pandas as pd
 
 logger = logging.getLogger(__name__)
-
-
-class ResultsDBServiceConfig(LUMESettings):
-    model_docs: dict  # describes documents allowed
 
 
 class ResultsDBService:
