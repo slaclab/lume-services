@@ -7,6 +7,7 @@ from dependency_injector.containers import DynamicContainer
 
 from lume_services import config
 from lume_services.data.results import Result
+from lume_services.services.data.files.filesystems.mounted import MountedFilesystem
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
@@ -45,8 +46,8 @@ class TestLumeSettings:
             == model_db_service._model_db.config.database
         )
         assert (
-            config._settings.model_db.pool_size
-            == model_db_service._model_db.config.pool_size
+            config._settings.model_db.connection.pool_size
+            == model_db_service._model_db.config.connection.pool_size
         )
 
         assert (
@@ -70,6 +71,8 @@ class TestLumeSettings:
             == results_db_service._results_db.config.database
         )
 
+        assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
+
     def test_configure_from_settings(self, lume_service_settings):
         config.context = None
         assert config.context is None
@@ -89,8 +92,8 @@ class TestLumeSettings:
             == lume_service_settings.model_db.database
         )
         assert (
-            config._settings.model_db.pool_size
-            == lume_service_settings.model_db.pool_size
+            config._settings.model_db.connection.pool_size
+            == lume_service_settings.model_db.connection.pool_size
         )
 
         assert config._settings.results_db.host == lume_service_settings.results_db.host
@@ -107,6 +110,8 @@ class TestLumeSettings:
             config._settings.results_db.database
             == lume_service_settings.results_db.database
         )
+
+        assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
 
     def test_configure_from_env_failure(self):
         mongodb_host = os.environ.pop("LUME_RESULTS_DB__HOST")
