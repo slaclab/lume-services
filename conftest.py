@@ -91,7 +91,7 @@ def mysql_database(request):
 @pytest.fixture(scope="session", autouse=True)
 def mysql_pool_size(request):
     pool_size = request.config.getini("mysql_poolsize")
-    os.environ["LUME_MODEL_DB__POOL_SIZE"] = pool_size
+    os.environ["LUME_MODEL_DB__CONNECTION__POOL_SIZE"] = pool_size
     return int(pool_size)
 
 
@@ -203,37 +203,18 @@ def mongodb_database(request):
 ## Scheduling
 
 
-@pytest.fixture(scope="session", autouse=True)
-def prefect_docker_tag():
-    return "pytest-prefect"
-
-
-@pytest.fixture(scope="session")
-def prefect_job_docker(rootdir, prefect_docker_tag):
-    client = docker.from_env()
-    image = client.images.build(
-        path=str(rootdir),
-        dockerfile=f"{rootdir}/Dockerfile",
-        nocache=False,
-        tag=prefect_docker_tag,
-        quiet=False,
-        target="dev",
-    )
-    return prefect_docker_tag
-
-
 ## Filesystem
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def mount_path(tmp_path_factory):
     return str(tmp_path_factory.mktemp("mounted_dir"))
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def local_filesystem_handler():
     return LocalFilesystem()
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def mounted_filesystem_handler(mount_path):
     os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
