@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import Insert, Select
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Connection
 
-from typing import List, Optional
+from typing import List
 
 from urllib.parse import quote_plus
 from lume_services.services.data.models.db.db import ModelDBConfig, ModelDB
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionConfig(BaseModel):
-    pool_size: int
+    pool_size: int = None
     pool_pre_ping: bool = True
 
 
@@ -37,7 +37,7 @@ class MySQLModelDBConfig(ModelDBConfig):
     user: str
     password: SecretStr = Field(exclude=True)
     database: str
-    connection_config: Optional[ConnectionConfig]
+    connection: ConnectionConfig = ConnectionConfig()
 
 
 class MySQLModelDB(ModelDB):
@@ -69,7 +69,7 @@ class MySQLModelDB(ModelDB):
             f"mysql+pymysql://{self.config.user}:%s@{self.config.host}:\
                 {self.config.port}/{self.config.database}"
             % quote_plus(self.config.password.get_secret_value()),
-            **self.config.connection_config.dict(),
+            **self.config.connection.dict(exclude_none=True),
         )
 
         # sessionmaker for orm operations

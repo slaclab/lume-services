@@ -140,14 +140,34 @@ def list_env_vars(
     env_vars = {"base": []}
 
     def unpack_props(
-        props, parent, env_vars=env_vars, prefix=prefix, delimiter=delimiter
+        props,
+        parent,
+        env_vars=env_vars,
+        prefix=prefix,
+        delimiter=delimiter,
+        schema=schema,
     ):
 
         for prop_name, prop in props.items():
-
             if "properties" in prop:
                 unpack_props(
                     prop["properties"], prefix=f"{prefix}{delimiter}{prop_name}"
+                )
+
+            elif "allOf" in prop:
+
+                sub_prop_reference = prop["allOf"][0]["$ref"]
+                # prepare from format #/
+                sub_prop_reference = sub_prop_reference.replace("#/", "")
+                sub_prop_reference = sub_prop_reference.split("/")
+                reference_locale = schema
+                for reference in sub_prop_reference:
+                    reference_locale = reference_locale[reference]
+
+                unpack_props(
+                    reference_locale["properties"],
+                    parent=parent,
+                    prefix=f"{prefix}{delimiter}{prop_name}",
                 )
 
             else:
