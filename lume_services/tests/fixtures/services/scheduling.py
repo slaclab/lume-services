@@ -33,8 +33,13 @@ def prefect_config(apollo_host_port, graphql_host_port):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def docker_run_config(prefect_job_docker):
+def docker_run_config(prefect_job_docker, docker_services):
     lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
+
+    # Need to convert to docker network hostnames
+    lume_env["LUME_RESULTS_DB__HOST"] = "mongodb"
+    lume_env["LUME_MODEL_DB__HOST"] = "mysql"
+
     return DockerRunConfig(
         image=prefect_job_docker, env=lume_env, host_config=DockerHostConfig()
     )
