@@ -25,6 +25,7 @@ class PathNotInMount(Exception):
         self, filesystem_identifier: str, path: str, mount_path: str, mount_alias: str
     ):
         self.filesystem_identifier = filesystem_identifier
+        self.path = (path,)
         self.mount_path = mount_path
         self.mount_alias = mount_alias
         self.message = "Path %s not in mount for mounted filesystem identifier: %s, \
@@ -128,6 +129,7 @@ class MountedFilesystem(LocalFilesystem):
 
         """
         filepath = self._check_mounted_path(filepath)
+
         super().write(filepath, object, serializer, create_dir=create_dir)
 
     def _check_mounted_path(self, path: str):
@@ -138,6 +140,7 @@ class MountedFilesystem(LocalFilesystem):
             path (str): Path to validate
 
         """
+        print(path)
 
         if self.mount_alias in path:
             return path
