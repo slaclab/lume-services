@@ -3,7 +3,7 @@ import logging
 
 from contextvars import ContextVar
 from contextlib import contextmanager
-from pydantic import root_validator
+from pydantic import BaseModel, SecretStr, Field
 
 from sqlalchemy import create_engine
 from sqlalchemy.sql.expression import Insert, Select
@@ -12,41 +12,32 @@ from sqlalchemy.engine.base import Connection
 
 from typing import List, Optional
 
+from urllib.parse import quote_plus
 from lume_services.services.data.models.db.db import ModelDBConfig, ModelDB
 
 logger = logging.getLogger(__name__)
 
 
+class ConnectionConfig(BaseModel):
+    pool_size: int
+    pool_pre_ping: bool = True
+
+
 class MySQLModelDBConfig(ModelDBConfig):
     """Configuration for MySQL connection.
 
-    uri: uri for establishing db connection
     pool_size: Number of connections to maintain in the connection pool. Establishing
         connections is expensive and maintaining multiple connections in a pool
         allows for availability.
 
     """
 
-    uri: Optional[str]
     host: str
     port: str
     user: str
-    password: str
+    password: SecretStr = Field(exclude=True)
     database: str
-
-    pool_size: int
-
-    @root_validator(pre=True)
-    def build_uri(cls, values):
-
-        database = values.get("database")
-        host = values.get("host")
-        user = values.get("user")
-        password = values.get("password")
-        port = values.get("port")
-
-        values["uri"] = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
-        return values
+    connection_config: Optional[ConnectionConfig]
 
 
 class MySQLModelDB(ModelDB):
@@ -70,18 +61,15 @@ class MySQLModelDB(ModelDB):
         """Create sqlalchemy engine using uri."""
         self.pid = os.getpid()
 
-        # can possible pass args here...
-        connect_args = {}
-
         # since using a context manager, must have context-local managed vars
         self._connection = ContextVar("connection", default=None)
 
         # pool_pre_ping provides liveliness check
         self.engine = create_engine(
-            self.config.uri,
-            *connect_args,
-            pool_pre_ping=True,
-            pool_size=self.config.pool_size,
+            f"mysql+pymysql://{self.config.user}:%s@{self.config.host}:\
+                {self.config.port}/{self.config.database}"
+            % quote_plus(self.config.password.get_secret_value()),
+            **self.config.connection_config.dict(),
         )
 
         # sessionmaker for orm operations

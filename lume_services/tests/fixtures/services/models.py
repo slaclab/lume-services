@@ -45,7 +45,7 @@ def mysql_config(
         host=mysql_host,
         port=mysql_port,
         database=mysql_database,
-        pool_size=mysql_pool_size,
+        connection_config={"pool_size": mysql_pool_size},
     )
 
 
