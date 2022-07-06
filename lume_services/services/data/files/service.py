@@ -1,5 +1,5 @@
-from typing import List, Any
-from lume_services.services.data.files.filesystems import Filesystem
+from typing import List, Any, Dict
+from lume_services.services.data.files.filesystems import Filesystem, MountedFilesystem
 from lume.serializers.base import SerializerBase
 
 import logging
@@ -131,3 +131,16 @@ class FileService:
             )
 
         return filesystem
+
+    def get_mounted_filesystems(self) -> Dict[str, MountedFilesystem]:
+        """Return mounted filesystems
+
+        Returns:
+            Dict[str, MountedFilesystem]
+
+        """
+        return {
+            filesystem_identifier: filesystem
+            for filesystem_identifier, filesystem in self._filesystems.items()
+            if isinstance(filesystem, (MountedFilesystem,))
+        }
