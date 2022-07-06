@@ -1,4 +1,5 @@
 pydantic
+python-dotenv
 sqlalchemy>=1.4
 pymysql
 pandas
@@ -13,3 +14,4 @@ sqlalchemy_schemadisplay
 graphviz
 pyyaml
 docker-py
+lume-base>=0.2.2
