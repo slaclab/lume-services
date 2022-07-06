@@ -24,6 +24,11 @@ def docker_config(
     postgres_user,
     postgres_password,
     postgres_data_path,
+    mongodb_host,
+    mongodb_user,
+    mongodb_port,
+    mongodb_database,
+    mongodb_password,
 ):
     pass
 
