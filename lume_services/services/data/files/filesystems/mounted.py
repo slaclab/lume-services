@@ -140,10 +140,10 @@ class MountedFilesystem(LocalFilesystem):
         """
 
         if self.mount_alias in path:
-            return path.replace(self.mount_alias, self.mount_path)
+            return path
 
         elif self.mount_path in path:
-            return path
+            return path.replace(self.mount_path, self.mount_alias)
 
         else:
             raise PathNotInMount(
