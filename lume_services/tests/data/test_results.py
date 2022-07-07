@@ -1,16 +1,18 @@
 from datetime import datetime
 import pytest
 from PIL import Image
+from pydantic import ValidationError
+from pymongo.errors import DuplicateKeyError
+
 from lume_services.data.results import (
     Result,
     ImpactResult,
     get_result_from_string,
+    get_collections,
 )
-from pydantic import ValidationError
+from lume_services.data.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.data.results import MongodbResultsDBConfig, MongodbResultsDB
-from lume_services.data.results import get_collections
-from pymongo.errors import DuplicateKeyError
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
@@ -30,6 +32,35 @@ from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 def test_get_result_from_string(string, result_class_target):
     result_type = get_result_from_string(string)
     assert result_type == result_class_target
+
+
+@pytest.fixture(scope="module", autouse=True)
+def impact_result():
+    return ImpactResult(
+        flow_id="test_flow_id",
+        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
+        outputs={
+            "output1": 2.0,
+            "output2": [1, 2, 3, 4, 5],
+            "output3": "my_file.txt",
+        },
+        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
+        archive=HDF5File(filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"),
+        pv_collection_isotime=datetime.now(),
+        config={"config1": 1, "config2": 2},
+    )
+
+
+@pytest.fixture(scope="module", autouse=True)
+def generic_result():
+    return Result(
+        flow_id="test_flow_id",
+        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+        outputs={
+            "output1": 2.0,
+            "output2": [1, 2, 3, 4, 5],
+        },
+    )
 
 
 class TestResult:
