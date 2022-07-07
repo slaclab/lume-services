@@ -3,3 +3,4 @@ pre-commit
 flake8
 lume-impact
 docker-compose
+pyfakefs
