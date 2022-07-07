@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 @task
 def check_text_equivalence(text1, text2):
-    assert text1 == text2
+    return text1 == text2
 
 
 with Flow("flow3", storage=Module(__name__)) as flow3:
@@ -19,4 +19,4 @@ with Flow("flow3", storage=Module(__name__)) as flow3:
     text2 = Parameter("text2")
     configure_services()
 
-    check_text_equivalence(text1, text2)
+    equivalence = check_text_equivalence(text1, text2)

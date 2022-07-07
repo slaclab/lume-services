@@ -1,8 +1,5 @@
 from pkg_resources import resource_filename
 
-PYTEST_DOCKER_COMPOSE = resource_filename(
-    "lume_services.tests.files", "docker-compose.yml"
-)
 
 SAMPLE_TEXT_FILE = resource_filename("lume_services.tests.files", "sample_text.txt")
 
