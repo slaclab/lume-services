@@ -1,15 +1,16 @@
 from prefect import Client, config as prefect_config
 from prefect.backend import FlowRunView
-from typing import List
+from typing import List, Optional
+import yaml
+import os
 
 from pydantic import BaseModel
 from datetime import datetime, timedelta
-from pydantic import BaseSettings
+
+
 from lume_services.services.scheduling.backends import Backend
 from lume_services.services.scheduling.schema import FlowOfFlows, Flow
 
-from typing import Optional
-import yaml
 
 import logging
 
@@ -36,7 +37,7 @@ class FlowRunConfig(BaseModel):
     poll_interval: timedelta = timedelta(seconds=10)
 
 
-class PrefectGraphQLConfig(BaseSettings):
+class PrefectGraphQLConfig(BaseModel):
     host: str = "0.0.0.0"
     port: str = "4201"
     host_port: str = "4201"
@@ -44,13 +45,14 @@ class PrefectGraphQLConfig(BaseSettings):
     path: str = "/graphql/"
 
 
-class PrefectServerConfig(BaseSettings):
+class PrefectServerConfig(BaseModel):
     host = "http://localhost"
     port = "4200"
     host_port = "4200"
     host_ip = "127.0.0.1"
 
-class PrefectConfig(BaseSettings):
+
+class PrefectConfig(BaseModel):
     server: PrefectServerConfig = PrefectServerConfig()
     graphql: PrefectGraphQLConfig = PrefectGraphQLConfig()
 
@@ -60,8 +62,9 @@ class PrefectConfig(BaseSettings):
         prefect_config.update(backend=self.backend.backend_type)
         prefect_config.server.update(**self.server.dict())
         prefect_config.server.graphql.update(**self.graphql.dict())
-      #  prefect_config.cloud.update(api=self.api)
-      #  prefect_config.cloud.update(graphql=self.graphql)
+
+    #  prefect_config.cloud.update(api=self.api)
+    #  prefect_config.cloud.update(graphql=self.graphql)
 
     #    prefect_config.server.ui.update(endpoint=self.ui)
 
@@ -187,7 +190,12 @@ class SchedulingService:
 
 
 def load_flow_of_flows_from_yaml(yaml_obj):
-    flow_of_flow_config = yaml.safe_load(yaml_obj)
+
+    if os.path.exists(yaml_obj):
+        flow_of_flow_config = yaml.safe_load(open(yaml_obj))
+
+    else:
+        flow_of_flow_config = yaml_obj
 
     # now validate
     return FlowOfFlows(**flow_of_flow_config)
