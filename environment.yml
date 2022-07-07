@@ -1,0 +1,30 @@
+# conda env create -f environment.yml
+name: lume-services
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pydantic
+  - python-dotenv
+  - sqlalchemy>=1.4
+  - pymysql
+  - pandas
+  - pymongo
+  - click
+  - blinker
+  - dependency_injector
+  - lume-base
+  - h5py
+  - sqlalchemy_schemadisplay
+  - graphviz
+  - pyyaml
+  - docker-py
+  - lume-base>=0.2.2
+
+# Developer
+  - pytest
+  - pre-commit
+  - flake8
+  - lume-impact
+  - docker-compose
+  - pyfakefs
