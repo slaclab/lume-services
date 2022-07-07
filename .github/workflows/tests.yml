@@ -27,12 +27,12 @@ jobs:
       #  run: |
       #    flake8 .
 
-      - name: Install Xopt
+      - name: Install lume-services
         shell: bash -l {0}
         run: |
-          pip install --no-dependencies .
+          pip install -e .
 
       - name: Run Tests
         shell: bash -l {0}
         run: |
-          python run_tests.py
+          pytest .
