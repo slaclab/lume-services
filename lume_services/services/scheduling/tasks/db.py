@@ -1,4 +1,5 @@
 import logging
+from typing import List, Optional
 from dependency_injector.wiring import Provide, inject
 from prefect import task
 
@@ -37,19 +38,22 @@ def save_db_result(
 @task(log_stdout=True)
 def load_db_result(
     result_rep: dict,
+    attribute: str,
+    attribute_index: Optional[List[str]],
     results_db_service: ResultsDB = Provide[Context.results_db_service],
 ) -> Result:
-    """
+    """Load a result from the database using a lume_services.data.Result represention.
 
     Args:
-        result_rep (dict): Result representation containing result_type_string and query
-        results_db_service (ResultsDB): Results database service
+        result_rep (dict): Result representation containing result_type_string and
+            query for selection.
+        attribute (str): Attribute to select.
+        attribute_index (Optional[List[str]]): Instructions for indexing result
+            attribute.
+        results_db_service (ResultsDB): Results database service.
 
     Returns:
-        Result
-
-    Note: requires instructions for accessing attributtes
-
+        Any
 
     """
     result_type = get_result_from_string(result_rep["result_type_string"])
@@ -57,4 +61,17 @@ def load_db_result(
         result_rep["query"], results_db_service=results_db_service
     )
 
-    return result
+    # confirm attribute on result...
+    if not hasattr(result, attribute):
+        raise ValueError(
+            "Attribute %s not available on result loaded from: %s",
+            attribute,
+            result_rep,
+        )
+
+    attr_value = getattr(result, attribute)
+    if attribute_index is not None:
+        for index in attribute_index:
+            attr_value = attr_value[index]
+
+    return attr_value
