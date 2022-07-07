@@ -19,7 +19,7 @@ def format_result(text):
     # get test flow id from prefect context
     result = Result(
         inputs={"input1": text},
-        outputs={},
+        outputs={"output1": text},
     )
     return result
 
