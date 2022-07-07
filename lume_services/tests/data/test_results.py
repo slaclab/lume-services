@@ -6,6 +6,7 @@ from lume_services.data.results import (
     ImpactResult,
     get_result_from_string,
 )
+from pydantic import ValidationError
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.data.results import MongodbResultsDBConfig, MongodbResultsDB
 from lume_services.data.results import get_collections
@@ -97,6 +98,15 @@ class TestMongodbResultsDBConfig:
             port=3030,
             password="test",
         )
+
+    def test_failed_construction(self):
+        with pytest.raises(ValidationError):
+            MongodbResultsDBConfig(
+                database="results",
+                host="localhost",
+                username="user",
+                port=3030,
+            )
 
 
 class TestMongodbResultsDB:
