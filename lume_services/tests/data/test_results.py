@@ -89,17 +89,14 @@ class TestImpactResult:
 
 
 class TestMongodbResultsDBConfig:
-    def test_construction_to_uri(self):
-        config = MongodbResultsDBConfig(
+    def test_construction(self):
+        MongodbResultsDBConfig(
             database="results",
             host="localhost",
             username="user",
             port=3030,
             password="test",
         )
-
-        assert not config.user
-        assert config.uri is not None
 
 
 class TestMongodbResultsDB:
