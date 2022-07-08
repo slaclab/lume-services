@@ -1,6 +1,6 @@
 import logging
 from dependency_injector.wiring import Provide, inject
-from prefect import task
+from prefect import Task
 from typing import Any
 
 from lume_services.config import Context
@@ -19,53 +19,64 @@ def unique_file_location(flow_id, parameters):
     return f"{hash}.prefect"
 
 
-@inject
-@task(log_stdout=True, result=PrefectResult(location=unique_file_location))
-def save_file(
-    obj: Any,
-    filename: str,
-    filesystem_identifier: str,
-    file_type: type,
-    file_service: FileService = Provide[Context.file_service],
-):
-    """Save a file
+class SaveFile(Task):
+    log_stdout = True
+    result = PrefectResult(location=unique_file_location)
 
-    Args:
-        obj (Any): Object to be saved
-        filename (str): File path to save
-        filesystem_identifier (str): String identifier for filesystem configured with
-            File Service
-        file_type (type): Type of file to save as
-        file_service (FileService): File service for interacting w/ filesystems
+    @inject
+    def run(
+        self,
+        obj: Any,
+        filename: str,
+        filesystem_identifier: str,
+        file_type: type,
+        file_service: FileService = Provide[Context.file_service],
+    ):
+        """Save a file
 
-    Returns:
-        dict: Loaded file type
+        Args:
+            obj (Any): Object to be saved
+            filename (str): File path to save
+            filesystem_identifier (str): String identifier for filesystem configured
+                with File Service
+            file_type (type): Type of file to save as
+            file_service (FileService): File service for interacting w/ filesystems
 
-    """
-    file = file_type(
-        obj=obj, filesystem_identifier=filesystem_identifier, filename=filename
-    )
-    file.write(file_service=file_service)
-    return file.jsonable_dict()
+        Returns:
+            dict: Loaded file type
+
+        """
+        file = file_type(
+            obj=obj, filesystem_identifier=filesystem_identifier, filename=filename
+        )
+        file.write(file_service=file_service)
+        return file.jsonable_dict()
 
 
-@inject
-@task()
-def load_file(
-    file_rep: dict, file_service: FileService = Provide[Context.file_service]
-) -> Any:
-    """Load a file
+class LoadFile(Task):
+    log_stdout = True
+    result = PrefectResult(location=unique_file_location)
 
-    Args:
-        file_rep (dict): File data representation
-        file_service (FileService): File service for interacting w/ filesystems
+    @inject
+    def run(
+        self, file_rep: dict, file_service: FileService = Provide[Context.file_service]
+    ) -> Any:
+        """Load a file
 
-    Returns:
-        Any: Unserialize file object
+        Args:
+            file_rep (dict): File data representation
+            file_service (FileService): File service for interacting w/ filesystems
 
-    """
+        Returns:
+            Any: Unserialize file object
 
-    file_type = get_file_from_serializer_string(file_rep["file_type_string"])
-    file_result = file_type(**file_rep)
+        """
 
-    return file_result.read(file_service=file_service)
+        file_type = get_file_from_serializer_string(file_rep["file_type_string"])
+        file_result = file_type(**file_rep)
+
+        return file_result.read(file_service=file_service)
+
+
+save_file = SaveFile()
+load_file = LoadFile()
