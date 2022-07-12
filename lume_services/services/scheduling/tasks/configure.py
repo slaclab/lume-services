@@ -8,7 +8,7 @@ import json
 logger = logging.getLogger(__name__)
 
 
-@task
+@task(name="configure_services")
 def configure_services():
     """Configure services from environment."""
     logger.debug(json.dumps(dict(os.environ)))

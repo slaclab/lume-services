@@ -10,18 +10,36 @@ from prefect.engine.results import PrefectResult
 from lume_services.data.files import get_file_from_serializer_string
 from lume_services.utils import fingerprint_dict
 
+
 logger = logging.getLogger(__name__)
 
 
-def unique_file_location(flow_id, parameters):
-    parameters["flow_id"] = flow_id
-    hash = fingerprint_dict(parameters)
+def _unique_file_location(file_rep):
+    hash = fingerprint_dict(file_rep)
     return f"{hash}.prefect"
 
 
 class SaveFile(Task):
-    log_stdout = True
-    result = PrefectResult(location=unique_file_location)
+    def __init__(self, **kwargs):
+
+        # apply some defaults but allow overrides
+        log_stdout = kwargs.get("log_stdout")
+        if not kwargs.get("log_stdout"):
+            log_stdout = True
+        else:
+            log_stdout = kwargs.pop("log_stdout")
+
+        if not kwargs.get("name"):
+            name = "save_file"
+        else:
+            name = kwargs.pop("name")
+
+        if not kwargs.get("result"):
+            result = PrefectResult(location=_unique_file_location)
+        else:
+            result = kwargs.pop("result")
+
+        super().__init__(log_stdout=log_stdout, name=name, result=result, **kwargs)
 
     @inject
     def run(
@@ -54,8 +72,21 @@ class SaveFile(Task):
 
 
 class LoadFile(Task):
-    log_stdout = True
-    result = PrefectResult(location=unique_file_location)
+    def __init__(self, **kwargs):
+
+        # apply some defaults but allow overrides
+        log_stdout = kwargs.get("log_stdout")
+        if not kwargs.get("log_stdout"):
+            log_stdout = True
+        else:
+            log_stdout = kwargs.pop("log_stdout")
+
+        if not kwargs.get("name"):
+            name = "load_file"
+        else:
+            name = kwargs.pop("name")
+
+        super().__init__(log_stdout=log_stdout, name=name, **kwargs)
 
     @inject
     def run(
@@ -76,7 +107,3 @@ class LoadFile(Task):
         file_result = file_type(**file_rep)
 
         return file_result.read(file_service=file_service)
-
-
-save_file = SaveFile()
-load_file = LoadFile()

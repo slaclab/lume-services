@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from prefect.run_configs import DockerRun
-from typing import Optional, Union
+from typing import Optional, Union, List
 import logging
 
+from dependency_injector.wiring import inject
+from docker.types import Mount
 from lume_services.services.scheduling.backends import Backend
 
 logger = logging.getLogger(__name__)
@@ -29,15 +31,16 @@ class DockerResourceRequest(BaseModel):
     memswap_limit: Union[str, int]
 
 
-class DockerHostConfig:
+class DockerHostConfig(BaseModel):
     resource_request: Optional[DockerResourceRequest]
     privileged: bool = False
     read_only: bool = False
+    mounts: Optional[List[Mount]]
 
 
 # can extend to use
 # https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config
-class DockerRunConfig:
+class DockerRunConfig(BaseModel):
     image: str
     env: Optional[dict]
     # labels:
@@ -51,7 +54,8 @@ class DockerBackend(Backend):
     # default image
     default_image: str = None
 
-    def get_run(
+    @inject
+    def get_run_config(
         self,
         run_config: DockerRunConfig,
     ):

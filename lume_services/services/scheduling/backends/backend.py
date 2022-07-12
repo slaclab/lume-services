@@ -5,8 +5,8 @@ from abc import ABC, abstractmethod
 
 
 class Backend(BaseModel, ABC):
-    ...
+    backend_type: str = "server"
 
     @abstractmethod
-    def get_run(self) -> RunConfig:
+    def get_run_config(self) -> RunConfig:
         ...

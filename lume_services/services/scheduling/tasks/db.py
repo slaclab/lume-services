@@ -8,13 +8,37 @@ from prefect.engine.results import PrefectResult
 from prefect import Task, Parameter
 
 from lume_services.data.results import get_result_from_string, Result
+from lume_services.utils import fingerprint_dict
 
 logger = logging.getLogger(__name__)
 
 
+def _unique_db_location(result_rep):
+    hash = fingerprint_dict(result_rep)
+    return f"{hash}.prefect"
+
+
 class SaveDBResult(Task):
-    log_stdout = True
-    result = PrefectResult()
+    def __init__(self, **kwargs):
+
+        # apply some defaults but allow overrides
+        log_stdout = kwargs.get("log_stdout")
+        if not kwargs.get("log_stdout"):
+            log_stdout = True
+        else:
+            log_stdout = kwargs.pop("log_stdout")
+
+        if not kwargs.get("name"):
+            name = "save_db_result"
+        else:
+            name = kwargs.pop("name")
+
+        if not kwargs.get("result"):
+            result = PrefectResult(location=_unique_db_location)
+        else:
+            result = kwargs.pop("result")
+
+        super().__init__(log_stdout=log_stdout, name=name, result=result, **kwargs)
 
     @inject
     def run(
@@ -40,13 +64,28 @@ class SaveDBResult(Task):
 
 
 class LoadDBResult(Task):
-    log_stdout = True
 
     parameters = [
         Parameter("attribute"),
         Parameter("attribute_index"),
         Parameter("result_rep"),
     ]
+
+    def __init__(self, **kwargs):
+
+        # apply some defaults but allow overrides
+        log_stdout = kwargs.get("log_stdout")
+        if not kwargs.get("log_stdout"):
+            log_stdout = True
+        else:
+            log_stdout = kwargs.pop("log_stdout")
+
+        if not kwargs.get("name"):
+            name = "load_db_result"
+        else:
+            name = kwargs.pop("name")
+
+        super().__init__(log_stdout=log_stdout, name=name, **kwargs)
 
     def run(
         self,
@@ -88,7 +127,3 @@ class LoadDBResult(Task):
                 attr_value = attr_value[index]
 
         return attr_value
-
-
-load_db_result = LoadDBResult()
-save_db_result = SaveDBResult()

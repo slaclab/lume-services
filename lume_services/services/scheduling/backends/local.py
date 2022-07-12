@@ -4,8 +4,8 @@ from typing import Optional, Dict
 import logging
 
 from lume_services.data.files import FileService
-from lume_services.context import Context
-from dependency_injector.wiring import Provide
+from lume_services.config import Context
+from dependency_injector.wiring import Provide, inject
 
 from lume_services.services.scheduling.backends import Backend
 
@@ -31,7 +31,8 @@ class LocalRunConfig(BaseModel):
 
 
 class LocalBackend(Backend):
-    def get_run(
+    @inject
+    def get_run_config(
         self,
         run_config: LocalRunConfig,
         file_service: FileService = Provide[Context.file_service],

@@ -1,5 +1,4 @@
-from ast import Param
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.backend.flow import FlowView
 from typing import List, Optional, Dict, Literal, get_args
@@ -9,7 +8,7 @@ from prefect.tasks.prefect import (
     get_task_run_result,
 )
 from prefect import Flow as PrefectFlow
-from lume_services.services.scheduling.tasks import load_db_result_task, load_file_task
+from lume_services.services.scheduling.tasks import LoadDBResult
 
 # Pydantic schema describing flow of flows composition
 
@@ -18,32 +17,73 @@ class ParameterNotInFlowError(Exception):
     def __init__(self, parameter_name: str, flow_name: str):
         self.flow_name = flow_name
         self.parameter_name = parameter_name
-        self.message = f"Parameter {self.parameter_name} not in flow {self.flow_name}."
-        super().__init__(self.message)
+        self.message = "Parameter %s not in flow %s."
+        super().__init__(self.message, self.parameter_name, self.flow_name)
 
 
 class ParentFlowNotInFlowsError(Exception):
     def __init__(self, flow_name: str, flows: List[str]):
         self.flow_name = flow_name
         self.flows = flows
-        self.message = (
-            f"Parent flow {self.flow_name} not in flows: {', '.join(self.flows)}."
-        )
-        super().__init__(self.message)
+        self.message = "Parent flow %s not in flows: %s"
+        super().__init__(self.message, self.flow_name, ", ".join(self.flows))
 
 
 class TaskNotInFlowError(Exception):
     def __init__(self, flow_name: str, task_name: str):
         self.flow_name = flow_name
         self.task_name = task_name
-        self.message = f"Task {task_name} not in flow {flow_name}."
-        super().__init__(self.message)
+        self.message = "Task %s not in flow %s."
+        super().__init__(self.message, self.task_name, self.flow_name)
 
 
 class MappedParameter(BaseModel):
+    """There are three types of mapped parameters: file, db, and raw.
+
+    file: File parameters are file outputs that will be loaded in downstream flows.
+    Downstream loading must use the packaged `load_file` task in
+    `lume_services.services.scheduling.tasks.file`.
+
+    db: Database results ...
+
+    raw: Raw values are passed from task output to parameter input.
+
+
+
+    """
+
     parent_flow_name: str
     parent_task_name: str
     map_type: Literal["file", "db", "raw"] = "raw"
+
+
+class RawMappedParameter(MappedParameter):
+    map_type: str = Field("raw", const=True)
+
+
+class FileMappedParameter(MappedParameter):
+    map_type: str = Field("file", const=True)
+
+
+class DBMappedParameter(MappedParameter):
+    map_type: str = Field("db", const=True)
+    attribute: str
+    attribute_index: Optional[List[str]]
+
+
+_string_to_mapped_parameter_type = {
+    "db": DBMappedParameter,
+    "file": FileMappedParameter,
+    "raw": RawMappedParameter,
+}
+
+
+def _get_mapped_parameter_type(map_type: str):
+
+    if map_type not in _string_to_mapped_parameter_type:
+        raise ValueError("No mapped parameter type available for %s", map_type)
+
+    return _string_to_mapped_parameter_type.get(map_type)
 
 
 class Flow(BaseModel):
@@ -57,6 +97,36 @@ class Flow(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    @validator("mapped_parameters", pre=True)
+    def validate_mapped_parameters(cls, v):
+
+        if v is None:
+            return v
+
+        mapped_parameters = {}
+
+        for param_name, param in v.items():
+            # persist instantiated params
+            if isinstance(param, (MappedParameter,)):
+                mapped_parameters[param_name] = param
+
+            elif isinstance(param, (dict,)):
+                # default raw
+                if not param.get("map_type"):
+                    mapped_parameters[param_name] = RawMappedParameter(**param)
+
+                else:
+                    mapped_param_type = _get_mapped_parameter_type(param["map_type"])
+                    mapped_parameters[param_name] = mapped_param_type(**param)
+
+            else:
+                raise ValueError(
+                    "Mapped parameters must be passed as instantiated \
+                    MappedParameters or dictionary"
+                )
+
+        return mapped_parameters
 
     def load(self):
         flow = FlowView.from_flow_name(
@@ -122,8 +192,6 @@ class FlowOfFlows(BaseModel):
                             parameter.parent_flow_name, parameter.parent_task_name
                         )
 
-                    # TODO: Add validation of parameter type against result type
-
         return flows
 
     def compose(self) -> PrefectFlow:
@@ -188,16 +256,34 @@ class FlowOfFlows(BaseModel):
                             )
 
                             if mapped_param.map_type in ["raw", "file"]:
-                                flow_params[param_name] = task_run_result
+                                flow.prefect_flow.replace(
+                                    flow_params[param_name], task_run_result
+                                )
 
                             elif mapped_param.map_type == "db":
-                                db_result = load_db_result_task(task_run_result)
-                                # need to add indexing of db result
-                                flow_params[param_name] = db_result
+                                load_db_result = LoadDBResult()
+                                db_result = load_db_result(
+                                    task_run_result,
+                                    mapped_param.attribute,
+                                    attribute_index=mapped_param.attribute_index,
+                                )
+                                flow.prefect_flow.replace(
+                                    flow_params[param_name], db_result
+                                )
+
+                                for param in load_db_result:
+                                    flow.add_task(param)
+                                    flow.add_edge(param, load_db_result, mapped=True)
 
                             else:
                                 # should never reach if instantiating MappedParameter
-                                raise ValueError(f"Task type {mapped_param.map_type} not in task types {get_args(MappedParameter.__fields__['map_type']._type)}.")
+                                mapped_param_types = get_args(
+                                    MappedParameter.__fields__["map_type"].type_
+                                )
+                                raise ValueError(
+                                    f"Task type {mapped_param.map_type} not in task. \
+                                        Allowed types: {mapped_param_types}."
+                                )
 
                             # add flow to upstream
                             upstream_flows.add(mapped_param.parent_flow_name)
@@ -207,7 +293,7 @@ class FlowOfFlows(BaseModel):
                             project_name=flow.project_name,
                             parameters=flow_params,
                             labels=flow.labels,
-                            raise_final_state=True
+                            raise_final_state=True,
                         )
 
                     # configure upstreams if any
@@ -250,21 +336,38 @@ class FlowOfFlows(BaseModel):
         ...
 
 
-def build_parameters(task, prefix: str =None):
+def build_parameters(task, prefix: str = None):
     """
 
     Args:
         task: Task for which to build params
         prefix (str): Prefix to add to parameter names
-    
+
     """
 
     params = {}
 
     for input_name, input in task.inputs.items():
         if not prefix:
-            params[input_name] = Parameter(name=input_name, default=input["default"], required=input["required"])
+            params[input_name] = Parameter(
+                name=input_name, default=input["default"], required=input["required"]
+            )
         else:
-            params[f"{prefix}{input_name}"] = Parameter(name=f"{prefix}{input_name}", default=input["default"], required=input["required"])
+            params[f"{prefix}{input_name}"] = Parameter(
+                name=f"{prefix}{input_name}",
+                default=input["default"],
+                required=input["required"],
+            )
 
     return params
+
+
+def _get_task_slugs_from_name(flow, name):
+
+    return flow.get_tasks(name)
+
+
+def _get_task_slugs_from_run_name(flow_run, name):
+    return [
+        task.task_slug for task in flow_run.get_all_task_runs() if task.name == name
+    ]

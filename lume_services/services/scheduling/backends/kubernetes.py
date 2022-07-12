@@ -4,8 +4,8 @@ from typing import List, Optional, Dict, Union
 import logging
 
 from lume_services.data.files import FileService
-from lume_services.context import Context
-from dependency_injector.wiring import Provide
+from lume_services.config import Context
+from dependency_injector.wiring import Provide, inject
 
 from lume_services.data.files.serializers.yaml import YAMLSerializer
 from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
@@ -111,7 +111,8 @@ class KubernetesBackend(Backend):
     # default image
     default_image: str = None
 
-    def get_run(
+    @inject
+    def get_run_config(
         self,
         run_config: KubernetesRunConfig,
         file_service: FileService = Provide[Context.file_service],
