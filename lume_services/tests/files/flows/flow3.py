@@ -1,7 +1,6 @@
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
-
-from lume_services.services.scheduling.tasks import configure_services
+from prefect.engine.results import PrefectResult
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +8,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-@task
+@task(
+    name="check_text_equivalence",
+    result=PrefectResult(location="check_equivalence.prefect"),
+)
 def check_text_equivalence(text1, text2):
     return text1 == text2
 
@@ -17,6 +19,5 @@ def check_text_equivalence(text1, text2):
 with Flow("flow3", storage=Module(__name__)) as flow3:
     text1 = Parameter("text1")
     text2 = Parameter("text2")
-    configure_services()
 
     equivalence = check_text_equivalence(text1, text2)
