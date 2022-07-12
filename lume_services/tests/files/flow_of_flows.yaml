@@ -9,7 +9,7 @@ composing_flows:
       file_rep:
         parent_flow_name: flow1
         parent_project_name: test
-        parent_task_name: save_file
+        parent_task_name: save_text_file
         map_type: file
   - name: flow3
     project_name: test
@@ -19,3 +19,6 @@ composing_flows:
         parent_project_name: test
         parent_task_name: save_db_result
         map_type: db
+        attribute: outputs
+        attribute_index:
+          - output1
