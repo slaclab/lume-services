@@ -3,7 +3,7 @@ import os
 import docker
 
 
-from lume_services.services.data.files.filesystems import (
+from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
