@@ -6,9 +6,9 @@ services:
         - ${LUME_MODEL_DB__PORT:-3306}:3306
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       MYSQL_ROOT_HOST: '%'
-      MYSQL_ROOT_USER: ${LUME_MODEL_DB_USER}
+      MYSQL_ROOT_USER: ${LUME_MODEL_DB_USER:-root}
 
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
@@ -16,11 +16,12 @@ services:
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-prefect_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prefect_password}
+      POSTGRES_DB: ${POSTGRES_DB:-prefect_db}
+
     volumes:
-      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_PATH:-/tmp/lume/postgresql}:/var/lib/postgresql/data
     networks:
       - prefect-server
     command:
@@ -29,7 +30,7 @@ services:
       - "-c"
       - "max_connections=150"
     healthcheck:
-      test: pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} || exit 1
+      test: pg_isready -q -d $${POSTGRES_DB:-prefect_db} -U $${POSTGRES_USER:-prefect_user} || exit 1
       interval: 10s
       timeout: 2s
       retries: 60
@@ -133,6 +134,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
     ports:
       - ${LUME_RESULTS_DB__PORT:-27017}:27017
+    networks:
+      - prefect-server
 
 networks:
   prefect-server:
