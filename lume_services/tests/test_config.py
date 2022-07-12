@@ -1,13 +1,13 @@
 import pytest
 import os
 
-from lume_services.data.files import TextFile
+from lume_services.files import TextFile
 
 from dependency_injector.containers import DynamicContainer
 
 from lume_services import config
-from lume_services.data.results import Result
-from lume_services.services.data.files.filesystems.mounted import MountedFilesystem
+from lume_services.results import Result
+from lume_services.services.files.filesystems.mounted import MountedFilesystem
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
