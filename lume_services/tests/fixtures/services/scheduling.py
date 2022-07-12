@@ -5,6 +5,7 @@ from subprocess import Popen, PIPE
 import time
 
 from prefect import Client
+
 import docker
 
 from lume_services.services.scheduling import (
@@ -28,8 +29,8 @@ def prefect_docker_tag():
 
 @pytest.fixture(scope="session")
 def prefect_job_docker(rootdir, prefect_docker_tag):
-    client = docker.from_env()
-    image, _ = client.images.build(
+    docker_client = docker.from_env()
+    image, _ = docker_client.images.build(
         path=str(rootdir),
         dockerfile=f"{rootdir}/Dockerfile",
         nocache=False,
@@ -41,7 +42,7 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     )
     yield image
 
-    client.images.remove(image.id, noprune=False)
+    docker_client.images.remove(image.id, noprune=False)
 
 
 @pytest.fixture(scope="session")
