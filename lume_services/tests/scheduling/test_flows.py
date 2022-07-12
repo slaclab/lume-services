@@ -16,9 +16,8 @@ from lume_services.tests.files.flows.flow3 import flow3
 
 from lume_services.data.files import TextFile
 from lume_services.data.results import get_result_from_string
-from lume_services.services.scheduling.flows import (
-    load_flow_of_flows_from_yaml,
-)
+
+from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
@@ -214,4 +213,4 @@ class TestFlowOfFlows:
             _ = yaml.safe_load(file)
 
     def test_validate_yaml(self, flow1_id, flow2_id, flow3_id):
-        _ = load_flow_of_flows_from_yaml(FLOW_OF_FLOWS_YAML)
+        _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
