@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import Field
-from lume_services.data.results.generic import Result
-from lume_services.data.files import HDF5File, ImageFile
+from lume_services.results.generic import Result
+from lume_services.files import HDF5File, ImageFile
 
 
 class ImpactResult(Result):

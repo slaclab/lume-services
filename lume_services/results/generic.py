@@ -1,7 +1,7 @@
 import json
 from pydantic import BaseModel, root_validator, Field, Extra
 from datetime import datetime
-from lume_services.services.data.results import ResultsDB
+from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
 from typing import List, Optional
 from dependency_injector.wiring import Provide, inject
