@@ -16,7 +16,7 @@ from lume_services.tests.files.flows.flow3 import flow3
 
 from lume_services.data.files import TextFile
 from lume_services.data.results import get_result_from_string
-from lume_services.services.scheduling import (
+from lume_services.services.scheduling.flows import (
     load_flow_of_flows_from_yaml,
 )
 from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401

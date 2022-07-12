@@ -14,8 +14,8 @@ from lume_services.services.scheduling import (
 )
 from lume_services.services.scheduling.backends import (
     DockerBackend,
-    DockerRunConfig,
     DockerHostConfig,
+    DockerRunConfig,
 )
 
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
@@ -42,6 +42,46 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     yield image
 
     client.images.remove(image.id, noprune=False)
+
+
+@pytest.fixture(scope="session")
+def prefect_tenant(prefect_api_str):
+
+    # Get a client with the correct server port
+    client = Client(api_server=prefect_api_str)
+    client.graphql("query{hello}", retry_on_api_error=False)
+    time.sleep(2)
+    client.create_tenant(name="default", slug="default")
+
+
+@pytest.fixture(scope="session")
+def prefect_docker_agent(prefect_tenant, prefect_api_str):
+
+    agent_proc = Popen(
+        [
+            "prefect",
+            "agent",
+            "docker",
+            "start",
+            #  "--label",
+            #  "lume-services",
+            "--network",
+            "prefect-server",
+            "--no-pull",
+            "--api",
+            prefect_api_str,
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    # Give the agent time to start
+    time.sleep(2)
+
+    # Check it started successfully
+    assert not agent_proc.poll(), agent_proc.stdout.read().decode("utf-8")
+    yield agent_proc
+    # Shut it down at the end of the pytest session
+    agent_proc.terminate()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -87,43 +127,3 @@ def docker_run_config(
 @pytest.fixture(scope="session", autouse=True)
 def docker_backend(prefect_docker_tag, docker_run_config):
     return DockerBackend(default_image=prefect_docker_tag, run_config=docker_run_config)
-
-
-@pytest.fixture(scope="session")
-def prefect_tenant(prefect_api_str):
-
-    # Get a client with the correct server port
-    client = Client(api_server=prefect_api_str)
-    client.graphql("query{hello}", retry_on_api_error=False)
-    time.sleep(2)
-    client.create_tenant(name="default", slug="default")
-
-
-@pytest.fixture(scope="session")
-def prefect_docker_agent(prefect_tenant, prefect_api_str):
-
-    agent_proc = Popen(
-        [
-            "prefect",
-            "agent",
-            "docker",
-            "start",
-            #  "--label",
-            #  "lume-services",
-            "--network",
-            "prefect-server",
-            "--no-pull",
-            "--api",
-            prefect_api_str,
-        ],
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    # Give the agent time to start
-    time.sleep(2)
-
-    # Check it started successfully
-    assert not agent_proc.poll(), agent_proc.stdout.read().decode("utf-8")
-    yield agent_proc
-    # Shut it down at the end of the pytest session
-    agent_proc.terminate()
