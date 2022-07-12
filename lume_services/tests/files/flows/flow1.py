@@ -1,7 +1,7 @@
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
 from lume_services.services.scheduling.tasks import configure_services, SaveFile
-from lume_services.data.files import TextFile
+from lume_services.files import TextFile
 import logging
 
 logger = logging.getLogger(__name__)

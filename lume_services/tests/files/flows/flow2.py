@@ -6,7 +6,7 @@ from lume_services.services.scheduling.tasks import (
     configure_services,
 )
 
-from lume_services.data.results import Result
+from lume_services.results import Result
 import logging
 
 logger = logging.getLogger(__name__)
