@@ -1,5 +1,6 @@
 
 
 
-Mongomock used for the results database
-All unmocked services are spun up using docker-compose.
+All services spun up using docker compose
+
+Env variables....

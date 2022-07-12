@@ -4,8 +4,9 @@
 ### Repo setup
 - [ ] Action for testing package install & running pytests
 - [ ] Docs for injection and container
-- [ ] Tests for injection and container
-- [ ] Environment variables with extensible prefix
+- [x] Tests for injection and container 7/5
+- [x] Environment variables with extensible prefix 7/5
+- [ ] Move any services in __init__ files to a service.py
 
 ### Template
 - [ ] CLI tool
@@ -26,18 +27,19 @@
 - [ ] Synchronous snapshot service (-> SLAC-services)
 - [ ] HPC interface
 - [ ] Output service (-> LUME-EPICS?)
-- [ ] Finish util testing
+- [x] Finish util testing
 
 ## Scheduler
 - [ ] Refactor scheduler
 - [ ] Flow of flows composition
-- [ ] Create prefect flow image 6/26
+- [x] Create prefect flow image 6/26
+- [x] Remove redundant flow storage during build in pytest 7/6
 
 ## Maybe TODO
 - [ ] Separate template into own repo?
 - [ ] Rename model service to model registry service
-- [ ] Rename file.systems to file.filesystems and all files names service.py
-- [ ] Move fixtures from conftest to designated files under tests/fixtures
+- [x] Rename file.systems to file.filesystems and all files names service.py
+- [x] Move fixtures from conftest to designated files under tests/fixtures
 - [ ] Could abstract docker compose versions
 
 ## Other

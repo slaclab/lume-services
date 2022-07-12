@@ -11,9 +11,6 @@ Templating allows us to ...
 
 
 
-
-
-
 ```yaml
 
 "{{cookiecutter.repo_name}}"

@@ -38,3 +38,11 @@ The schema in `lume_services.services.scheduling.schema.flow_of_flows_schema.py`
 `compose` method on the FlowOfFlows object organizes flows
 
 New parameters are created using the scheme `{flow_name}-{param_name}`
+
+
+## Tasks
+load_db_result vs LoadDBResult
+
+
+Db results assumes one save per flow
+Allows multiple file results
