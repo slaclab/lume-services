@@ -48,6 +48,13 @@ class Result(BaseModel):
     def validate_all(cls, values):
         unique_fields = cls.__fields__["unique_on"].default
 
+        # If flow_id is not passed, check prefect context
+        if not values.get("flow_id"):
+            if not context.flow_id:
+                raise ValueError("No flow_id passed to result")
+
+            values["flow_id"] = context.flow_id
+
         # create index hash
         if not values.get("unique_hash"):
 
@@ -63,10 +70,6 @@ class Result(BaseModel):
             id = values["_id"]
             if isinstance(id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
-
-        # If flow_id is not passed, check prefect context
-        if not values.get("flow_id"):
-            values["flow_id"] = context.flow_id
 
         values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
 
