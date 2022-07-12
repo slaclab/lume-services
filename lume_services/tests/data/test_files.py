@@ -7,7 +7,7 @@ from lume_services.tests.files import (
     SAMPLE_IMPACT_ARCHIVE,
     SAMPLE_TEXT_FILE,
 )
-from lume_services.data.files import TextFile, ImageFile, YAMLFile, HDF5File
+from lume_services.files import TextFile, ImageFile, YAMLFile, HDF5File
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
 

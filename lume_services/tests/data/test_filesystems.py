@@ -1,10 +1,10 @@
 import pytest
-from lume_services.services.data.files.filesystems import (
+from lume_services.services.files.filesystems import (
     MountedFilesystem,
     LocalFilesystem,
     PathNotInMount,
 )
-from lume_services.data.files.serializers.text import TextSerializer
+from lume_services.files.serializers.text import TextSerializer
 
 
 @pytest.fixture(scope="module", autouse=True)
