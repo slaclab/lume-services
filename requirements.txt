@@ -9,7 +9,6 @@ blinker
 dependency_injector
 lume-base
 h5py
-click
 sqlalchemy_schemadisplay
 graphviz
 pyyaml
