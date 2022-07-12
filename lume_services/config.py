@@ -3,23 +3,27 @@ from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
 from typing import Optional
 
-from lume_services.services.data.models.db import ModelDB
-from lume_services.services.data.models import ModelDBService
-from lume_services.services.data.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
-from lume_services.services.data.results import (
+from lume_services.services.models.db import ModelDB
+from lume_services.services.models import ModelDBService
+from lume_services.services.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
+from lume_services.services.results import (
     ResultsDBService,
     ResultsDB,
 )
-from lume_services.services.data.results.mongodb import (
+from lume_services.services.results.mongodb import (
     MongodbResultsDBConfig,
     MongodbResultsDB,
 )
-from lume_services.services.data.files import FileService
-from lume_services.services.data.files.filesystems import (
+from lume_services.services.files import FileService
+from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
+
+from lume_services.services.scheduling.service import PrefectConfig
+
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +53,6 @@ class Context(containers.DeclarativeContainer):
         FileService, filesystems=providers.List(local_filesystem, mounted_filesystem)
     )
 
-    # scheduling_service = providers.Singleton(
-    #    SchedulingService,
-    #    ...
-    #    file_service = file_service
-    # )
-
     model_db_service = providers.Singleton(
         ModelDBService,
         model_db=model_db,
@@ -64,11 +62,16 @@ class Context(containers.DeclarativeContainer):
         results_db=results_db,
     )
 
+    # scheduling_service = providers.Singleton(
+    #    SchedulingService,
+    #    config=config.scheduling
+    # )
+
     wiring_config = containers.WiringConfiguration(
         packages=[
             "lume_services.services.scheduling",
-            "lume_services.data.files",
-            "lume_services.data.results",
+            "lume_services.files",
+            "lume_services.results",
         ],
     )
 
@@ -78,6 +81,7 @@ class LUMEServicesSettings(BaseSettings):
 
     model_db: MySQLModelDBConfig
     results_db: MongodbResultsDBConfig
+    scheduling: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
 
     class Config:
