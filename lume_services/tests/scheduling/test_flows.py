@@ -1,81 +1,86 @@
-# https://docs.prefect.io/core/idioms/testing-flows.html
 import pytest
+
+from datetime import timedelta
+
+import yaml
+from prefect.backend import TaskRunView
+from prefect.backend.flow_run import stream_flow_run_logs
+from prefect import Client
+
+
+from lume_services.services.scheduling.tasks.db import LoadDBResult
 from lume_services.tests.files import FLOW_OF_FLOWS_YAML
 from lume_services.tests.files.flows.flow1 import flow1, append_text
 from lume_services.tests.files.flows.flow2 import flow2
 from lume_services.tests.files.flows.flow3 import flow3
 
-from prefect.backend import TaskRunView
-from prefect.backend.flow_run import stream_flow_run_logs
-from prefect import Client
-
-from datetime import timedelta
-import yaml
-
 from lume_services.data.files import TextFile
+from lume_services.data.results import get_result_from_string
 from lume_services.services.scheduling import (
-    SchedulingService,
     load_flow_of_flows_from_yaml,
 )
 from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
+from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 
 
-def test_load_yaml():
-    with open(FLOW_OF_FLOWS_YAML, "r") as file:
-        flow_of_flow_config = yaml.safe_load(file)
+@pytest.fixture(scope="session", autouse=True)
+def prefect_client(prefect_api_str, prefect_docker_agent):
+    client = Client(api_server=prefect_api_str)
+    client.graphql("query{hello}", retry_on_api_error=False)
+    return client
 
 
-# def test_validate_yaml():
-#    flow_of_flows = load_flow_of_flows_from_yaml(FLOW_OF_FLOWS_YAML)
+@pytest.fixture(scope="session", autouse=True)
+def project_name(prefect_client):
+    project_name = "test"
+    prefect_client.create_project(project_name=project_name)
+    return project_name
+
+
+@pytest.fixture(scope="session", autouse=True)
+def flow1_id(project_name, prefect_client):
+    return flow1.register(project_name=project_name, labels=["lume-services"])
+
+
+@pytest.fixture(scope="session", autouse=True)
+def flow2_id(project_name, prefect_client):
+    return flow2.register(project_name=project_name, labels=["lume-services"])
+
+
+@pytest.fixture(scope="session", autouse=True)
+def flow3_id(project_name, prefect_client):
+    return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
 class TestFlows:
-    project_name = "test_flows"
-    flow1_filename = "flow1_res.txt"
+    text1 = "hey"
+    text2 = " you"
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def flow1_filename(self, mounted_filesystem_handler):
         return f"{mounted_filesystem_handler.mount_alias}/flow1_res.txt"
 
-    @pytest.fixture()
-    def client(self, prefect_api_str, prefect_docker_agent):
-        client = Client(api_server=prefect_api_str)
-        client.graphql("query{hello}", retry_on_api_error=False)
-        return client
-
-    def test_project_create(self, client):
-        client.create_project(project_name=self.project_name)
+    @pytest.fixture(scope="class")
+    def flow1_filename_local(self, mounted_filesystem_handler):
+        return f"{mounted_filesystem_handler.mount_path}/flow1_res.txt"
 
     @pytest.fixture()
-    def flow1_id(self):
-        return flow1.register(project_name=self.project_name, labels=["lume-services"])
-
-    @pytest.fixture()
-    def flow2_id(self):
-        return flow2.register(project_name=self.project_name, labels=["lume-services"])
-
-    @pytest.fixture()
-    def flow3_id(self):
-        return flow3.register(project_name=self.project_name, labels=["lume-services"])
-
-    def test_flow1_run_creation(
+    def test_flow1_run(
         self,
-        client,
+        prefect_client,
         flow1_id,
         docker_backend,
         docker_run_config,
         flow1_filename,
         mounted_filesystem_handler,
     ):
-        text1 = "hey"
-        text2 = " you"
 
-        flow_run_id = client.create_flow_run(
+        flow_run_id = prefect_client.create_flow_run(
             flow_id=flow1_id,
             parameters={
-                "text1": text1,
-                "text2": text2,
+                "text1": self.text1,
+                "text2": self.text2,
                 "filename": flow1_filename,
                 "filesystem_identifier": mounted_filesystem_handler.identifier,
             },
@@ -85,22 +90,28 @@ class TestFlows:
         # watch and block
         stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
-        # create flow run view
-        # flow_run = FlowRunView.from_flow_run_id(flow_run_id)
-        task_run = TaskRunView.from_task_slug(
-            "save_file-1",
-            flow_run_id,
-        )
-        result = task_run.get_result()
+        configure_task = flow1.get_tasks(name="configure_services")[0]
 
         # check config task run
         config_task_run = TaskRunView.from_task_slug(
-            "configure_services-1",
+            configure_task.slug,
             flow_run_id,
         )
         assert config_task_run.state.is_successful()
 
-        text = append_text.run(text1, text2)
+        file_task = flow1.get_tasks(name="save_text_file")[0]
+
+        task_run = TaskRunView.from_task_slug(
+            file_task.slug,
+            flow_run_id,
+        )
+
+        # check task result
+        assert task_run.state.is_successful()
+
+        result = task_run.get_result()
+
+        text = append_text.run(self.text1, self.text2)
 
         # create text file object
         text_file = TextFile(
@@ -110,31 +121,97 @@ class TestFlows:
         )
         text_file_rep = text_file.jsonable_dict()
 
-        # check task result
-        assert task_run.state.is_successful()
         assert result == text_file_rep
+        return text_file_rep
 
-    def test_flow2_run_creation(
-        self, client, flow2_id, docker_backend, docker_run_config
+    @pytest.fixture()
+    def test_flow2_run(
+        self,
+        prefect_client,
+        flow2_id,
+        docker_backend,
+        docker_run_config,
+        test_flow1_run,
+        results_db_service,
     ):
-        file_rep = {
-            "filesystem_identifier": "local",
-            "filename": "flow1_res.txt",
-            "file_type_string": "lume_services.data.files.TextFile",
-        }
 
-        flow_run_id = client.create_flow_run(
+        flow_run_id = prefect_client.create_flow_run(
             flow_id=flow2_id,
-            parameters={"file_rep": file_rep},
+            parameters={"file_rep": test_flow1_run},
             run_config=docker_backend.get_run_config(docker_run_config),
         )
 
         # watch and block
         stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
+        # check config task run
+        configure_task = flow2.get_tasks(name="configure_services")[0]
+        config_task_run = TaskRunView.from_task_slug(
+            configure_task.slug,
+            flow_run_id,
+        )
+        assert config_task_run.state.is_successful()
 
-# def test_flow2_run_creation(self, client, flow2_id):
-#     client.create_flow_run(flow_id=flow2_id)
+        # check db result
+        save_db_result = flow2.get_tasks(name="save_db_result")[0]
+        task_run = TaskRunView.from_task_slug(
+            save_db_result.slug,
+            flow_run_id,
+        )
+        result_rep = task_run.get_result()
 
-# def test_flow3_run_creation(self, client, flow3_id):
-#     client.create_flow_run(flow_id=flow3_id)
+        # now load result as result object...
+        result_type = get_result_from_string(result_rep["result_type_string"])
+        result = result_type.load_from_query(
+            result_rep["query"], results_db_service=results_db_service
+        )
+
+        assert task_run.state.is_successful()
+        assert result.flow_id == flow2_id
+        assert result.outputs["output1"] == f"{self.text1}{self.text2}"
+        return result_rep
+
+    def test_flow3_run(
+        self,
+        prefect_client,
+        flow3_id,
+        docker_backend,
+        docker_run_config,
+        test_flow2_run,
+        results_db_service,
+    ):
+
+        # want to bind our task kwargs to flow2 outputs
+        db_result = LoadDBResult().run(
+            test_flow2_run,
+            attribute="outputs",
+            attribute_index=["output1"],
+            results_db_service=results_db_service,
+        )
+
+        flow_run_id = prefect_client.create_flow_run(
+            flow_id=flow3_id,
+            parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
+            run_config=docker_backend.get_run_config(docker_run_config),
+        )
+
+        # watch and block
+        stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
+
+        # check equivalence result
+        check_text_equivalence = flow3.get_tasks(name="check_text_equivalence")[0]
+        task_run = TaskRunView.from_task_slug(
+            check_text_equivalence.slug,
+            flow_run_id,
+        )
+        result = task_run.get_result()
+        assert result
+
+
+class TestFlowOfFlows:
+    def test_load_yaml(self):
+        with open(FLOW_OF_FLOWS_YAML, "r") as file:
+            _ = yaml.safe_load(file)
+
+    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id):
+        _ = load_flow_of_flows_from_yaml(FLOW_OF_FLOWS_YAML)
