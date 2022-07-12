@@ -1,5 +1,5 @@
 import click
-from .modeling.schema import generate_schema_docs
+from .modeling import generate_schema_docs
 
 
 @click.group()
