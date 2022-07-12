@@ -3,7 +3,6 @@ from prefect.run_configs import DockerRun
 from typing import Optional, Union, List
 import logging
 
-from dependency_injector.wiring import inject
 from docker.types import Mount
 from lume_services.services.scheduling.backends import Backend
 
@@ -28,7 +27,7 @@ class DockerResourceRequest(BaseModel):
     # Tune a container’s memory swappiness behavior. Accepts number between 0 and 100.
     mem_swappiness: int = None
     #  Maximum amount of memory + swap a container is allowed to consume.
-    memswap_limit: Union[str, int]
+    memswap_limit: Union[str, int] = None
 
 
 class DockerHostConfig(BaseModel):
@@ -54,7 +53,6 @@ class DockerBackend(Backend):
     # default image
     default_image: str = None
 
-    @inject
     def get_run_config(
         self,
         run_config: DockerRunConfig,

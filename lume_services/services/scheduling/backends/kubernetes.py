@@ -3,11 +3,6 @@ from prefect.run_configs import KubernetesRun
 from typing import List, Optional, Dict, Union
 import logging
 
-from lume_services.data.files import FileService
-from lume_services.config import Context
-from dependency_injector.wiring import Provide, inject
-
-from lume_services.data.files.serializers.yaml import YAMLSerializer
 from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
 
 from lume_services.services.scheduling.backends import Backend
@@ -91,6 +86,14 @@ class KubernetesResourceRequest(BaseModel):
 class KubernetesJobTemplate(BaseModel):
     filepath: str = KUBERNETES_JOB_TEMPLATE_FILE
     filesystem_identifier: str
+    job_template: dict
+
+    # VALIDATE JOB TEMPLATE
+    # job_template = file_service.read(
+    #        self.config.job_template.filesystem_identifier,
+    #        self.config.job_template.filepath,
+    #        YAMLSerializer,
+    #    )
 
 
 class KubernetesRunConfig(BaseModel):
@@ -111,18 +114,10 @@ class KubernetesBackend(Backend):
     # default image
     default_image: str = None
 
-    @inject
     def get_run_config(
         self,
         run_config: KubernetesRunConfig,
-        file_service: FileService = Provide[Context.file_service],
     ):
-
-        job_template = file_service.read(
-            self.config.job_template.filesystem_identifier,
-            self.config.job_template.filepath,
-            YAMLSerializer,
-        )
 
         return KubernetesRun(
             image_pull_policy=self.image_pull_policy,
@@ -133,7 +128,7 @@ class KubernetesBackend(Backend):
             memory_request=run_config.resource_request.memory.request,
             image_pull_secrets=run_config.image_pull_secrets,
             env=run_config.env,
-            job_template=job_template,
+            job_template=run_config.job_template,
             # labels = run_config.labels,
             # service_account_name = run_config.service_account_name
         )
