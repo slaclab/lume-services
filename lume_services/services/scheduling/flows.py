@@ -1,3 +1,6 @@
+import os
+import yaml
+from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.backend.flow import FlowView
@@ -137,6 +140,22 @@ class Flow(BaseModel):
         self.prefect_flow = flow
         self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
         self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
+
+
+class FlowConfig(BaseModel):
+    image: Optional[str]
+    env: Optional[List[str]]
+
+
+class FlowRunConfig(BaseModel):
+    flow: Optional[Flow]
+    #   parameters: ...
+    #   run_config: RunConfig
+    #   wait: ...
+    #   new_flow_context: ...
+    run_name: str = None
+    scheduled_start_time: datetime = None
+    poll_interval: timedelta = timedelta(seconds=10)
 
 
 class FlowOfFlows(BaseModel):
@@ -371,3 +390,15 @@ def _get_task_slugs_from_run_name(flow_run, name):
     return [
         task.task_slug for task in flow_run.get_all_task_runs() if task.name == name
     ]
+
+
+def load_flow_of_flows_from_yaml(yaml_obj):
+
+    if os.path.exists(yaml_obj):
+        flow_of_flow_config = yaml.safe_load(open(yaml_obj))
+
+    else:
+        flow_of_flow_config = yaml_obj
+
+    # now validate
+    return FlowOfFlows(**flow_of_flow_config)
