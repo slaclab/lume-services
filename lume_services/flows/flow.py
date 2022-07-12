@@ -123,6 +123,9 @@ class FlowRunConfig(BaseModel):
     labels: Optional[List[str]]
     run_name: Optional[str]
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 def build_parameters(task, prefix: str = None):
     """
