@@ -19,8 +19,6 @@ class MappedParameter(BaseModel):
 
     raw: Raw values are passed from task output to parameter input.
 
-
-
     """
 
     parent_flow_name: str
@@ -150,14 +148,3 @@ def build_parameters(task, prefix: str = None):
             )
 
     return params
-
-
-def _get_task_slugs_from_name(flow, name):
-
-    return flow.get_tasks(name)
-
-
-def _get_task_slugs_from_run_name(flow_run, name):
-    return [
-        task.task_slug for task in flow_run.get_all_task_runs() if task.name == name
-    ]
