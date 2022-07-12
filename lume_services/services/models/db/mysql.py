@@ -13,7 +13,7 @@ from sqlalchemy.engine.base import Connection
 from typing import List
 
 from urllib.parse import quote_plus
-from lume_services.services.data.models.db.db import ModelDBConfig, ModelDB
+from lume_services.services.models.db.db import ModelDBConfig, ModelDB
 
 logger = logging.getLogger(__name__)
 

@@ -3,11 +3,11 @@ from typing import List, Optional
 from dependency_injector.wiring import Provide, inject
 
 from lume_services.config import Context
-from lume_services.services.data.results import ResultsDB
+from lume_services.services.results import ResultsDB
 from prefect.engine.results import PrefectResult
 from prefect import Task, Parameter
 
-from lume_services.data.results import get_result_from_string, Result
+from lume_services.results import get_result_from_string, Result
 from lume_services.utils import fingerprint_dict
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class LoadDBResult(Task):
         attribute_index: Optional[List[str]],
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ) -> Result:
-        """Load a result from the database using a lume_services.data.Result represention.
+        """Load a result from the database using a lume_services.Result represention.
 
         Args:
             result_rep (dict): Result representation containing result_type_string and

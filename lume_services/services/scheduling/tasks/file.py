@@ -4,10 +4,10 @@ from prefect import Task
 from typing import Any
 
 from lume_services.config import Context
-from lume_services.services.data.files import FileService
+from lume_services.services.files import FileService
 from prefect.engine.results import PrefectResult
 
-from lume_services.data.files import get_file_from_serializer_string
+from lume_services.files import get_file_from_serializer_string
 from lume_services.utils import fingerprint_dict
 
 

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from contextvars import ContextVar
 from contextlib import contextmanager
 
-from lume_services.services.data.results.db import (
+from lume_services.services.results.db import (
     ResultsDBConfig,
     ResultsDB,
 )

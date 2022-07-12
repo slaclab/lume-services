@@ -7,7 +7,7 @@ from prefect import Client, Flow, config as prefect_config
 from prefect.backend import FlowRunView
 from prefect.backend.flow_run import watch_flow_run
 
-from lume_services.services.data.files.service import FileService
+from lume_services.services.files.service import FileService
 
 from lume_services.services.scheduling.backends.backend import Backend
 
