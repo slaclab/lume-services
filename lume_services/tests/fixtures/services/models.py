@@ -3,8 +3,8 @@ import pymysql
 import logging
 from sqlalchemy import create_engine
 
-from lume_services.services.data.models.db.mysql import MySQLModelDB, MySQLModelDBConfig
-from lume_services.services.data.models.model_service import ModelDBService
+from lume_services.services.models.db.mysql import MySQLModelDB, MySQLModelDBConfig
+from lume_services.services.models.model_service import ModelDBService
 
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 

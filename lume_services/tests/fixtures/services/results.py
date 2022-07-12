@@ -1,12 +1,12 @@
 import pytest
-from lume_services.services.data.results import (
+from lume_services.services.results import (
     ResultsDBService,
     MongodbResultsDB,
     MongodbResultsDBConfig,
 )
 from pymongo import MongoClient
 
-from lume_services.data.results import get_collections
+from lume_services.results import get_collections
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 import logging

@@ -1,6 +1,6 @@
 import pytest
 
-from lume_services.services.data.files import FileService
+from lume_services.services.files import FileService
 
 
 @pytest.fixture(scope="session")
