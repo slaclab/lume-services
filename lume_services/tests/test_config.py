@@ -11,10 +11,13 @@ from lume_services.services.data.files.filesystems.mounted import MountedFilesys
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
+from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="class", autouse=True)
-def lume_service_settings(file_service, model_db_service, results_db_service):
+def lume_service_settings(
+    file_service, model_db_service, results_db_service, scheduling_service
+):
     return config.LUMEServicesSettings()
 
 
@@ -27,7 +30,7 @@ class TestLumeSettings:
         config.list_env_vars()
 
     def test_configure_from_env(
-        self, file_service, model_db_service, results_db_service
+        self, file_service, model_db_service, results_db_service, scheduling_service
     ):
         assert config.context is None
         config.configure()
@@ -141,13 +144,13 @@ class TestFileServiceInjection:
             filename=filepath,
             filesystem_identifier=local_filesystem_handler.identifier,
         )
-        text_file.write()
+        text_file.write(create_dir=True)
 
         new_text = text_file.read()
         assert new_text == text
 
     def test_file_service_injection_mounted(
-        self, mounted_filesystem_handler, configure
+        self, mounted_filesystem_handler, configure, fs
     ):
 
         filepath = f"{mounted_filesystem_handler.mount_alias}/tmp_file.txt"
@@ -157,7 +160,7 @@ class TestFileServiceInjection:
             filename=filepath,
             filesystem_identifier=mounted_filesystem_handler.identifier,
         )
-        text_file.write()
+        text_file.write(create_dir=True)
 
         assert mounted_filesystem_handler.file_exists(filepath)
 
