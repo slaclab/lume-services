@@ -3,11 +3,11 @@ import pytest
 from dependency_injector.containers import DynamicContainer
 from datetime import datetime
 
-from lume_services.data.results import (
+from lume_services.results import (
     Result,
     ImpactResult,
 )
-from lume_services.data.files import HDF5File, ImageFile
+from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.scheduling.tasks import (
     LoadDBResult,
@@ -17,7 +17,7 @@ from lume_services.services.scheduling.tasks import (
     configure_services,
 )
 from lume_services.tests.files import SAMPLE_TEXT_FILE
-from lume_services.data.files import TextFile
+from lume_services.files import TextFile
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
