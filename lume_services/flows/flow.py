@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.backend.flow import FlowView
-from typing import List, Optional, Dict, Literal
+from prefect.run_configs import RunConfig
+from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
 
 # Pydantic schema describing flow of flows composition
@@ -114,14 +115,13 @@ class FlowConfig(BaseModel):
 
 
 class FlowRunConfig(BaseModel):
-    flow: Optional[Flow]
-    #   parameters: ...
-    #   run_config: RunConfig
-    #   wait: ...
-    #   new_flow_context: ...
-    run_name: str = None
-    scheduled_start_time: datetime = None
+    flow_id: str
     poll_interval: timedelta = timedelta(seconds=10)
+    scheduled_start_time: Optional[datetime]
+    parameters: Optional[Dict[str, Any]]
+    run_config: Optional[RunConfig]
+    labels: Optional[List[str]]
+    run_name: Optional[str]
 
 
 def build_parameters(task, prefix: str = None):
