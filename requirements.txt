@@ -6,11 +6,12 @@ pandas
 pymongo
 click
 blinker
+prefect
 dependency_injector
 lume-base
 h5py
 sqlalchemy_schemadisplay
 graphviz
 pyyaml
-docker-py
+docker
 lume-base>=0.2.2
