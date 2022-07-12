@@ -1,5 +1,5 @@
 from typing import List, Any, Dict
-from lume_services.services.data.files.filesystems import Filesystem, MountedFilesystem
+from lume_services.services.files.filesystems import Filesystem, MountedFilesystem
 from lume.serializers.base import SerializerBase
 
 import logging
