@@ -4,6 +4,8 @@ from typing import List, Dict
 
 import logging
 
+from lume_services.utils import fingerprint_dict
+
 logger = logging.getLogger(__name__)
 
 # create map of type import path to type
@@ -45,3 +47,13 @@ def get_collections() -> Dict[str, List[str]]:
         collection_rep[collection] = collection_index
 
     return collection_rep
+
+
+def get_unique_hash(result_rep):
+    result_type = get_result_from_string(result_rep["result_type_string"])
+
+    unique_fields = result_type.__fields__["unique_on"].default
+
+    return fingerprint_dict(
+        {index: result_rep["query"][index] for index in unique_fields}
+    )
