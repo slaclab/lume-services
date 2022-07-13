@@ -35,4 +35,4 @@ jobs:
       - name: Run Tests
         shell: bash -l {0}
         run: |
-          pytest --cov-report term --cov=lume_services .
+          pytest --cov-report term --cov=lume_services
