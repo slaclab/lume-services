@@ -1,20 +1,25 @@
+from abc import abstractproperty
 from datetime import timedelta
-from typing import Optional, Dict, Any, List
+import warnings
+from typing import Optional, Dict, Any
 
-from pydantic import BaseModel, root_validator, Field
+from pydantic import BaseModel, Field
 
 from prefect import Client, Flow, config as prefect_config
+from prefect.run_configs import RunConfig as PrefectRunConfig
 from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
 
-from lume_services.services.files.service import FileService
-
-from lume_services.services.scheduling.backends.backend import Backend, RunConfig, TaskNotCompletedError, EmptyResultError
+from lume_services.services.scheduling.backends.backend import (
+    Backend,
+    RunConfig,
+    TaskNotCompletedError,
+    EmptyResultError,
+)
 
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class PrefectGraphQLConfig(BaseModel):
@@ -82,20 +87,34 @@ class PrefectConfig(BaseModel):
         prefect_config.server.telemetry.update(**self.telemetry.dict())
 
 
-# make this server and abstract more...
-class ServerRunConfig(RunConfig):
-    image: str
-
-
 class ServerBackend(Backend):
+    """Abstract backend used for connecting to a Prefect server.
+
+    Attributes:
+        config (PrefectConfig): Instantiated PrefectConfig object describing connection
+            to Prefect server.
+        default_image (str): Default image used for registering flow storage.
+        _client (Client): Prefect client connection created on instantiation.
+
+    """
+
     config: PrefectConfig
     default_image: str = Field(None, alias="image")
-
     _client: Client = Field(None, exclude=True)
-    run_config: ServerRunConfig
 
+    @abstractproperty
+    def run_config_type(self) -> PrefectRunConfig:
+        """Abstract property that must return the Prefect RunConfig type pertinent to
+        the Backend implementation.
+
+        """
+        ...
 
     def __init__(self, **data):
+        """Initialization instantiates the pydantic model, applies the
+        Prefect configuration, and initiazes the client connection.
+
+        """
         super().__init__(**data)
         # apply config
         self.config.apply()
@@ -103,11 +122,11 @@ class ServerBackend(Backend):
         self._client = Client()
 
     def register_flow(
-            self,
-            flow: Flow,
-            project_name: str,
-            image_tag: Optional[str],
-        ) -> str:
+        self,
+        flow: Flow,
+        project_name: str,
+        image_tag: Optional[str],
+    ) -> str:
         """Register a flow with Prefect.
 
         Args:
@@ -116,39 +135,66 @@ class ServerBackend(Backend):
             image_tag (str): Name of Docker image to run flow inside
 
         Returns:
-            ID of registered flow
+            str: ID of registered flow
 
         """
         if not image_tag:
             image_tag = self.default_image_tag
-        
+
         flow.storage.image_tag = image_tag
         flow_id = flow.register(project_name=project_name)
 
         return flow_id
 
-    def load_flow(self, name, project_name):
-        return FlowView.from_flow_name(
-            name, project_name=project_name, last_updated=True
-        ).flow
+    def load_flow(self, flow_name: str, project_name: str):
+        """Load a Prefect flow object.
 
+        Args:
+            flow_name (str): Name of flow.
+            project_name (str): Name of project flow is registered with.
+
+        Returns:
+            Flow: Prefect Flow object.
+
+        """
+        return FlowView.from_flow_name(
+            flow_name, project_name=project_name, last_updated=True
+        ).flow
 
     def run(
         self,
         flow_id: str,
-        data: dict = None,
+        data: Optional[Dict[str, Any]],
+        run_config: Optional[RunConfig],
         **kwargs
     ) -> str:
-        """Schedule a run for a flow.
+        """Create a flow run for a flow.
 
         Args:
             flow_id (str): Flow identifier
-            data (dict): Dictionary mapping flow parameter to value
-            resource_requests (dict): Dictionary representative of resource request
+            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
+                value
+            run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             **kwargs: Prefect run config kwargs
 
+        Returns:
+            str: ID of flow run
+
+        Raises:
+            pydantic.errors.ClientError: if the GraphQL query is bad for any reason
+
         """
-        run_config = self.run_config.copy(update=kwargs)
+        if run_config is not None and len(kwargs):
+            warnings.warn(
+                "Both run_config and kwargs passed to Backend.run. Flow\
+                will execute using passed run_config."
+            )
+
+        # convert LUME-services run config to appropriate Prefect RunConfig object
+        if run_config is None:
+            run_config = self.run_config_type(**kwargs)
+        else:
+            run_config = self.run_config_type(**self.dict(exclude_none=True))
 
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=run_config
@@ -159,25 +205,37 @@ class ServerBackend(Backend):
     def run_and_return(
         self,
         flow_id: str,
+        run_config: Optional[RunConfig],
         task_slug: Optional[str],
         data: Optional[Dict[str, Any]],
         timeout: timedelta = timedelta(minutes=1),
         cancel_on_timeout: bool = True,
         **kwargs
     ):
-        """
+        """Create a flow run for a flow and return the result.
 
         Args:
-            flow_id (str):
-            project_name (str):
-            task_slug (str): Slug of task to return
+            flow_id (str): ID of flow to run.
+            task_slug (Optional[str]): Slug of task to return result. If no task slug
+                is passed, will return the flow result.
             data (dict): Dictionary mapping flow parameter name to value
-            timeout ()
-            cancel_on_timeout (bool=True): Whether to cancel execution on timeout error.
+            timeout (timedelta): Time before stopping flow execution.
+            cancel_on_timeout (bool=True): Whether to cancel execution on timeout
+                error.
             **kwargs: Prefect run config kwargs
+
+        Raises:
+            pydantic.errors.ClientError: if the GraphQL query is bad for any reason
+            lume_services.errors.EmptyResultError: No result is associated with the
+                flow.
+
         """
 
-        run_config = self.run_config.copy(update=kwargs)
+        # convert LUME-services run config to appropriate Prefect RunConfig object
+        if run_config is None:
+            run_config = self.run_config_type(**kwargs)
+        else:
+            run_config = self.run_config_type(**self.dict(exclude_none=True))
 
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=run_config
