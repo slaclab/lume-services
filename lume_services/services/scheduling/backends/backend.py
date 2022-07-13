@@ -23,7 +23,11 @@ class RunConfig(BaseModel):
 
 
 class Backend(BaseModel, ABC):
-    """Abstract base class for Prefect backends."""
+    """Abstract base class for Prefect backends. Backends handle Prefect interactions
+    including running of flows, result handling, and flow registration with server
+    backends.
+
+    """
 
     @abstractmethod
     def register_flow(
@@ -36,12 +40,12 @@ class Backend(BaseModel, ABC):
         should raise errors when this method is called.
 
         Args:
-            flow (Flow): Prefect flow to register
-            project_name (str): Name of project to register flow to
-            image_tag (str): Name of Docker image to run flow inside
+            flow (Flow): Prefect flow to register.
+            project_name (str): Name of project to register flow to.
+            image_tag (str): Name of Docker image to run flow inside.
 
         Returns:
-            str: ID of registered flow
+            str: ID of registered flow.
 
         """
         ...
@@ -52,11 +56,11 @@ class Backend(BaseModel, ABC):
         should raise errors when this method is called.
 
         Args:
-            flow_name (str): Name of flow
-            project_name (str): Name of project flow is registered with
+            flow_name (str): Name of flow.
+            project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object
+            Flow: Prefect Flow object.
 
         """
         ...
