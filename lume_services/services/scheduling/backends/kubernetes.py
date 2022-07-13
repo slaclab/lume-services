@@ -4,7 +4,6 @@ import logging
 
 from prefect.run_configs import KubernetesRun
 
-from lume_services.files import YAMLFile
 from lume_services.services.scheduling.backends.backend import RunConfig
 from lume_services.services.scheduling.backends.server import ServerBackend
 
@@ -40,9 +39,7 @@ class KubernetesRunConfig(RunConfig):
             job_template field. Otherwise the job template will be loaded at runtime
             on the agent. Supported runtime file schemes include (s3, gcs, and agent
             (for paths local to the runtime agent)).
-        job_template (Optional[str]): An in-memory job template to use. Can be either
-            be passed as a YAML string or representation lume_services.files.YAMLFile
-            object.
+        job_template (Optional[str]): An in-memory job template to use.
         cpu_limit (Union[float, str]): The CPU limit to use for the job
         cpu_request (Union[float, str]): The CPU request to use for the job
         memory_limit (Optional[str]): The memory limit to use for the job
@@ -67,13 +64,6 @@ class KubernetesRunConfig(RunConfig):
     cpu_request: Union[float, str] = 0.5
     memory_limit: Union[str, int] = None
     memory_request: Union[str, int] = None
-
-    @validator("job_template", pre=True)
-    def validate_job_template(cls, v):
-        if isinstance(v, (YAMLFile,)):
-            v = v.read()
-
-        return v
 
     @validator("memory_limit", "memory_request")
     def validate_memory(cls, v):
