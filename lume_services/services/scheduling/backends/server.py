@@ -218,7 +218,8 @@ class ServerBackend(Backend):
             flow_id (str): ID of flow to run.
             task_slug (Optional[str]): Slug of task to return result. If no task slug
                 is passed, will return the flow result.
-            data (dict): Dictionary mapping flow parameter name to value
+            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
+                value
             timeout (timedelta): Time before stopping flow execution.
             cancel_on_timeout (bool=True): Whether to cancel execution on timeout
                 error.
