@@ -1,11 +1,11 @@
 from pydantic import BaseModel, validator
 from prefect.run_configs import KubernetesRun
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Literal
 import logging
 
 from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
 
-from lume_services.services.scheduling.backends import Backend
+from lume_services.services.scheduling.backends import Backend, ServerRunConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +25,28 @@ KUBERNETES_REQUEST_SUFFIXES = [
 ]
 
 
-class KubernetesCPURequest(BaseModel):
-    limit: float = 1.0
-    request: float = 0.5
+class KubernetesRunConfig(ServerRunConfig):
+    image_pull_secrets: Optional[List[str]]
+    job_template: ... YAMLFile...
+    job_template_path: ...
+    service_account_name: ...
+    image_pull_policy: Literal["Always", "IfNotPresent", "Never"] = "IfNotPresent"
+    cpu_limit: float = 1.0
+    cpu_request: float = 0.5
+    memory_limit: Union[str, int] = None
+    memory_request: Union[str, int] = None
 
 
-class KubernetesMemoryRequest(BaseModel):
-    limit: Union[str, int] = None
-    request: Union[str, int] = None
+    # VALIDATE JOB TEMPLATE
+    # job_template = file_service.read(
+    #        self.config.job_template.filesystem_identifier,
+    #        self.config.job_template.filepath,
+    #        YAMLSerializer,
+    #    )
 
-    @validator("limit", "request")
-    def validate_request(cls, v):
+
+    @validator("memory_limit", "memory_request")
+    def validate_memory(cls, v):
         """Validate w.r.t. Kubernetes resource formats: int, fixed-point number using
         quantity suffixes: E, P, T, G, M, k or power-of-two equivalents: Ei, Pi,
         Ti, Gi, Mi, Ki
@@ -76,59 +87,6 @@ class KubernetesMemoryRequest(BaseModel):
         return v
 
 
-class KubernetesResourceRequest(BaseModel):
-    # for implementing device resources check
-    # https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/
-    cpu: KubernetesCPURequest = KubernetesCPURequest()
-    memory: KubernetesMemoryRequest = KubernetesMemoryRequest()
-
-
-class KubernetesJobTemplate(BaseModel):
-    filepath: str = KUBERNETES_JOB_TEMPLATE_FILE
-    filesystem_identifier: str
-    job_template: dict
-
-    # VALIDATE JOB TEMPLATE
-    # job_template = file_service.read(
-    #        self.config.job_template.filesystem_identifier,
-    #        self.config.job_template.filepath,
-    #        YAMLSerializer,
-    #    )
-
-
-class KubernetesRunConfig(BaseModel):
-    resource_request: Optional[KubernetesResourceRequest]
-    env: Optional[Dict[str, str]]
-    image: Optional[str]
-    image_pull_secrets: Optional[List[str]]
-
-
-#   labels: Optional[List[str]]
-#   service_account_name = Optional[str]
-
-
 class KubernetesBackend(Backend):
-    job_template: KubernetesJobTemplate = None
-    image_pull_policy: str = "IfNotPresent"  # Always, IfNotPresent, Never
-
-    # default image
-    default_image: str = None
-
-    def get_run_config(
-        self,
-        run_config: KubernetesRunConfig,
-    ):
-
-        return KubernetesRun(
-            image_pull_policy=self.image_pull_policy,
-            image=self.image,
-            cpu_limit=run_config.resource_request.cpu.limit,
-            cpu_request=run_config.resource_request.cpu.request,
-            memory_limit=run_config.resource_request.memory.limit,
-            memory_request=run_config.resource_request.memory.request,
-            image_pull_secrets=run_config.image_pull_secrets,
-            env=run_config.env,
-            job_template=run_config.job_template,
-            # labels = run_config.labels,
-            # service_account_name = run_config.service_account_name
-        )
+    run_config: KubernetesRunConfig
+    ...

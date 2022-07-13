@@ -28,14 +28,20 @@ class LocalRunConfig(BaseModel):
     #    if not file_service.dir_exists("local", self.working_dir):
     #        raise FileNotFoundError(f"Directory {self.working_dir} does not exist.")
 
-
+    # only need to use the local filesystem
 #    labels: Optional[List[str]]
 
 
 class LocalBackend(Backend):
-    def get_run_config(
-        self,
-        run_config: LocalRunConfig,
-    ):
+    run_config: LocalRunConfig
 
-        return LocalRun(**run_config)
+    def run(self):
+        ...
+
+    def run_and_return(self):
+        ...
+
+
+    def _validate_flow(self):
+        ...
+        # check not a flow_of_flows
