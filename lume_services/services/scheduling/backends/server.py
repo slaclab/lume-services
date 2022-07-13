@@ -194,7 +194,7 @@ class ServerBackend(Backend):
         if run_config is None:
             run_config = self.run_config_type(**kwargs)
         else:
-            run_config = self.run_config_type(**self.dict(exclude_none=True))
+            run_config = self.run_config_type(**run_config.dict(exclude_none=True))
 
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=run_config
@@ -236,7 +236,7 @@ class ServerBackend(Backend):
         if run_config is None:
             run_config = self.run_config_type(**kwargs)
         else:
-            run_config = self.run_config_type(**self.dict(exclude_none=True))
+            run_config = self.run_config_type(**run_config.dict(exclude_none=True))
 
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=run_config
