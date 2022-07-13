@@ -74,7 +74,7 @@ class Backend(BaseModel, ABC):
 
         Args:
             data (Dict[str, Any]): Dictionary mapping parameter name to value.
-            timeout (timedelta): Time before stopping flow execution.
+            run_config (RunConfig): RunConfig object to configure flow fun.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
 
@@ -90,6 +90,7 @@ class Backend(BaseModel, ABC):
         self,
         data: Optional[Dict[str, Any]],
         timeout: timedelta = timedelta(minutes=1),
+        run_config: RunConfig = None,
         **kwargs
     ) -> Any:
         """Run a flow and return result. Implementations should cover instantiation of
@@ -97,6 +98,7 @@ class Backend(BaseModel, ABC):
 
         Args:
             data (Dict[str, Any]): Dictionary mapping parameter name to value.
+            run_config (RunConfig): RunConfig object to configure flow fun.
             timeout (timedelta): Time before stopping flow execution.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
