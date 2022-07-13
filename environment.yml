@@ -24,6 +24,7 @@ dependencies:
 
 # Developer
   - pytest
+  - pytest-cov
   - pre-commit
   - flake8
   - lume-impact
