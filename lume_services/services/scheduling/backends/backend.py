@@ -1,41 +1,108 @@
-from pydantic import BaseModel
-#from prefect.run_configs import RunConfig
-from typing import Literal, Optional, List
 from abc import ABC, abstractmethod
+from datetime import timedelta
+from typing import Optional, Iterable, Dict, Any, Union
+from prefect import Flow
+from pydantic import BaseModel
+
 
 class RunConfig(BaseModel):
-    labels: List[str] = []
+    """Pydantic representation of Prefect UniversalRunConfig:
+    https://docs.prefect.io/api/latest/run_configs.html#universalrun
+
+
+    Attributes:
+        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+            config. Labels are string identifiers used by Prefect Agents for selecting
+            valid flow runs when polling for work
+        env (Optional[dict]): Additional environment variables to set on the job
+
+    """
+
+    labels: Optional[Iterable[str]]
     env: Optional[dict]
 
 
+class Backend(BaseModel, ABC):
+    """Abstract base class for Prefect backends."""
 
-class Backend(BaseModel):
-    backend_type: Literal["server", "cloud"] = "server"
+    @abstractmethod
+    def register_flow(
+        self,
+        flow: Flow,
+        project_name: str,
+        image_tag: Optional[str],
+    ) -> str:
+        """Register a flow with Prefect. Backend implementations without server connecton
+        should raise errors when this method is called.
 
-class TaskNotCompletedError(Exception):
-    def __init__(self, task_slug: str, flow_id: str, flow_run_id: str):
-        self.flow_id = flow_id
-        self.flow_run_id = flow_run_id
-        self.task_slug = task_slug
-        self.message = (
-            "Task with slug: %s not completed for flow_run_id: %s, flow_id: %s."
-        )
-        super().__init__(self.message, self.task_slug, self.flow_run_id, self.flow_id)
+        Args:
+            flow (Flow): Prefect flow to register
+            project_name (str): Name of project to register flow to
+            image_tag (str): Name of Docker image to run flow inside
 
+        Returns:
+            str: ID of registered flow
 
-class EmptyResultError(Exception):
-    def __init__(self, flow_id: str, flow_run_id: str, task_slug: Optional[str]):
-        self.flow_id = flow_id
-        self.flow_run_id = flow_run_id
-        self.task_slug = task_slug
-        if not self.task_slug:
-            self.message = (
-                "Task with slug: %s for flow run: %s of flow_id: %s has no result."
-            )
-            super().__init__(
-                self.message, self.task_slug, self.flow_run_id, self.flow_id
-            )
+        """
+        ...
 
-        else:
-            self.message = "Flow run: %s of flow_id: %s has no result."
-            super().__init__(self.message, self.flow_run_id, flow_id)
+    @abstractmethod
+    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+        """Load a Prefect flow object. Backend implementations without server connecton
+        should raise errors when this method is called.
+
+        Args:
+            flow_name (str): Name of flow
+            project_name (str): Name of project flow is registered with
+
+        Returns:
+            Flow: Prefect Flow object
+
+        """
+        ...
+
+    @abstractmethod
+    def run(
+        self, data: dict = None, run_config: RunConfig = None, **kwargs
+    ) -> Union[str, None]:
+        """Run a flow. Does not return result. Implementations should cover instantiation
+        of run_config from kwargs as well as backend-specific kwargs.
+
+        Args:
+            data (Dict[str, Any]): Dictionary mapping parameter name to value.
+            timeout (timedelta): Time before stopping flow execution.
+            **kwargs: Keyword arguments for RunConfig init and backend-specific
+                execution.
+
+        Returns:
+            Union[str, None]: Return run_id in case of server backend, None in the case
+                of local execution.
+
+        """
+        ...
+
+    @abstractmethod
+    def run_and_return(
+        self,
+        data: Optional[Dict[str, Any]],
+        timeout: timedelta = timedelta(minutes=1),
+        **kwargs
+    ) -> Any:
+        """Run a flow and return result. Implementations should cover instantiation of
+        run_config from kwargs as well as backend-specific kwargs.
+
+        Args:
+            data (Dict[str, Any]): Dictionary mapping parameter name to value.
+            timeout (timedelta): Time before stopping flow execution.
+            **kwargs: Keyword arguments for RunConfig init and backend-specific
+                execution.
+
+        Returns:
+            Any: Result of flow run.
+
+        Raises:
+            lume_services.errors.EmptyResultError: No result is associated with the
+                flow.
+
+        """
+        ...
