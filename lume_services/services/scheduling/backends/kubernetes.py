@@ -1,11 +1,12 @@
-from pydantic import BaseModel, validator
-from prefect.run_configs import KubernetesRun
-from typing import List, Optional, Dict, Union, Literal
+from pydantic import validator, Field
+from typing import List, Optional, Union, Literal
 import logging
 
-from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
+from prefect.run_configs import KubernetesRun
 
-from lume_services.services.scheduling.backends import Backend, ServerRunConfig
+from lume_services.files import YAMLFile
+from lume_services.services.scheduling.backends.backend import RunConfig
+from lume_services.services.scheduling.backends.server import ServerBackend
 
 logger = logging.getLogger(__name__)
 
@@ -25,25 +26,54 @@ KUBERNETES_REQUEST_SUFFIXES = [
 ]
 
 
-class KubernetesRunConfig(ServerRunConfig):
+class KubernetesRunConfig(RunConfig):
+    """Pydantic representation of args to:
+    https://docs.prefect.io/api/latest/run_configs.html#kubernetesrun
+    https://kubernetes.io/docs/concepts/configuration/overview/#container-images
+
+    Attributes:
+        image (Optional[str]): The image to use. Can also be specified via job
+            template.
+        job_template_path (Optional[str]): Path to a job template to use. If a local
+            path (no file scheme, or a file/local scheme), the job template will be
+            loaded on initialization and stored on the KubernetesRun object as the
+            job_template field. Otherwise the job template will be loaded at runtime
+            on the agent. Supported runtime file schemes include (s3, gcs, and agent
+            (for paths local to the runtime agent)).
+        job_template (Optional[str]): An in-memory job template to use. Can be either
+            be passed as a YAML string or representation lume_services.files.YAMLFile
+            object.
+        cpu_limit (Union[float, str]): The CPU limit to use for the job
+        cpu_request (Union[float, str]): The CPU request to use for the job
+        memory_limit (Optional[str]): The memory limit to use for the job
+        memory_request (Optional[str]): The memory request to use for the job
+        service_account_name (Optional[str]): A service account name to use for this
+            job. If present, overrides any service account configured on the agent or
+            in the job template.
+        image_pull_secrets (Optional[list]): A list of image pull secrets to use for
+            this job. If present, overrides any image pull secrets configured on the
+            agent or in the job template.
+        image_pull_policy (Optional[str]): The imagePullPolicy to use for the job.
+
+    """
+
+    image: Optional[str]
     image_pull_secrets: Optional[List[str]]
-    job_template: ... YAMLFile...
-    job_template_path: ...
-    service_account_name: ...
+    job_template: Optional[dict]
+    job_template_path: Optional[str]
+    service_account_name: str
     image_pull_policy: Literal["Always", "IfNotPresent", "Never"] = "IfNotPresent"
-    cpu_limit: float = 1.0
-    cpu_request: float = 0.5
+    cpu_limit: Union[float, str] = 1.0
+    cpu_request: Union[float, str] = 0.5
     memory_limit: Union[str, int] = None
     memory_request: Union[str, int] = None
 
+    @validator("job_template", pre=True)
+    def validate_job_template(cls, v):
+        if isinstance(v, (YAMLFile,)):
+            v = v.read()
 
-    # VALIDATE JOB TEMPLATE
-    # job_template = file_service.read(
-    #        self.config.job_template.filesystem_identifier,
-    #        self.config.job_template.filepath,
-    #        YAMLSerializer,
-    #    )
-
+        return v
 
     @validator("memory_limit", "memory_request")
     def validate_memory(cls, v):
@@ -87,6 +117,16 @@ class KubernetesRunConfig(ServerRunConfig):
         return v
 
 
-class KubernetesBackend(Backend):
+class KubernetesBackend(ServerBackend):
+    """Implementation of Backend used for interacting with Prefect deployed in
+    K8 cluster.
+
+
+    """
+
     run_config: KubernetesRunConfig
-    ...
+    _run_config_type: type = Field(KubernetesRun, exclude=True)
+
+    @property
+    def run_config_type(self):
+        return self._run_config_type
