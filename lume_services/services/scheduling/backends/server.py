@@ -186,7 +186,7 @@ class ServerBackend(Backend):
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            **kwargs: Prefect run config kwargs
+            **kwargs: Keyword arguments to intantiate the RunConfig.
 
         Returns:
             str: ID of flow run
@@ -235,7 +235,7 @@ class ServerBackend(Backend):
             timeout (timedelta): Time before stopping flow execution.
             cancel_on_timeout (bool=True): Whether to cancel execution on timeout
                 error.
-            **kwargs: Prefect run config kwargs
+            **kwargs: Keyword arguments to intantiate the RunConfig.
 
         Raises:
             pydantic.errors.ClientError: if the GraphQL query is bad for any reason
