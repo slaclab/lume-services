@@ -1,18 +1,18 @@
 from prefect import Flow
-from pydantic import BaseModel, validator
+from pydantic import validator
 from prefect.run_configs import LocalRun
 from typing import Optional, Dict, Any
 import logging
 import warnings
 import os
 
-from lume_services.services.scheduling.backends import Backend
+from lume_services.services.scheduling.backends import Backend, RunConfig
 from lume_services.errors import EmptyResultError, LocalBackendError, TaskNotInFlowError
 
 logger = logging.getLogger(__name__)
 
 
-class LocalRunConfig(BaseModel):
+class LocalRunConfig(RunConfig):
     """Local run configuration. If no directory is found at the filepath passed as
     working_dir, an error will be raised.
 
@@ -33,6 +33,15 @@ class LocalRunConfig(BaseModel):
             raise FileNotFoundError("No directory found at %s", v)
 
         return v
+
+    def build(self) -> LocalRun:
+        """Method for converting to Prefect RunConfig type LocalRun.
+
+        Returns:
+            LocalRun
+
+        """
+        return LocalRun(self.dict(exclude_none=True))
 
 
 class LocalBackend(Backend):
@@ -56,10 +65,10 @@ class LocalBackend(Backend):
 
         Args:
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+                value.
             run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure
                 flow fun.
-            flow (Flow): Prefect flow to execute
+            flow (Flow): Prefect flow to execute.
             **kwargs: Keyword arguments to intantiate the LocalRunConfig.
 
         """
@@ -74,10 +83,10 @@ class LocalBackend(Backend):
             run_config = LocalRunConfig(**kwargs)
 
         # convert to Prefect LocalRun
-        run_config = LocalRun(**run_config.dict(exclude_none=True))
+        prefect_run_config = run_config.build()
 
         # apply run config
-        flow.run_config = run_config
+        flow.run_config = prefect_run_config
         flow.run(parameters=data)
 
     def run_and_return(
@@ -100,15 +109,20 @@ class LocalBackend(Backend):
                 is passed, will return the flow result.
 
         """
+        if run_config is not None and len(kwargs):
+            warnings.warn(
+                "Both run_config and kwargs passed to LocalBackend.run. Flow\
+                will execute using passed run_config."
+            )
 
         if run_config is None:
             run_config = LocalRunConfig(**kwargs)
 
         # convert to Prefect LocalRun
-        run_config = LocalRun(**run_config.dict(exclude_none=True))
+        prefect_run_config = run_config.build()
 
         # apply run config
-        flow.run_config = run_config
+        flow.run_config = prefect_run_config
         flow_run = flow.run(parameters=data)
 
         result = flow_run.result

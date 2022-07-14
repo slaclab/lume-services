@@ -106,16 +106,29 @@ class KubernetesRunConfig(RunConfig):
 
         return v
 
+    def build(self) -> KubernetesRun:
+        """Method for converting to Prefect RunConfig type KubernetesRun.
+
+        Returns:
+            KubernetesRun
+
+        """
+        return KubernetesRun(self.dict(exclude_none=True))
+
 
 class KubernetesBackend(ServerBackend):
     """Implementation of Backend used for interacting with Prefect deployed in
     K8 cluster.
 
+    Attributes:
+        config (PrefectConfig): Instantiated PrefectConfig object describing connection
+            to Prefect server.
+        _client (Client): Prefect client connection created on instantiation.
+        _run_config_type (type): Type used to compose run configuration.
 
     """
 
-    run_config: KubernetesRunConfig
-    _run_config_type: type = Field(KubernetesRun, exclude=True)
+    _run_config_type: type = Field(KubernetesRunConfig, exclude=True)
 
     @property
     def run_config_type(self):

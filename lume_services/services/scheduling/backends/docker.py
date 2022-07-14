@@ -46,16 +46,29 @@ class DockerRunConfig(RunConfig):
         else:
             return v
 
+    def build(self) -> DockerRun:
+        """Method for converting to Prefect RunConfig type DockerRun.
+
+        Returns:
+            DockerRun
+
+        """
+        return DockerRun(self.dict(exclude_none=True))
+
 
 class DockerBackend(ServerBackend):
     """Implementation of Backend used for interacting with prefect deployed in
     cluster of Docker containers, as with docker-compose.
 
+    Attributes:
+        config (PrefectConfig): Instantiated PrefectConfig object describing connection
+            to Prefect server.
+        _client (Client): Prefect client connection created on instantiation.
+        _run_config_type (type): Type used to compose Prefect run configuration.
 
     """
 
-    run_config: DockerRunConfig
-    _run_config_type: type = Field(DockerRun, exclude=True)
+    _run_config_type: type = Field(DockerRunConfig, exclude=True)
 
     @property
     def run_config_type(self):

@@ -110,6 +110,8 @@ class ServerBackend(Backend):
         """
         ...
 
+    # abstractmethod _build_run_config
+
     def __init__(self, **data):
         """Initialization instantiates the pydantic model, applies the
         Prefect configuration, and initiazes the client connection.
@@ -202,11 +204,11 @@ class ServerBackend(Backend):
         # convert LUME-services run config to appropriate Prefect RunConfig object
         if run_config is None:
             run_config = self.run_config_type(**kwargs)
-        else:
-            run_config = self.run_config_type(**run_config.dict(exclude_none=True))
+
+        prefect_run_config = run_config.build()
 
         flow_run_id = self._client.create_flow_run(
-            flow_id=flow_id, parameters=data, run_config=run_config
+            flow_id=flow_id, parameters=data, run_config=prefect_run_config
         )
 
         return flow_run_id
@@ -241,19 +243,25 @@ class ServerBackend(Backend):
                 flow.
 
         """
+        if run_config is not None and len(kwargs):
+            warnings.warn(
+                "Both run_config and kwargs passed to Backend.run. Flow\
+                will execute using passed run_config."
+            )
 
         # convert LUME-services run config to appropriate Prefect RunConfig object
         if run_config is None:
             run_config = self.run_config_type(**kwargs)
-        else:
-            run_config = self.run_config_type(**run_config.dict(exclude_none=True))
+
+        prefect_run_config = run_config.build()
 
         flow_run_id = self._client.create_flow_run(
-            flow_id=flow_id, parameters=data, run_config=run_config
+            flow_id=flow_id, parameters=data, run_config=prefect_run_config
         )
 
         flow_run = FlowRunView.from_flow_run_id(flow_run_id)
 
+        # watch flow run and stream logs until timeout
         try:
             watch_flow_run(flow_run_id, stream_logs=True, max_duration=timeout)
         except RuntimeError as err:

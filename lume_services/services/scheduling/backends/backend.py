@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Iterable, Dict, Any, Union
 from prefect import Flow
+from prefect.run_configs import RunConfig as PrefectRunConfig
 from pydantic import BaseModel
 
 
-class RunConfig(BaseModel):
+class RunConfig(BaseModel, ABC):
     """Pydantic representation of Prefect UniversalRunConfig:
     https://docs.prefect.io/api/latest/run_configs.html#universalrun
 
@@ -19,6 +20,16 @@ class RunConfig(BaseModel):
 
     labels: Optional[Iterable[str]]
     env: Optional[dict]
+
+    @abstractmethod
+    def build(self) -> PrefectRunConfig:
+        """Method for converting object to Prefect RunConfig type.
+
+        Returns:
+            PrefectRunConfig
+
+        """
+        ...
 
 
 class Backend(BaseModel, ABC):
