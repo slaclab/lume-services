@@ -258,7 +258,7 @@ def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 
 class CallableModel(BaseModel):
     callable: Callable
-    signature: BaseModel
+    signature: SignatureModel
 
     class Config:
         arbitrary_types_allowed = True
