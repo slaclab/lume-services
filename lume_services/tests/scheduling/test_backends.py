@@ -120,6 +120,12 @@ class TestRunConfigs:
             logger.error("Error using api version %s", docker_api_version)
             raise e
 
+        prefect_run_config = run_config.build()
+
+        assert isinstance(prefect_run_config, (DockerRun,))
+        assert all([label in prefect_run_config.labels for label in run_config.labels])
+        assert prefect_run_config.env == run_config.env
+
     def test_docker_run_config_latest_api(self):
 
         # check failure on faulty values
@@ -180,9 +186,19 @@ class TestRunConfigs:
     @pytest.mark.skip()
     def test_kubernetes_run_config(self):
 
-        ...
+        # test construction w/o job template
+        run_config = KubernetesRunConfig(
+            labels=self.labels,
+            env=self.env,
+        )
+        prefect_run_config = run_config.build()
+
+        assert isinstance(prefect_run_config, (KubernetesRun,))
+        assert all([label in prefect_run_config.labels for label in run_config.labels])
+        assert prefect_run_config.env == run_config.env
 
         # packaged yaml should be applied in case of missing job template and path
+        assert run_config.job_template is not None
 
 
 @pytest.mark.skip()
