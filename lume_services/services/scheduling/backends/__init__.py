@@ -1,4 +1,4 @@
-from .backend import Backend
+from .backend import Backend, RunConfig
 from .kubernetes import (
     KubernetesBackend,
     KubernetesRunConfig,
