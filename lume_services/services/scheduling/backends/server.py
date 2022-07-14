@@ -121,6 +121,15 @@ class ServerBackend(Backend):
         # create client
         self._client = Client()
 
+    def create_project(self, project_name: str) -> None:
+        """Create a Prefect project.
+
+        Args:
+            project_name (str): Create a named Prefect project.
+
+        """
+        self._client.create_project(project_name=project_name)
+
     def register_flow(
         self,
         flow: Flow,
@@ -204,10 +213,10 @@ class ServerBackend(Backend):
 
     def run_and_return(
         self,
-        flow_id: str,
+        data: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
         task_slug: Optional[str],
-        data: Optional[Dict[str, Any]],
+        flow_id: str,
         timeout: timedelta = timedelta(minutes=1),
         cancel_on_timeout: bool = True,
         **kwargs
@@ -215,11 +224,12 @@ class ServerBackend(Backend):
         """Create a flow run for a flow and return the result.
 
         Args:
-            flow_id (str): ID of flow to run.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
-                is passed, will return the flow result.
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
+            run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
+            task_slug (Optional[str]): Slug of task to return result. If no task slug
+                is passed, will return the flow result.
+            flow_id (str): ID of flow to run.
             timeout (timedelta): Time before stopping flow execution.
             cancel_on_timeout (bool=True): Whether to cancel execution on timeout
                 error.
@@ -261,7 +271,7 @@ class ServerBackend(Backend):
             if res is None:
                 raise EmptyResultError(flow_id, flow_run_id, task_slug)
 
-        # assume flow result
+        # assume flow result, return all results
         else:
             if not flow_run.state._result:
                 raise EmptyResultError(flow_id, flow_run_id)

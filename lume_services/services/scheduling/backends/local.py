@@ -40,30 +40,26 @@ class LocalBackend(Backend):
     calls requiring registration with the Prefect server.
 
     Attributes:
-        run_config (LocalRunConfig): Default configuration object for a given run.
+        run_config (Optional[LocalRunConfig]): Default configuration object for a given
+            run.
 
     """
 
-    run_config_type: LocalRun
-
     def run(
         self,
-        flow: Flow,
         data: Dict[str, Any],
         run_config: Optional[LocalRunConfig],
-        task_slug: Optional[str],
+        flow: Flow,
         **kwargs
     ) -> None:
         """Run flow execution. Does not return result.
 
         Args:
-            flow (Flow): Prefect flow to execute
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
-            run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
-                is passed, will return the flow result.
-            timeout (timedelta): Time before stopping flow execution.
+            run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure
+                flow fun.
+            flow (Flow): Prefect flow to execute
             **kwargs: Keyword arguments to intantiate the LocalRunConfig.
 
         """
@@ -82,16 +78,14 @@ class LocalBackend(Backend):
 
         # apply run config
         flow.run_config = run_config
-
-        # MISSING apply run config
         flow.run(parameters=data)
 
     def run_and_return(
         self,
-        flow: Flow,
         data: Dict[str, Any],
         run_config: Optional[LocalRunConfig],
         task_slug: Optional[str],
+        flow: Flow,
         **kwargs
     ) -> Any:
         """Run flow execution and return result.
@@ -100,10 +94,10 @@ class LocalBackend(Backend):
             flow (Flow): Prefect flow to execute.
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value.
-            run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
+            run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure
+                flow fun.
             task_slug (Optional[str]): Slug of task to return result. If no task slug
                 is passed, will return the flow result.
-            timeout (timedelta): Time before stopping flow execution.
 
         """
 
@@ -139,7 +133,7 @@ class LocalBackend(Backend):
                 slug: result[task].result for slug, task in slug_to_task_map.items()
             }
 
-    def register_flow(self, *args, **kwargs):
+    def create_project(self, *args, **kwargs) -> None:
         """Raise LocalBackendError for calls to register_flow server-type method.
 
         Raises:
@@ -148,7 +142,16 @@ class LocalBackend(Backend):
         """
         raise LocalBackendError
 
-    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+    def register_flow(self, *args, **kwargs) -> None:
+        """Raise LocalBackendError for calls to register_flow server-type method.
+
+        Raises:
+            LocalBackendError
+
+        """
+        raise LocalBackendError
+
+    def load_flow(self, *args, **kwargs) -> None:
         """Raise LocalBackendError for calls to load_flow server-type method.
 
         Raises:

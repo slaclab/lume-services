@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from datetime import timedelta
 from typing import Optional, Iterable, Dict, Any, Union
 from prefect import Flow
 from pydantic import BaseModel
@@ -28,6 +27,17 @@ class Backend(BaseModel, ABC):
     backends.
 
     """
+
+    @abstractmethod
+    def create_project(self, project_name: str) -> None:
+        """Create a Prefect project. Backend implementations without server connecton
+        should raise errors when this method is called.
+
+        Args:
+            project_name (str): Create a named Prefect project.
+
+        """
+        ...
 
     @abstractmethod
     def register_flow(
@@ -98,7 +108,6 @@ class Backend(BaseModel, ABC):
         data: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
         task_slug: Optional[str],
-        timeout: timedelta = timedelta(minutes=1),
         **kwargs
     ) -> Any:
         """Run a flow and return result. Implementations should cover instantiation of
@@ -110,7 +119,6 @@ class Backend(BaseModel, ABC):
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             task_slug (Optional[str]): Slug of task to return result. If no task slug
                 is passed, will return the flow result.
-            timeout (timedelta): Time before stopping flow execution.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
 
