@@ -64,7 +64,7 @@ class KubernetesRunConfig(RunConfig):
     image_pull_secrets: Optional[List[str]]
     job_template: Optional[dict]
     job_template_path: Optional[str]
-    service_account_name: str
+    service_account_name: Optional[str]
     image_pull_policy: Literal["Always", "IfNotPresent", "Never"] = "IfNotPresent"
     cpu_limit: Union[float, str] = 1.0
     cpu_request: Union[float, str] = 0.5
