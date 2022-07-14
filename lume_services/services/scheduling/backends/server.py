@@ -10,12 +10,8 @@ from prefect.run_configs import RunConfig as PrefectRunConfig
 from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
 
-from lume_services.services.scheduling.backends.backend import (
-    Backend,
-    RunConfig,
-    TaskNotCompletedError,
-    EmptyResultError,
-)
+from lume_services.services.scheduling.backends.backend import Backend, RunConfig
+from lume_services.errors import TaskNotCompletedError, EmptyResultError
 
 import logging
 
@@ -238,9 +234,10 @@ class ServerBackend(Backend):
             **kwargs: Keyword arguments to intantiate the RunConfig.
 
         Raises:
-            pydantic.errors.ClientError: if the GraphQL query is bad for any reason
-            lume_services.errors.EmptyResultError: No result is associated with the
-                flow.
+            pydantic.errors.ClientError: Bad GraphQL query.
+            EmptyResultError: No result is associated with the flow.
+            TaskNotCompletedError: Result reference task was not completed.
+            RuntimeError: Flow did not complete within given timeout.
 
         """
         if run_config is not None and len(kwargs):
