@@ -100,13 +100,14 @@ class LocalBackend(Backend):
         """Run flow execution and return result.
 
         Args:
-            flow (Flow): Prefect flow to execute.
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value.
             run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure
                 flow fun.
             task_slug (Optional[str]): Slug of task to return result. If no task slug
                 is passed, will return the flow result.
+            flow (Flow): Prefect flow to execute.
+            **kwargs: Keyword arguments to intantiate the LocalRunConfig.
 
         """
         if run_config is not None and len(kwargs):
