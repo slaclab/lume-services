@@ -123,7 +123,7 @@ class KubernetesRunConfig(RunConfig):
         if self.job_template is None and self.job_template_path is None:
             self.job_template = KUBERNETES_JOB_TEMPLATE
 
-        return KubernetesRun(self.dict(exclude_none=True))
+        return KubernetesRun(**self.dict(exclude_none=True))
 
 
 class KubernetesBackend(ServerBackend):

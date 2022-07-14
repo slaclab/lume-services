@@ -57,7 +57,7 @@ class DockerRunConfig(RunConfig):
             DockerRun
 
         """
-        return DockerRun(self.dict(exclude_none=True))
+        return DockerRun(**self.dict(exclude_none=True))
 
 
 class DockerBackend(ServerBackend):

@@ -44,7 +44,7 @@ class LocalRunConfig(RunConfig):
             LocalRun
 
         """
-        return LocalRun(self.dict(exclude_none=True))
+        return LocalRun(**self.dict(exclude_none=True))
 
 
 class LocalBackend(Backend):
