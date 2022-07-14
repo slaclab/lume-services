@@ -7,7 +7,12 @@ import warnings
 import os
 
 from lume_services.services.scheduling.backends import Backend, RunConfig
-from lume_services.errors import EmptyResultError, LocalBackendError, TaskNotInFlowError
+from lume_services.errors import (
+    EmptyResultError,
+    LocalBackendError,
+    TaskNotCompletedError,
+    TaskNotInFlowError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +83,9 @@ class LocalBackend(Backend):
             flow (Flow): Prefect flow to execute.
             **kwargs: Keyword arguments to intantiate the LocalRunConfig.
 
+        Raises:
+            pydantic.ValidationError: Error validating run configuration.
+
         """
 
         if run_config is not None and len(kwargs):
@@ -116,6 +124,12 @@ class LocalBackend(Backend):
             flow (Flow): Prefect flow to execute.
             **kwargs: Keyword arguments to intantiate the LocalRunConfig.
 
+        Raises:
+            pydantic.ValidationError: Error validating run configuration.
+            EmptyResultError: No result is associated with the flow.
+            TaskNotCompletedError: Result reference task was not completed.
+            TaskNotInFlowError: Provided task slug not in flow.
+
         """
         if run_config is not None and len(kwargs):
             warnings.warn(
@@ -146,6 +160,10 @@ class LocalBackend(Backend):
 
             if task is None:
                 raise TaskNotInFlowError
+
+            state = result[task]
+            if not state.is_successful():
+                raise TaskNotCompletedError
 
             return result[task].result
 

@@ -11,7 +11,11 @@ from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
 
 from lume_services.services.scheduling.backends.backend import Backend, RunConfig
-from lume_services.errors import TaskNotCompletedError, EmptyResultError
+from lume_services.errors import (
+    TaskNotCompletedError,
+    EmptyResultError,
+    TaskNotInFlowError,
+)
 
 import logging
 
@@ -125,6 +129,9 @@ class ServerBackend(Backend):
         Args:
             project_name (str): Create a named Prefect project.
 
+        Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+
         """
         self._client.create_project(project_name=project_name)
 
@@ -144,6 +151,9 @@ class ServerBackend(Backend):
         Returns:
             str: ID of registered flow
 
+        Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+
         """
         if not image_tag:
             image_tag = self.default_image_tag
@@ -162,6 +172,9 @@ class ServerBackend(Backend):
 
         Returns:
             Flow: Prefect Flow object.
+
+        Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
 
         """
         return FlowView.from_flow_name(
@@ -188,7 +201,9 @@ class ServerBackend(Backend):
             str: ID of flow run
 
         Raises:
-            pydantic.errors.ClientError: if the GraphQL query is bad for any reason
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+            docker.errors.DockerException: Run configuration error for docker api.
+            pydantic.ValidationError: Error validating run configuration.
 
         """
         if run_config is not None and len(kwargs):
@@ -234,10 +249,13 @@ class ServerBackend(Backend):
             **kwargs: Keyword arguments to intantiate the RunConfig.
 
         Raises:
-            pydantic.errors.ClientError: Bad GraphQL query.
             EmptyResultError: No result is associated with the flow.
             TaskNotCompletedError: Result reference task was not completed.
             RuntimeError: Flow did not complete within given timeout.
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+            docker.errors.DockerException: Run configuration error for docker api.
+            pydantic.ValidationError: Error validating run configuration.
+            TaskNotInFlowError: Provided task slug not in flow.
 
         """
         if run_config is not None and len(kwargs):
@@ -268,7 +286,11 @@ class ServerBackend(Backend):
 
         # get task run
         if task_slug is not None:
-            task_run = flow_run.get_task_run(task_slug=task_slug)
+            try:
+                task_run = flow_run.get_task_run(task_slug=task_slug)
+            except ValueError:
+                raise TaskNotInFlowError
+
             if not task_run.state.is_successful():
                 raise TaskNotCompletedError(task_slug, flow_id, flow_run_id)
 

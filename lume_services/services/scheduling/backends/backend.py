@@ -88,11 +88,7 @@ class Backend(BaseModel, ABC):
 
     @abstractmethod
     def run(
-        self,
-        data: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
-        task_slug: Optional[str],
-        **kwargs
+        self, data: Optional[Dict[str, Any]], run_config: Optional[RunConfig], **kwargs
     ) -> Union[str, None]:
         """Run a flow. Does not return result. Implementations should cover instantiation
         of run_config from kwargs as well as backend-specific kwargs.
@@ -101,14 +97,15 @@ class Backend(BaseModel, ABC):
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
-                is passed, will return the flow result.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
 
         Returns:
             Union[str, None]: Return run_id in case of server backend, None in the case
                 of local execution.
+
+        Raises:
+            pydantic.ValidationError: Error validating run configuration.
 
         """
         ...
@@ -139,6 +136,7 @@ class Backend(BaseModel, ABC):
         Raises:
             lume_services.errors.EmptyResultError: No result is associated with the
                 flow.
+            pydantic.ValidationError: Error validating run configuration.
 
         """
         ...
