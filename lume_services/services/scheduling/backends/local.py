@@ -17,6 +17,9 @@ class LocalRunConfig(RunConfig):
     working_dir, an error will be raised.
 
     Attributes:
+        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+            config. Labels are string identifiers used by Prefect Agents for selecting
+            valid flow runs when polling for work
         env (Optional[Dict[str, str]]): Dictionary of environment variables to use for
             run
         working_dir (Optional[str]): Working directory
