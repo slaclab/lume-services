@@ -64,6 +64,10 @@ class LocalBackend(Backend):
         """Run flow execution. Does not return result.
 
         Args:
+            labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+                config. Labels are string identifiers used by Prefect Agents for
+                selecting valid flow runs when polling for work.
+            env (Optional[dict]): Additional environment variables to set on the job
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value.
             run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure

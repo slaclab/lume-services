@@ -20,6 +20,10 @@ class DockerRunConfig(RunConfig):
     https://docs.prefect.io/api/latest/run_configs.html#dockerrun
 
     Attributes:
+        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+            config. Labels are string identifiers used by Prefect Agents for selecting
+            valid flow runs when polling for work
+        env (Optional[dict]): Additional environment variables to set on the job
         image (str): Tag of image in which flow should run.
         host_config (BaseModel): SignatureModel generated from docker HostConfig type
             representing runtime args to be passed to Docker agent.
