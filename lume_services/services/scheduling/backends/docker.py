@@ -1,5 +1,5 @@
 from pydantic import validator, Field
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Dict, Any
 import logging
 
 from prefect.run_configs import DockerRun
@@ -7,10 +7,6 @@ from prefect.run_configs import DockerRun
 from docker.types import HostConfig
 from lume_services.services.scheduling.backends.backend import RunConfig
 from lume_services.services.scheduling.backends.server import ServerBackend
-from lume_services.utils import (
-    SignatureModel,
-    validate_and_compose_signature,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +21,7 @@ class DockerRunConfig(RunConfig):
             valid flow runs when polling for work
         env (Optional[dict]): Additional environment variables to set on the job
         image (str): Tag of image in which flow should run.
-        host_config (BaseModel): SignatureModel generated from docker HostConfig type
+        host_config (Dict[str, Any]): SignatureModel generated from docker HostConfig type
             representing runtime args to be passed to Docker agent.
             Full documentation of args can be found here: https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config
         ports (Optional[Iterable[int]]): An iterable of ports numbers to expose on
@@ -34,7 +30,7 @@ class DockerRunConfig(RunConfig):
     """  # noqa
 
     image: str
-    host_config: SignatureModel
+    host_config: Dict[str, Any]
     ports: Optional[Iterable[int]]
 
     @validator("host_config", pre=True)
@@ -45,10 +41,10 @@ class DockerRunConfig(RunConfig):
         """
 
         if isinstance(v, (dict,)):
-            return validate_and_compose_signature(HostConfig.__init__, **v)
+            # test host config composition, will perform validation
+            HostConfig(**v)
 
-        else:
-            return v
+        return v
 
     def build(self) -> DockerRun:
         """Method for converting to Prefect RunConfig type DockerRun.
