@@ -6,6 +6,8 @@ from prefect.run_configs import KubernetesRun
 
 from lume_services.services.scheduling.backends.backend import RunConfig
 from lume_services.services.scheduling.backends.server import ServerBackend
+from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE
+
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +115,10 @@ class KubernetesRunConfig(RunConfig):
             KubernetesRun
 
         """
+        # if job template and job template path missing, use packaged template
+        if self.job_template is None and self.job_template_path is None:
+            self.job_template = KUBERNETES_JOB_TEMPLATE
+
         return KubernetesRun(self.dict(exclude_none=True))
 
 
