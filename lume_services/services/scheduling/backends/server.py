@@ -1,7 +1,7 @@
 from abc import abstractproperty
 from datetime import timedelta
 import warnings
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any, List
 
 from pydantic import BaseModel, Field
 
@@ -142,10 +142,10 @@ class ServerBackend(Backend):
         self,
         flow: Flow,
         project_name: str,
-        image_tag: Optional[str],
-        labels: Optional[List[str]],
-        idempotency_key: Optional[str],
-        version_group_id: Optional[str],
+        image_tag: str = None,
+        labels: List[str] = None,
+        idempotency_key: str = None,
+        version_group_id: str = None,
         build: bool = False,
         no_url: bool = False,
         set_schedule_active: bool = True,
@@ -218,8 +218,8 @@ class ServerBackend(Backend):
 
     def run(
         self,
-        data: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
+        data: Dict[str, Any] = None,
+        run_config: RunConfig = None,
         *,
         flow_id: str,
         **kwargs
@@ -262,9 +262,9 @@ class ServerBackend(Backend):
 
     def run_and_return(
         self,
-        data: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
-        task_slug: Optional[str],
+        data: Dict[str, Any] = None,
+        run_config: RunConfig = None,
+        task_slug: str = None,
         *,
         flow_id: str,
         timeout: timedelta = timedelta(minutes=1),
@@ -281,7 +281,7 @@ class ServerBackend(Backend):
                 is passed, will return the flow result.
             flow_id (str): ID of flow to run.
             timeout (timedelta): Time before stopping flow execution.
-            cancel_on_timeout (bool=True): Whether to cancel execution on timeout
+            cancel_on_timeout (bool): Whether to cancel execution on timeout
                 error.
             **kwargs: Keyword arguments to intantiate the RunConfig.
 

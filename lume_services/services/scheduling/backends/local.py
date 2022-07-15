@@ -65,7 +65,7 @@ class LocalBackend(Backend):
     def run(
         self,
         data: Dict[str, Any],
-        run_config: Optional[LocalRunConfig],
+        run_config: LocalRunConfig = None,
         *,
         flow: Flow,
         **kwargs
@@ -108,8 +108,8 @@ class LocalBackend(Backend):
     def run_and_return(
         self,
         data: Dict[str, Any],
-        run_config: Optional[LocalRunConfig],
-        task_slug: Optional[str],
+        run_config: LocalRunConfig = None,
+        task_slug: str = None,
         *,
         flow: Flow,
         **kwargs
