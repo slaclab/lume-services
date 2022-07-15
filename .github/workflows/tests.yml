@@ -20,7 +20,7 @@ jobs:
           mamba-version: "*"
           channels: conda-forge
           activate-environment: lume-services-dev
-          environment-file: environment.yml
+          environment-file: dev-environment.yml
 
       #- name: flake8
       #  shell: bash -l {0}
