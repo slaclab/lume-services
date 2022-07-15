@@ -106,7 +106,7 @@ class Backend(BaseModel, ABC):
 
         Raises:
             pydantic.ValidationError: Error validating run configuration.
-
+            ValueError: Value error on flow run
         """
         ...
 
@@ -137,6 +137,6 @@ class Backend(BaseModel, ABC):
             lume_services.errors.EmptyResultError: No result is associated with the
                 flow.
             pydantic.ValidationError: Error validating run configuration.
-
+            ValueError: Value error on flow run
         """
         ...
