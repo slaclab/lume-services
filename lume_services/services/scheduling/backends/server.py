@@ -1,7 +1,7 @@
 from abc import abstractproperty
 from datetime import timedelta
 import warnings
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from pydantic import BaseModel, Field
 
@@ -143,6 +143,12 @@ class ServerBackend(Backend):
         flow: Flow,
         project_name: str,
         image_tag: Optional[str],
+        labels: Optional[List[str]],
+        idempotency_key: Optional[str],
+        version_group_id: Optional[str],
+        build: bool = False,
+        no_url: bool = False,
+        set_schedule_active: bool = True,
     ) -> str:
         """Register a flow with Prefect.
 
@@ -150,9 +156,27 @@ class ServerBackend(Backend):
             flow (Flow): Prefect flow to register
             project_name (str): Name of project to register flow to
             image_tag (str): Name of Docker image to run flow inside
+            build (bool): Whether the flows storage should be build prior to
+                serialization. By default lume-services flows use the same
+                image for execution with additional environment configured at runtime.
+            labels (Optional[List[str]]): A list of labels to add to this Flow.
+            idempotency_key (Optional[str]): a key that, if matching the most recent
+                registration call for this flow group, will prevent the creation of
+                another flow version and return the existing flow id instead.
+            version_group_id (Optional[str]): The UUID version group ID to use for
+                versioning this Flow in Cloud. If not provided, the version group ID
+                associated with this Flow's project and name will be used.
+            no_url (Optional[bool]): If True, the stdout from this function will not
+                contain the URL link to the newly-registered flow in the UI
+            set_schedule_active (Optional[bool]): If False, will set the schedule to
+                inactive in the database to prevent auto-scheduling runs (if the Flow
+                has a schedule)
 
         Returns:
             str: ID of registered flow
+
+        Notes:
+            prefect registration idempotency key omitted and version group...
 
         Raises:
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
@@ -162,7 +186,15 @@ class ServerBackend(Backend):
             image_tag = self.default_image_tag
 
         flow.storage.image_tag = image_tag
-        flow_id = flow.register(project_name=project_name)
+        flow_id = flow.register(
+            project_name=project_name,
+            build=build,
+            labels=labels,
+            set_schedule_active=set_schedule_active,
+            version_group_id=version_group_id,
+            no_url=no_url,
+            idempotency_key=idempotency_key,
+        )
 
         return flow_id
 
