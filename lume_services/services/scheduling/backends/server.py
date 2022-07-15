@@ -31,10 +31,10 @@ class PrefectGraphQLConfig(BaseModel):
 
 
 class PrefectServerConfig(BaseModel):
-    host = "http://localhost"
-    port = "4200"
-    host_port = "4200"
-    host_ip = "127.0.0.1"
+    host: str = "http://localhost"
+    port: str = "4200"
+    host_port: str = "4200"
+    host_ip: str = "127.0.0.1"
 
 
 class PrefectHasuraConfig(BaseModel):
@@ -73,12 +73,12 @@ class PrefectConfig(BaseModel):
     ui: PrefectUIConfig = PrefectUIConfig()
     telemetry: PrefectTelemetryConfig = PrefectTelemetryConfig()
     home_dir: str = "~/.prefect"
-    backend: Backend
     debug: bool = False
+    backend: str = "server"
 
     def apply(self):
         prefect_config.update(
-            backend=self.backend.backend_type, home_dir=self.home_dir, debug=self.debug
+            backend=self.backend, home_dir=self.home_dir, debug=self.debug
         )
         prefect_config.server.update(**self.server.dict())
         prefect_config.server.graphql.update(**self.graphql.dict())
@@ -204,7 +204,7 @@ class ServerBackend(Backend):
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
             docker.errors.DockerException: Run configuration error for docker api.
             pydantic.ValidationError: Error validating run configuration.
-
+            ValueError: Value error on flow run
         """
         if run_config is not None and len(kwargs):
             warnings.warn(
@@ -256,7 +256,7 @@ class ServerBackend(Backend):
             docker.errors.DockerException: Run configuration error for docker api.
             pydantic.ValidationError: Error validating run configuration.
             TaskNotInFlowError: Provided task slug not in flow.
-
+            ValueError: Value error on flow run
         """
         if run_config is not None and len(kwargs):
             warnings.warn(
