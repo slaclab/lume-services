@@ -102,6 +102,9 @@ class ServerBackend(Backend):
     default_image: str = Field(None, alias="image")
     _client: Client = Field(None, exclude=True)
 
+    class Config:
+        underscore_attrs_are_private = True
+
     @abstractproperty
     def run_config_type(self) -> PrefectRunConfig:
         """Abstract property that must return the Prefect RunConfig type pertinent to
@@ -183,9 +186,10 @@ class ServerBackend(Backend):
 
     def run(
         self,
-        flow_id: str,
         data: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
+        *,
+        flow_id: str,
         **kwargs
     ) -> str:
         """Create a flow run for a flow.
@@ -229,6 +233,7 @@ class ServerBackend(Backend):
         data: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
         task_slug: Optional[str],
+        *,
         flow_id: str,
         timeout: timedelta = timedelta(minutes=1),
         cancel_on_timeout: bool = True,

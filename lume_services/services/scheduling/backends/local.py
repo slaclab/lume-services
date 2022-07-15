@@ -66,6 +66,7 @@ class LocalBackend(Backend):
         self,
         data: Dict[str, Any],
         run_config: Optional[LocalRunConfig],
+        *,
         flow: Flow,
         **kwargs
     ) -> None:
@@ -109,6 +110,7 @@ class LocalBackend(Backend):
         data: Dict[str, Any],
         run_config: Optional[LocalRunConfig],
         task_slug: Optional[str],
+        *,
         flow: Flow,
         **kwargs
     ) -> Any:

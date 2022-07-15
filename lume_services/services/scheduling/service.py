@@ -32,6 +32,11 @@ class SchedulingService:
         Args:
             project_name (str): Create a named Prefect project.
 
+        Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+            lume_services.errors.LocalBackendError: Using local run configuration,
+                no server backend methods permitted.
+
         """
         self.backend.create_project(project_name=project_name)
 
@@ -53,6 +58,7 @@ class SchedulingService:
             str: ID of registered flow.
 
         Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
             lume_services.errors.LocalBackendError: Using local run configuration, no
                 server backend methods permitted.
 
@@ -71,6 +77,7 @@ class SchedulingService:
             Flow: Prefect Flow object.
 
         Raises:
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
             lume_services.errors.LocalBackendError: Using local run configuration, no
                 server backend methods permitted.
 
@@ -78,11 +85,7 @@ class SchedulingService:
         return self.backend.load_flow(flow_name, project_name)
 
     def run(
-        self,
-        data: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
-        task_slug: Optional[str],
-        **kwargs
+        self, data: Optional[Dict[str, Any]], run_config: Optional[RunConfig], **kwargs
     ) -> Union[str, None]:
         """Run a flow. Does not return result. Implementations should cover instantiation
         of run_config from kwargs as well as backend-specific kwargs.
@@ -91,8 +94,6 @@ class SchedulingService:
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
-                is passed, will return the flow result.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
 
@@ -100,8 +101,14 @@ class SchedulingService:
             Union[str, None]: Return run_id in case of server backend, None in the case
                 of local execution.
 
+        Raises:
+            docker.errors.DockerException: Run configuration error for docker api.
+            pydantic.ValidationError: Error validating run configuration.
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+            ValueError: Value error on flow run
+
         """
-        return self.backend.run_and_return(data, run_config, task_slug, **kwargs)
+        return self.backend.run(data, run_config, **kwargs)
 
     def run_and_return(
         self,
@@ -128,5 +135,14 @@ class SchedulingService:
         Raises:
             lume_services.errors.EmptyResultError: No result is associated with the
                 flow.
+            docker.errors.DockerException: Run configuration error for docker api.
+            pydantic.ValidationError: Error validating run configuration.
+            prefect.errors.ClientError: if the GraphQL query is bad for any reason
+            lume_services.errors.TaskNotInFlowError: Task slug does not exist in flow.
+            lume_services.errors.TaskNotCompletedError: Result reference task was not
+                completed.
+            RuntimeError: Flow did not complete within given timeout.
+            ValueError: Value error on flow run
+
         """
         return self.backend.run_and_return(data, run_config, task_slug, **kwargs)
