@@ -1,5 +1,5 @@
 # conda env create -f environment.yml
-name: lume-services-2
+name: lume-services
 channels:
   - conda-forge
 dependencies:
@@ -21,3 +21,12 @@ dependencies:
   - pyyaml
   - docker-py>=5.0
   - lume-base>=0.2.2
+
+# Developer
+  - pytest
+  - pytest-cov
+  - pre-commit
+  - flake8
+  - lume-impact
+  - docker-compose
+  - pyfakefs
