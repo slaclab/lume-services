@@ -18,7 +18,7 @@ class RunConfig(BaseModel, ABC):
 
     """
 
-    labels: Optional[Iterable[str]]
+    labels: Iterable[str] = ["lume-services"]
     env: Optional[dict]
 
     @abstractmethod
