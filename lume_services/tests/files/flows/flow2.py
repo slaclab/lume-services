@@ -1,6 +1,6 @@
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
-from lume_services.services.scheduling.tasks import (
+from lume_services.tasks import (
     LoadFile,
     SaveDBResult,
     configure_services,
@@ -27,7 +27,7 @@ def format_result(text):
 load_file = LoadFile()
 save_db_result = SaveDBResult()
 
-with Flow("flow2", storage=Module(__name__)) as flow2:
+with Flow("flow2", storage=Module(__name__)) as flow:
     file_rep = Parameter("file_rep")
     # load file
     configure = configure_services()

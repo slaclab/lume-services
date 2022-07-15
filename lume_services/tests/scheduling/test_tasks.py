@@ -9,7 +9,7 @@ from lume_services.results import (
 )
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
-from lume_services.services.scheduling.tasks import (
+from lume_services.tasks import (
     LoadDBResult,
     SaveDBResult,
     LoadFile,

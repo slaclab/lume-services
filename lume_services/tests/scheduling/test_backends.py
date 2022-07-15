@@ -1,11 +1,9 @@
 import os
 from pydantic import ValidationError
 import pytest
-import docker
 from docker.errors import DockerException
 from prefect.run_configs import LocalRun, DockerRun, KubernetesRun
 from lume_services.services.scheduling.backends.kubernetes import (
-    KubernetesBackend,
     KubernetesRunConfig,
 )
 from lume_services.services.scheduling.backends.docker import (
@@ -18,18 +16,21 @@ from lume_services.services.scheduling.backends.local import (
     LocalRunConfig,
 )
 
+from lume_services.errors import LocalBackendError, TaskNotInFlowError
+from lume_services.utils import docker_api_version as docker_api_version_util
+from lume_services.tests.files.flows.flow1 import flow as flow
+from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+
+from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
+
 import logging
 
 logger = logging.getLogger(__name__)
 
-# from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
-# from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
-
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_api_version():
-    client = docker.from_env()
-    return client.api.version()["ApiVersion"]
+    return docker_api_version_util()
 
 
 class TestRunConfigs:
@@ -201,67 +202,169 @@ class TestRunConfigs:
         assert run_config.job_template is not None
 
 
-@pytest.mark.skip()
 class TestLocalBackend:
-    ...
+    run_config = LocalRunConfig(labels=["test"], env=dict(os.environ))
+
+    @pytest.fixture()
+    def backend(self):
+        return LocalBackend(run_config=self.run_config)
+
+    @pytest.fixture()
+    def data(self, tmp_path):
+        return {
+            "text1": "hey",
+            "text2": " you",
+            "filename": f"{tmp_path}/test_local_backend.txt",
+            "filesystem_identifier": "local",
+        }
+
+    def test_load_flow_error(self, backend):
+        with pytest.raises(LocalBackendError):
+            backend.load_flow("placeholder_flow_name", "placeholder_project_name")
+
+    def test_create_project_error(self, backend):
+        with pytest.raises(LocalBackendError):
+            backend.create_project("placeholder_project_name")
+
+    def test_register_flow_error(self, backend):
+        with pytest.raises(LocalBackendError):
+            backend.register_flow(flow, "placeholder_project_name")
+
+    def test_run_flow(self, backend, data):
+        backend.run(data, self.run_config, flow=flow)
+
+    def test_run_flow_and_return(self, backend, data):
+        # get all results
+        res = backend.run_and_return(data, self.run_config, flow=flow)
+        assert isinstance(res, (dict,))
+
+        res = backend.run_and_return(
+            data, self.run_config, flow=flow, task_name="save_text_file"
+        )
+        assert isinstance(res, (dict,))
+        logger.debug(str(res))
+
+        res = backend.run_and_return(
+            data, self.run_config, flow=flow, task_name="append_text"
+        )
+        assert isinstance(res, (str,))
+        assert res == f"{data['text1']}{data['text2']}"
+
+    def test_failure_check(self, backend):
+        res = backend.run_and_return(None, self.run_config, flow=failure_flow)
 
 
-@pytest.mark.skip()
 class TestDockerBackend:
-    def test_docker_config_construction(self, file_service):
-
-        mounted_filesystems = file_service.get_mounted_filesystems()
-        mounts = []
-        for filesystem in mounted_filesystems.values():
-            mounts.append(
-                {
-                    "target": filesystem.mount_alias,
-                    "source": filesystem.mount_path,
-                    "type": "bind",
-                }
-            )
-
-        host_config = DockerHostConfig(
-            mounts=mounts, resource_request={"cpu_shares": 1, "cpuset_cpus": 2}
+    @pytest.fixture()
+    def run_config(self, docker_api_version, prefect_docker_tag, prefect_docker_agent):
+        docker_host_config = {
+            "version": docker_api_version,
+            "cpu_quota": 2,
+            "cpu_period": 1999,
+            "blkio_weight": 1999,
+            "blkio_weight_device": [{"Path": "/dev/sda", "Rate": 1000}],
+            "device_read_bps": [{"Path": "/dev/sda", "Rate": 1000}],
+            "device_write_bps": [{"Path": "/dev/sda", "Rate": 1000}],
+            "device_read_iops": [{"Path": "/dev/sda", "Rate": 1000}],
+            "device_write_iops": [{"Path": "/dev/sda", "Rate": 1000}],
+            "shm_size": 67108864,
+            "oom_kill_disable": True,
+            "userns_mode": "host",
+            "oom_score_adj": 100,
+            "dns_opt": ["use-vc", "no-tld-query"],
+            "mem_reservation": "67108864",
+            "kernel_memory": 67108864,
+            "pids_limit": 1024,
+            "isolation": "hyperv",
+            "pid_mode": "host",
+            "mem_swappiness": 40,
+            "volume_driver": "local",
+            "cpu_count": 2,
+            "cpu_percent": 15,
+            "nano_cpus": 1000,
+            "cpu_rt_period": 100,
+            "cpu_rt_runtime": 1000,
+        }
+        return DockerRunConfig(
+            host_config=docker_host_config,
+            image=prefect_docker_tag,
+            labels=["test"],
+            ports=[3000],
         )
 
-        DockerRunConfig(image="test", env={}, host_config=host_config)
+    @pytest.fixture()
+    def backend(self, run_config):
+        return DockerBackend(config=run_config)
 
-    def test_init_backend(self, docker_run_config):
-        _ = DockerBackend(**docker_run_config)
+    @pytest.fixture()
+    def project_name(self, prefect_client):
+        project_name = "test_docker_backend"
+        prefect_client.create_project(project_name=project_name)
+        return project_name
+
+    # tests flow registration
+    @pytest.fixture()
+    def flow_id(self, backend, project_name):
+        return backend.register_flow(
+            flow, project_name=project_name, image_tag=prefect_docker_tag
+        )
+
+    @pytest.fixture()
+    def failure_flow_id(self, backend, project_name):
+        return backend.register_flow(
+            failure_flow, project_name=project_name, image_tag=prefect_docker_tag
+        )
+
+    @pytest.fixture()
+    def data(self, tmp_path):
+        return {
+            "text1": "hey",
+            "text2": " you",
+            "filename": f"{tmp_path}/test_local_backend.txt",
+            "filesystem_identifier": "local",
+        }
+
+    def test_run_flow_type_error(self, backend, data, run_config):
+        with pytest.raises(TypeError):
+            backend.run(data, run_config, flow_id=flow)
+
+    def test_run_flow(self, backend, data, run_config, flow_id):
+        backend.run(data, run_config, flow_id=flow_id)
+
+    def test_run_flow_and_return(self, backend, data, run_config, flow_id):
+        # get all results
+        res = backend.run_and_return(data, run_config, flow_id=flow_id)
+        assert isinstance(res, (dict,))
+
+        res = backend.run_and_return(
+            data, run_config, flow_id=flow_id, task_name="save_text_file"
+        )
+        assert isinstance(res, (dict,))
+        logger.debug(str(res))
+
+        res = backend.run_and_return(
+            data, run_config, flow_id=flow_id, task_name="append_text"
+        )
+        assert isinstance(res, (str,))
+        assert res == f"{data['text1']}{data['text2']}"
+
+    def test_task_not_in_flow_error(self, backend, data, flow_id, run_config):
+        with pytest.raises(TaskNotInFlowError):
+            backend.run_and_return(
+                data, run_config, flow_id=flow_id, task_name="missing_task"
+            )
+
+    # test task not in flow
+    def test_empty_result_error(self, backend, data, flow_id, run_config):
+        with pytest.raises(TaskNotInFlowError):
+            backend.run_and_return(
+                data, run_config, flow_id=flow_id, task_name="configure_services"
+            )
+
+    def test_failure_check(self, backend, run_config, failure_flow_id):
+        res = backend.run_and_return(None, run_config, flow=failure_flow_id)
 
 
 @pytest.mark.skip()
 class TestKubernetesBackend:
-    def test_init_backend(self):
-        test_dict = {
-            "job_template": {
-                "filepath": "my_filepath",
-                "filesystem_identifier": "local",
-            },
-            "image_pull_policy": "Always",
-            "default_image": "my_test_image",
-        }
-
-        backend = KubernetesBackend(**test_dict)
-
-        assert backend.job_template.filepath == "my_filepath"
-        assert backend.job_template.filesystem_identifier == "local"
-        assert backend.image_pull_policy == "Always"
-        assert backend.default_image == "my_test_image"
-
-    def test_init_resource_request(self):
-        test_dict = {
-            "cpu": {"limit": 1.0, "request": 0.5},
-            "memory": {
-                "limit": "10MiB",
-                "request": "10MiB",
-            },
-        }
-
-        resource_request = KubernetesResourceRequest(**test_dict)
-
-        assert resource_request.cpu.limit == 1.0
-        assert resource_request.cpu.request == 0.5
-        assert resource_request.memory.limit == "10MiB"
-        assert resource_request.memory.request == "10MiB"
+    ...

@@ -5,14 +5,13 @@ from datetime import timedelta
 import yaml
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
-from prefect import Client
 
 
-from lume_services.services.scheduling.tasks.db import LoadDBResult
+from lume_services.tasks.db import LoadDBResult
 from lume_services.tests.files import FLOW_OF_FLOWS_YAML
-from lume_services.tests.files.flows.flow1 import flow1, append_text
-from lume_services.tests.files.flows.flow2 import flow2
-from lume_services.tests.files.flows.flow3 import flow3
+from lume_services.tests.files.flows.flow1 import flow as flow1, append_text
+from lume_services.tests.files.flows.flow2 import flow as flow2
+from lume_services.tests.files.flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
@@ -21,13 +20,6 @@ from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_client(prefect_api_str, prefect_docker_agent):
-    client = Client(api_server=prefect_api_str)
-    client.graphql("query{hello}", retry_on_api_error=False)
-    return client
 
 
 @pytest.fixture(scope="session", autouse=True)
