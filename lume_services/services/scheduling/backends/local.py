@@ -109,7 +109,7 @@ class LocalBackend(Backend):
         self,
         data: Dict[str, Any],
         run_config: LocalRunConfig = None,
-        task_slug: str = None,
+        task_name: str = None,
         *,
         flow: Flow,
         **kwargs
@@ -121,7 +121,7 @@ class LocalBackend(Backend):
                 value.
             run_config (Optional[LocalRunConfig]): LocalRunConfig object to configure
                 flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
+            task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.
             flow (Flow): Prefect flow to execute.
             **kwargs: Keyword arguments to intantiate the LocalRunConfig.
@@ -154,25 +154,41 @@ class LocalBackend(Backend):
         if result is None:
             raise EmptyResultError
 
-        slug_to_task_map = {slug: task for task, slug in flow.slugs.items()}
+        task_to_slug_map = {task: slug for task, slug in flow.slugs.items()}
+        # slug_to_task_map = {slug: task for task, slug in flow.slugs.items()}
 
         # account for task slug
-        if task_slug is not None:
-            task = slug_to_task_map.get(task_slug)
+        if task_name is not None:
+            # get tasks
+            tasks = flow.get_tasks(name=task_name)
+            if not len(tasks):
+                raise TaskNotInFlowError(flow.name, task_name)
 
-            if task is None:
-                raise TaskNotInFlowError
+            results = []
+            for task in tasks:
+                slug = task_to_slug_map.get(task)
+                state = result[task]
+                if not state.is_successful():
+                    raise TaskNotCompletedError(
+                        slug, flow_id="local_flow", flow_run_id="local_flow_run"
+                    )
 
-            state = result[task]
-            if not state.is_successful():
-                raise TaskNotCompletedError
+                res = state.result
+                if res is None:
+                    raise EmptyResultError("local_flow", "local_flow_run", slug)
 
-            return result[task].result
+                results.append(state.result)
+
+            if len(tasks) == 1:
+                return results[0]
+
+            else:
+                return results
 
         # else return dict of task slug to value
         else:
             return {
-                slug: result[task].result for slug, task in slug_to_task_map.items()
+                slug: result[task].result for task, slug in task_to_slug_map.items()
             }
 
     def create_project(self, *args, **kwargs) -> None:
