@@ -22,20 +22,20 @@ ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
 ARG LUME_SERVICES_VERSION
 ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
 
-COPY requirements.txt /tmp/requirements.txt
+COPY environment.yml /tmp/environment.yml
 COPY . /tmp/lume-services
 
-RUN conda install --file /tmp/requirements.txt && \
+RUN conda env update --name base --file /tmp/environment.yml && \
     pip install /tmp/lume-services && \
     rm -rf /tmp/lume-services
 
 # Production build using released lume-services version
-FROM builder AS prod
+#FROM builder AS prod
 
-ARG LUME_SERVICES_REPOSITORY
-ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
+#ARG LUME_SERVICES_REPOSITORY
+#ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
 
-ARG LUME_SERVICES_VERSION
-ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
+#ARG LUME_SERVICES_VERSION
+#ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
 
-RUN pip install ${LUME_SERVICES_REPOSITORY}/archive/refs/tags/${LUME_SERVICES_VERSION}
+#RUN pip install ${LUME_SERVICES_REPOSITORY}/archive/refs/tags/${LUME_SERVICES_VERSION}
