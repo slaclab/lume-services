@@ -114,7 +114,7 @@ class SchedulingService:
         self,
         data: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
-        task_slug: Optional[str],
+        task_name: Optional[str],
         **kwargs
     ) -> Any:
         """Run a flow and return result. Implementations should cover instantiation of
@@ -124,7 +124,7 @@ class SchedulingService:
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
+            task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
@@ -145,4 +145,4 @@ class SchedulingService:
             ValueError: Value error on flow run
 
         """
-        return self.backend.run_and_return(data, run_config, task_slug, **kwargs)
+        return self.backend.run_and_return(data, run_config, task_name, **kwargs)
