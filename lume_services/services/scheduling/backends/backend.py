@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Iterable, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union
 from prefect import Flow
 from prefect.run_configs import RunConfig as PrefectRunConfig
 from pydantic import BaseModel
@@ -11,14 +11,14 @@ class RunConfig(BaseModel, ABC):
 
 
     Attributes:
-        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+        labels (Optional[List[str]]): an list of labels to apply to this run
             config. Labels are string identifiers used by Prefect Agents for selecting
             valid flow runs when polling for work
         env (Optional[dict]): Additional environment variables to set on the job
 
     """
 
-    labels: Iterable[str] = ["lume-services"]
+    labels: List[str] = ["lume-services"]
     env: Optional[dict]
 
     @abstractmethod
