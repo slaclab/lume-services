@@ -2,6 +2,7 @@ import json
 import hashlib
 import inspect
 import logging
+import docker
 from importlib import import_module
 from pydantic import BaseSettings
 from typing import Any, Callable, Generic, List, Optional, TypeVar
@@ -10,6 +11,11 @@ from pydantic import BaseModel, root_validator, create_model, Field, Extra
 from pydantic.generics import GenericModel
 
 logger = logging.getLogger(__name__)
+
+
+def docker_api_version():
+    client = docker.from_env()
+    return client.api.version()["ApiVersion"]
 
 
 def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings):
