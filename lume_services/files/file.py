@@ -32,7 +32,7 @@ class File(
     filename: str
 
     # Object to-be-serialized/result of deserialization
-    obj: Optional[Any] = Field(exclude=True)
+    obj: Any = Field(None, exclude=True)
 
     loader: Optional[ObjLoader[ObjType]]
     serializer: ObjType = Field(exclude=True)
