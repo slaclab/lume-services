@@ -22,8 +22,6 @@ from lume_services.services.scheduling.backends import (
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
-from lume_services.utils import docker_api_version
-
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_docker_tag():
@@ -121,7 +119,7 @@ def docker_run_config(
             }
         )
 
-    host_config = {"mounts": mounts, "version": docker_api_version()}
+    host_config = {"mounts": mounts}
 
     return DockerRunConfig(
         image=prefect_docker_tag, env=lume_env, host_config=host_config
