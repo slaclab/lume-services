@@ -44,7 +44,7 @@ class FlowFailedError(Exception):
         self.flow_id = flow_id
         self.flow_run_id = flow_run_id
         self.message = "Flow run: %s failed for flow_id: %s."
-        super().__init__(self.message, self.task_slug, self.flow_run_id, self.flow_id)
+        super().__init__(self.message, self.flow_run_id, self.flow_id)
 
 
 class EmptyResultError(Exception):
