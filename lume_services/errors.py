@@ -40,11 +40,14 @@ class TaskNotCompletedError(Exception):
 
 
 class FlowFailedError(Exception):
-    def __init__(self, flow_id: str, flow_run_id: str):
+    def __init__(self, flow_id: str, flow_run_id: str, exception_message: str = None):
         self.flow_id = flow_id
         self.flow_run_id = flow_run_id
-        self.message = "Flow run: %s failed for flow_id: %s."
-        super().__init__(self.message, self.flow_run_id, self.flow_id)
+        self.exception_message = exception_message
+        self.message = "Flow run: %s failed for flow_id: %s. %s"
+        super().__init__(
+            self.message, self.flow_run_id, self.flow_id, self.exception_message
+        )
 
 
 class EmptyResultError(Exception):
