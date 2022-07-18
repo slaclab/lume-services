@@ -33,7 +33,7 @@ class KubernetesRunConfig(RunConfig):
     https://kubernetes.io/docs/concepts/configuration/overview/#container-images
 
     Attributes:
-        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+        labels (Optional[List[str]]): an list of labels to apply to this run
             config. Labels are string identifiers used by Prefect Agents for selecting
             valid flow runs when polling for work
         env (Optional[dict]): Additional environment variables to set on the job
