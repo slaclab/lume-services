@@ -2,11 +2,9 @@ import logging
 
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import Integer, String, DateTime, Boolean
-from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
 
 logger = logging.getLogger(__name__)
 
@@ -188,55 +186,3 @@ class DeploymentFlow(Base):
                 flow_id={self.flow_id!r}, \
                 deployment_id={self.deployment_id!r} \
                 )"
-
-
-def generate_schema_graph(
-    output_filename: str,
-    show_datatypes: bool = True,
-    show_indexes: bool = True,
-    rankdir: str = "LR",
-    concentrate: bool = False,
-) -> None:
-    """Utility function for creating a png of the schema graph for the schema defined
-    in this module.
-
-    Args:
-        output_filename (str): Filename of saved output
-        show_datatypes (bool): Whether to list datatypes on the graph
-        show_indexes (bool): Whether to show indices on the graph
-        rankdir (str): Either "LR" left-to-right, or "TB" top-to-bottom organization
-        concentrate (bool): Whether to join relation lines together
-
-    """
-    # Generate graph of connected database
-    graph = create_schema_graph(
-        metadata=Base.metadata,
-        show_datatypes=show_datatypes,
-        show_indexes=show_indexes,
-        rankdir=rankdir,
-        concentrate=concentrate,
-    )
-
-    # Generate png image
-    graph.write_png(output_filename)
-
-
-def generate_uml_graph(output_filename: str):
-    """Utility function for creating a png of the uml graph for the schema defined in
-    this module.
-
-    Args:
-        output_filename (str): Filename of saved output
-
-    """
-
-    # compile mappers
-    mappers = [
-        class_mapper(x) for x in [Model, Deployment, Flow, DeploymentFlow, Project]
-    ]
-    graph = create_uml_graph(
-        mappers, show_operations=False, show_multiplicity_one=False
-    )
-
-    # generate png image
-    graph.write_png(output_filename)

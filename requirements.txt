@@ -10,8 +10,6 @@ prefect
 dependency_injector
 lume-base
 h5py
-sqlalchemy_schemadisplay
-graphviz
 pyyaml
 docker>=5.0.0
 lume-base>=0.2.2
