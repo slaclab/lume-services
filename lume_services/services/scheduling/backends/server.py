@@ -15,6 +15,7 @@ from lume_services.errors import (
     TaskNotCompletedError,
     EmptyResultError,
     TaskNotInFlowError,
+    FlowFailedError,
 )
 
 import logging
@@ -45,10 +46,6 @@ class PrefectHasuraConfig(BaseModel):
         ""  # a string. One will be automatically generated if not provided.
     )
     claims_namespace: str = "hasura-claims"
-    graphql_url: str = (
-        "http://${server.hasura.host}:${server.hasura.port}/v1alpha1/graphql"
-    )
-    ws_url: str = "ws://${server.hasura.host}:${server.hasura.port}/v1alpha1/graphql"
     execute_retry_seconds: str = 10
 
 
@@ -57,7 +54,6 @@ class PrefectUIConfig(BaseModel):
     port: str = "8080"
     host_port: str = "8080"
     host_ip: str = "127.0.0.1"
-    endpoint: str = "${server.ui.host}:${server.ui.port}"
     apollo_url: str = "http://localhost:4200/graphql"
 
 
@@ -143,10 +139,10 @@ class ServerBackend(Backend):
         flow: Flow,
         project_name: str,
         image_tag: str = None,
-        labels: List[str] = None,
+        labels: List[str] = ["lume-services"],
         idempotency_key: str = None,
         version_group_id: str = None,
-        build: bool = False,
+        build: bool = True,
         no_url: bool = False,
         set_schedule_active: bool = True,
     ) -> str:
@@ -185,7 +181,7 @@ class ServerBackend(Backend):
         if not image_tag:
             image_tag = self.default_image_tag
 
-        flow.storage.image_tag = image_tag
+        # flow.storage.image_tag = image_tag
         flow_id = flow.register(
             project_name=project_name,
             build=build,
@@ -264,7 +260,7 @@ class ServerBackend(Backend):
         self,
         data: Dict[str, Any] = None,
         run_config: RunConfig = None,
-        task_slug: str = None,
+        task_name: str = None,
         *,
         flow_id: str,
         timeout: timedelta = timedelta(minutes=1),
@@ -277,7 +273,7 @@ class ServerBackend(Backend):
             data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
                 value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
-            task_slug (Optional[str]): Slug of task to return result. If no task slug
+            task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.
             flow_id (str): ID of flow to run.
             timeout (timedelta): Time before stopping flow execution.
@@ -307,37 +303,75 @@ class ServerBackend(Backend):
 
         prefect_run_config = run_config.build()
 
+        logger.info(
+            "Creating Prefect flow run for %s with parameters %s and run_config %s",
+            flow_id,
+            data,
+            run_config.json(),
+        )
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=prefect_run_config
         )
 
-        flow_run = FlowRunView.from_flow_run_id(flow_run_id)
-
         # watch flow run and stream logs until timeout
         try:
-            watch_flow_run(flow_run_id, stream_logs=True, max_duration=timeout)
+            for log in watch_flow_run(
+                flow_run_id, stream_states=True, stream_logs=True, max_duration=timeout
+            ):
+                logger.info(log)
         except RuntimeError as err:
             if cancel_on_timeout:
-                self._client.cancel_flow_run()
+                self._client.cancel_flow_run(flow_run_id=flow_run_id)
             raise err
 
+        logger.info("Watched flow completed.")
+        flow_run = FlowRunView.from_flow_run_id(flow_run_id)
+
+        # check state
+        if flow_run.state.is_failed():
+            logger.exception(flow_run.state.message)
+            raise FlowFailedError(
+                flow_id=flow_run.flow_id,
+                flow_run_id=flow_run.flow_run_id,
+                exception_message=flow_run.state.message,
+            )
+
         # get task run
-        if task_slug is not None:
-            try:
-                task_run = flow_run.get_task_run(task_slug=task_slug)
-            except ValueError:
-                raise TaskNotInFlowError
+        if task_name is not None:
+            # filter tasks based on name
+            task_runs = flow_run.get_all_task_runs()
+            task_runs = [
+                task_run for task_run in task_runs if task_run.name == task_name
+            ]
 
-            if not task_run.state.is_successful():
-                raise TaskNotCompletedError(task_slug, flow_id, flow_run_id)
+            if not len(task_runs):
+                raise TaskNotInFlowError(flow_run.name, task_name)
 
-            res = task_run.get_result()
-            if res is None:
-                raise EmptyResultError(flow_id, flow_run_id, task_slug)
+            results = {}
+            for task_run in task_runs:
+                slug = task_run.task_slug
+                if not task_run.state.is_successful():
+                    raise TaskNotCompletedError(slug, flow_id, flow_run_id)
+
+                res = task_run.get_result()
+                if res is None:
+                    raise EmptyResultError(flow_id, flow_run_id, slug)
+
+                results[slug] = res
+
+            if len(task_runs) == 1:
+                res = results.values()[0]
+                if res is None:
+                    raise EmptyResultError(flow_id, flow_run_id, slug)
+
+                return res
+
+            else:
+                return results
 
         # assume flow result, return all results
         else:
             if not flow_run.state._result:
                 raise EmptyResultError(flow_id, flow_run_id)
 
-            return flow_run.state._result.value
+            return flow_run.state.load_result()
