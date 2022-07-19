@@ -1,5 +1,35 @@
 from typing import Optional, List
 
+# Model errors
+
+
+class FlowNotFoundError(Exception):
+    def __init__(self, query):
+        self.query = query
+        self.message = "Flow not found for query: %s."
+        super().__init__(self.message, self.query)
+
+
+class ProjectNotFoundError(Exception):
+    def __init__(self, query):
+        self.query = query
+        self.message = "Project not found for query: %s."
+        super().__init__(self.message, self.query)
+
+
+class ModelNotFoundError(Exception):
+    def __init__(self, query):
+        self.query = query
+        self.message = "Model not found for query: %s."
+        super().__init__(self.message, self.query)
+
+
+class DeploymentNotFoundError(Exception):
+    def __init__(self, query):
+        self.query = query
+        self.message = "Deployment not found for query: %s."
+        super().__init__(self.message, self.query)
+
 
 # Scheduling errors
 
