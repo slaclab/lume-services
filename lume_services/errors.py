@@ -10,6 +10,13 @@ class FlowNotFoundError(Exception):
         super().__init__(self.message, self.query)
 
 
+class FlowOfFlowsNotFoundError(Exception):
+    def __init__(self, query):
+        self.query = query
+        self.message = "Flow not found for query: %s."
+        super().__init__(self.message, self.query)
+
+
 class ProjectNotFoundError(Exception):
     def __init__(self, query):
         self.query = query
