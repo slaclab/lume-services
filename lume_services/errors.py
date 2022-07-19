@@ -109,6 +109,12 @@ class EmptyResultError(Exception):
 
 
 class LocalBackendError(Exception):
+    """LocalBackendError indicates that a server-backend operation has been executed
+    against the LocalBackend. Server-backend operations include flow registration and
+    remote execution.
+
+    """
+
     def __init__(self):
         self.message = "Cannot run server-backend operation using LocalBackend."
         super().__init__(self.message)
