@@ -101,9 +101,9 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def prefect_config(apollo_host_port, graphql_host_port, hasura_host_port):
+def prefect_config(server_host_port, graphql_host_port, hasura_host_port):
     config = PrefectConfig(
-        server=PrefectServerConfig(host_port=apollo_host_port),
+        server=PrefectServerConfig(host_port=server_host_port),
         graphql=PrefectGraphQLConfig(host_port=graphql_host_port),
         hasura=PrefectHasuraConfig(host_port=hasura_host_port),
     )
