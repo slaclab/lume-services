@@ -4,7 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
-  - pydantic
+  - pydantic>=1.9
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
@@ -15,6 +15,7 @@ dependencies:
   - blinker
   - dependency_injector
   - lume-base
+ # - lume-model>=1.4
   - h5py
   - pyyaml
   - docker-py>=5.0

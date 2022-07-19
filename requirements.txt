@@ -1,4 +1,4 @@
-pydantic
+pydantic>=1.9
 python-dotenv
 sqlalchemy>=1.4
 pymysql
@@ -8,7 +8,7 @@ click
 blinker
 prefect
 dependency_injector
-lume-base
+lume-base>=0.2.2
 h5py
 pyyaml
 docker>=5.0.0
