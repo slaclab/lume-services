@@ -4,8 +4,8 @@ from lume_services.services.models.db.schema import (
     Model,
     Deployment,
     Flow,
-    DeploymentFlow,
     Project,
+    FlowOfFlows,
 )
 from sqlalchemy.orm import class_mapper
 
@@ -53,9 +53,7 @@ def generate_uml_graph(output_filename: str):
     """
 
     # compile mappers
-    mappers = [
-        class_mapper(x) for x in [Model, Deployment, Flow, DeploymentFlow, Project]
-    ]
+    mappers = [class_mapper(x) for x in [Model, Deployment, Flow, Project, FlowOfFlows]]
     graph = create_uml_graph(
         mappers, show_operations=False, show_multiplicity_one=False
     )
