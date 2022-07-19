@@ -12,5 +12,5 @@ def failure_task():
     assert 1 == 2
 
 
-with Flow("flow1", storage=Module(__name__)) as flow:
+with Flow("failure_flow", storage=Module(__name__)) as flow:
     failure_task()
