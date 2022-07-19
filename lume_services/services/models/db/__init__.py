@@ -5,6 +5,5 @@ from .schema import (
     Model,
     Deployment,
     Project,
-    DeploymentFlow,
     FlowOfFlows,
 )
