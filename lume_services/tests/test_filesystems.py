@@ -14,47 +14,45 @@ def text_serializer():
 
 class TestLocalFilesystem:
     @pytest.fixture()
-    def local_filesystem_handler(self, tmp_path):
+    def test_local_filesystem(self, tmp_path):
         return LocalFilesystem()
 
-    def test_local_filesystem_dir_exists(self, local_filesystem_handler, tmp_path):
-        assert local_filesystem_handler.dir_exists(tmp_path, create_dir=False)
+    def test_local_filesystem_dir_exists(self, test_local_filesystem, tmp_path):
+        assert test_local_filesystem.dir_exists(tmp_path, create_dir=False)
 
-    def test_local_filesystem_create_dir(self, local_filesystem_handler, tmp_path):
+    def test_local_filesystem_create_dir(self, test_local_filesystem, tmp_path):
         new_tmp_dir = f"{tmp_path}/placeholder_dr"
-        local_filesystem_handler.create_dir(new_tmp_dir)
+        test_local_filesystem.create_dir(new_tmp_dir)
 
-        assert local_filesystem_handler.dir_exists(new_tmp_dir, create_dir=False)
+        assert test_local_filesystem.dir_exists(new_tmp_dir, create_dir=False)
 
-    def test_local_filesystem_dir_exist_create(
-        self, local_filesystem_handler, tmp_path
-    ):
+    def test_local_filesystem_dir_exist_create(self, test_local_filesystem, tmp_path):
 
         new_tmp_dir = f"{tmp_path}/placeholder_dr"
 
         # create dir
-        assert local_filesystem_handler.dir_exists(new_tmp_dir, create_dir=True)
-        assert local_filesystem_handler.dir_exists(new_tmp_dir, create_dir=False)
+        assert test_local_filesystem.dir_exists(new_tmp_dir, create_dir=True)
+        assert test_local_filesystem.dir_exists(new_tmp_dir, create_dir=False)
 
     def test_local_filesystem_read_write(
-        self, local_filesystem_handler, tmp_path, text_serializer
+        self, test_local_filesystem, tmp_path, text_serializer
     ):
 
         tmp_file = f"{tmp_path}/test.txt"
         text = "test text"
 
         # write
-        local_filesystem_handler.write(tmp_file, text, text_serializer)
+        test_local_filesystem.write(tmp_file, text, text_serializer)
 
-        assert local_filesystem_handler.file_exists(tmp_file)
+        assert test_local_filesystem.file_exists(tmp_file)
 
         # read
-        new_text = local_filesystem_handler.read(tmp_file, text_serializer)
+        new_text = test_local_filesystem.read(tmp_file, text_serializer)
 
         assert new_text == text
 
     def test_local_filesystem_create_dir_on_write(
-        self, local_filesystem_handler, tmp_path, text_serializer
+        self, test_local_filesystem, tmp_path, text_serializer
     ):
 
         tmp_file = f"{tmp_path}/tmp_dir2/test.txt"
@@ -62,30 +60,26 @@ class TestLocalFilesystem:
 
         # fail on no directory creation
         with pytest.raises(FileNotFoundError):
-            local_filesystem_handler.write(
+            test_local_filesystem.write(
                 tmp_file, text, text_serializer, create_dir=False
             )
 
         # succeed on creation
-        local_filesystem_handler.write(tmp_file, text, text_serializer, create_dir=True)
+        test_local_filesystem.write(tmp_file, text, text_serializer, create_dir=True)
 
 
 class TestMountedFilesystem:
     @pytest.fixture()
-    def local_filesystem_handler(self):
-        return LocalFilesystem()
-
-    @pytest.fixture()
-    def mounted_filesystem(self, tmp_path, fs):
+    def test_mounted_filesystem(self, tmp_path, fs):
         return MountedFilesystem(mount_alias="/test_base", mount_path=str(tmp_path))
 
-    def test_mounted_filesystem_dir_does_not_exist(self, mounted_filesystem):
-        assert not mounted_filesystem.dir_exists(
-            mounted_filesystem.mount_alias, create_dir=False
+    def test_mounted_filesystem_dir_does_not_exist(self, test_mounted_filesystem):
+        assert not test_mounted_filesystem.dir_exists(
+            test_mounted_filesystem.mount_alias, create_dir=False
         )
 
     def test_mounted_filesystem_dir_does_not_exist_on_file_read(
-        self, mounted_filesystem, text_serializer
+        self, test_mounted_filesystem, text_serializer
     ):
 
         tmp_file = "/some_unknown_dir/test.txt"
@@ -93,53 +87,59 @@ class TestMountedFilesystem:
 
         # write
         with pytest.raises(PathNotInMount):
-            mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=False)
+            test_mounted_filesystem.write(
+                tmp_file, text, text_serializer, create_dir=False
+            )
 
-    def test_mounted_filesystem_dir_exists(self, mounted_filesystem):
-        assert mounted_filesystem.dir_exists(
-            mounted_filesystem.mount_alias, create_dir=True
+    def test_mounted_filesystem_dir_exists(self, test_mounted_filesystem):
+        assert test_mounted_filesystem.dir_exists(
+            test_mounted_filesystem.mount_alias, create_dir=True
         )
 
-    def test_mounted_filesystem_create_dir(self, mounted_filesystem):
+    def test_mounted_filesystem_create_dir(self, test_mounted_filesystem):
 
-        new_tmp_dir = f"{mounted_filesystem.mount_alias}/placeholder_dir"
-        mounted_filesystem.create_dir(new_tmp_dir)
+        new_tmp_dir = f"{test_mounted_filesystem.mount_alias}/placeholder_dir"
+        test_mounted_filesystem.create_dir(new_tmp_dir)
 
-        assert mounted_filesystem.dir_exists(new_tmp_dir, create_dir=False)
+        assert test_mounted_filesystem.dir_exists(new_tmp_dir, create_dir=False)
 
-    def test_mounted_filesystem_dir_exist_create(self, mounted_filesystem):
+    def test_mounted_filesystem_dir_exist_create(self, test_mounted_filesystem):
 
-        new_tmp_dir = f"{mounted_filesystem.mount_alias}/placeholder_dir"
+        new_tmp_dir = f"{test_mounted_filesystem.mount_alias}/placeholder_dir"
 
         # create dir
-        assert mounted_filesystem.dir_exists(new_tmp_dir, create_dir=True)
-        assert mounted_filesystem.dir_exists(new_tmp_dir, create_dir=False)
+        assert test_mounted_filesystem.dir_exists(new_tmp_dir, create_dir=True)
+        assert test_mounted_filesystem.dir_exists(new_tmp_dir, create_dir=False)
 
-    def test_mounted_filesystem_read_write(self, mounted_filesystem, text_serializer):
+    def test_mounted_filesystem_read_write(
+        self, test_mounted_filesystem, text_serializer
+    ):
 
-        tmp_file = f"{mounted_filesystem.mount_alias}/test.txt"
+        tmp_file = f"{test_mounted_filesystem.mount_alias}/test.txt"
         text = "test text"
 
         # write
-        mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=True)
+        test_mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=True)
 
-        assert mounted_filesystem.file_exists(tmp_file)
+        assert test_mounted_filesystem.file_exists(tmp_file)
 
         # read
-        new_text = mounted_filesystem.read(tmp_file, text_serializer)
+        new_text = test_mounted_filesystem.read(tmp_file, text_serializer)
 
         assert new_text == text
 
     def test_mounted_filesystem_create_dir_on_write(
-        self, mounted_filesystem, text_serializer
+        self, test_mounted_filesystem, text_serializer
     ):
 
-        tmp_file = f"{mounted_filesystem.mount_alias}/tmp_dir2/test.txt"
+        tmp_file = f"{test_mounted_filesystem.mount_alias}/tmp_dir2/test.txt"
         text = "test text"
 
         # fail on no directory creation
         with pytest.raises(FileNotFoundError):
-            mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=False)
+            test_mounted_filesystem.write(
+                tmp_file, text, text_serializer, create_dir=False
+            )
 
         # succeed on creation
-        mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=True)
+        test_mounted_filesystem.write(tmp_file, text, text_serializer, create_dir=True)
