@@ -4,7 +4,7 @@ from lume_services.services.files import FileService
 
 
 @pytest.fixture(scope="session")
-def file_service(local_filesystem_handler, mounted_filesystem_handler):
-    filesystems = [local_filesystem_handler, mounted_filesystem_handler]
+def file_service(local_filesystem, mounted_filesystem):
+    filesystems = [local_filesystem, mounted_filesystem]
 
     return FileService(filesystems)
