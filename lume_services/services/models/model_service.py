@@ -13,6 +13,13 @@ from lume_services.services.models.db.schema import (
 )
 
 from lume_services.services.models.utils import validate_kwargs_exist
+from lume_services.errors import (
+    FlowNotFoundError,
+    ModelNotFoundError,
+    DeploymentNotFoundError,
+    ProjectNotFoundError,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +27,7 @@ logger = logging.getLogger(__name__)
 class ModelDBService:
     def __init__(self, model_db: ModelDB):
         self._model_db = model_db
+        self._model_registry = {}
 
     @validate_kwargs_exist(Model)
     def store_model(self, **kwargs) -> int:
@@ -130,7 +138,7 @@ class ModelDBService:
             return result[0]
 
         else:
-            return None
+            raise ModelNotFoundError(query)
 
     @validate_kwargs_exist(Deployment)
     def get_deployment(self, **kwargs) -> Deployment:
@@ -156,7 +164,7 @@ class ModelDBService:
             return result[0]
 
         else:
-            return None
+            raise DeploymentNotFoundError(query)
 
     @validate_kwargs_exist(Deployment)
     def get_latest_deployment(self, **kwargs) -> Deployment:
@@ -177,7 +185,7 @@ class ModelDBService:
             return result[0]
 
         else:
-            return None
+            raise DeploymentNotFoundError(query)
 
     @validate_kwargs_exist(Project)
     def get_project(self, **kwargs) -> Project:
@@ -204,7 +212,7 @@ class ModelDBService:
             return result[0]
 
         else:
-            return None
+            raise ProjectNotFoundError(query)
 
     @validate_kwargs_exist(Flow)
     def get_flow(self, **kwargs) -> Flow:
@@ -230,7 +238,7 @@ class ModelDBService:
             return result[0]
 
         else:
-            return None
+            raise FlowNotFoundError(query)
 
     def apply_schema(self) -> None:
         """Applies database schema to connected service."""
