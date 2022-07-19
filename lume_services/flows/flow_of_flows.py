@@ -196,21 +196,11 @@ class FlowOfFlows(Flow):
         """
 
         flow = self.compose()
-        flow_id = flow.register(self.project_name)
+        flow_id = self.register(self.project_name)
         self.flow = flow
         self.flow_id = flow_id
         self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
         self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
-
-    def compose_local(self):
-        """
-
-        Note:
-            Prefect 1.0 does not allow subflow run without previous registration with
-            the server. This function is a workaround, but will be massively simplified
-            once moved to Prefect 2.0, which does support direct subflow run.
-        """
-        ...
 
     @classmethod
     def from_yaml(cls, yaml_obj):
@@ -222,3 +212,13 @@ class FlowOfFlows(Flow):
 
         # now validate
         return cls(**flow_of_flow_config)
+
+    def _compose_local(self):
+        """
+
+        Note:
+            Prefect 1.0 does not allow subflow run without previous registration with
+            the server. This function is a workaround, but will be massively simplified
+            once moved to Prefect 2.0, which does support direct subflow run.
+        """
+        ...

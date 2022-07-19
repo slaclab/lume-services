@@ -129,15 +129,16 @@ class Flow(BaseModel):
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
     ):
 
-        if self.flow is None:
+        if self.prefect_flow is None:
             # attempt loading
             self.load()
 
         self.flow_id = scheduling_service.register_flow(
-            self.flow, self.name, self.project_name
+            self.prefect_flow, self.name, self.project_name
         )
 
 
+# unused...
 class FlowConfig(BaseModel):
     image: Optional[str]
     env: Optional[List[str]]
@@ -156,6 +157,7 @@ class FlowRunConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
+# UNUSED
 def build_parameters(task, prefix: str = None):
     """
 
