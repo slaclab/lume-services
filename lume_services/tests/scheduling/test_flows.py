@@ -26,17 +26,17 @@ def project_name(prefect_client):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def flow1_id(project_name, prefect_client):
+def flow1_id(project_name):
     return flow1.register(project_name=project_name, labels=["lume-services"])
 
 
 @pytest.fixture(scope="session", autouse=True)
-def flow2_id(project_name, prefect_client):
+def flow2_id(project_name):
     return flow2.register(project_name=project_name, labels=["lume-services"])
 
 
 @pytest.fixture(scope="session", autouse=True)
-def flow3_id(project_name, prefect_client):
+def flow3_id(project_name):
     return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
