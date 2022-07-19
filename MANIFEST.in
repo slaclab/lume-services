@@ -1,4 +1,4 @@
 include versioneer.py
 include lume_services/_version.py
-recursive-include lume_services/scheduling/prefect/files *
+recursive-include lume_services/scheduling/files *
 recursive-include lume_services/modeling/templating/template *

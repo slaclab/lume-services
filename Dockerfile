@@ -1,41 +1,30 @@
 # Must build from lume-services repository root due to file paths
-FROM condaforge/miniforge3:latest as builder
-
-ARG PREFECT_VERSION
-ENV PREFECT_VERSION=$PREFECT_VERSION
+FROM condaforge/miniforge3:latest
 
 ENV EXTRA_CONDA_PACKAGES=""
 ENV EXTRA_PIP_PACKAGES=""
 
-COPY entrypoint.sh /prefect/entrypoint.sh
+ARG LUME_SERVICES_VERSION
+ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
 
-RUN conda install python=3.9 prefect=$PREFECT_VERSION && \
+COPY entrypoint.sh /prefect/entrypoint.sh
+COPY environment.yml /lume/environment.yml
+COPY . /lume/lume-services
+
+RUN conda env update --name base --file /lume/environment.yml && \
+    conda run -n base pip install /lume/lume-services && \
     chmod +x /prefect/entrypoint.sh
 
 ENTRYPOINT [ "/prefect/entrypoint.sh" ]
 
-FROM builder AS dev
-
-ARG LUME_SERVICES_REPOSITORY
-ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
-
-ARG LUME_SERVICES_VERSION
-ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
-
-COPY environment.yml /tmp/environment.yml
-COPY . /tmp/lume-services
-
-RUN conda env update --name base --file /tmp/environment.yml && \
-    pip install /tmp/lume-services && \
-    rm -rf /tmp/lume-services
 
 # Production build using released lume-services version
 #FROM builder AS prod
 
-#ARG LUME_SERVICES_REPOSITORY
-#ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
-
 #ARG LUME_SERVICES_VERSION
 #ENV LUME_SERVICES_VERSION=$LUME_SERVICES_VERSION
+
+#ARG LUME_SERVICES_REPOSITORY
+#ENV LUME_SERVICES_REPOSITORY=$LUME_SERVICES_REPOSITORY
 
 #RUN pip install ${LUME_SERVICES_REPOSITORY}/archive/refs/tags/${LUME_SERVICES_VERSION}
