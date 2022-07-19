@@ -9,6 +9,8 @@ from lume_services import config
 from lume_services.results import Result
 from lume_services.services.files.filesystems.mounted import MountedFilesystem
 
+from prefect.utilities.backend import load_backend
+
 
 @pytest.fixture(scope="class", autouse=True)
 def lume_service_settings(
@@ -23,15 +25,21 @@ class TestLumeSettings:
         config.context = None
 
     def test_list_environ(self):
-        config.list_env_vars()
+        env_vars = config.list_env_vars()
+        assert isinstance(env_vars, (dict,))
 
     def test_configure_from_env(
         self, file_service, model_db_service, results_db_service, scheduling_service
     ):
+
         assert config.context is None
         config.configure()
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
+
+        # check that server has been applied
+        backend_spec = load_backend()
+        assert backend_spec["backend"] == "server"
 
         assert config._settings.model_db.user == model_db_service._model_db.config.user
         assert (
@@ -71,6 +79,59 @@ class TestLumeSettings:
         )
 
         assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
+
+        # prefect configuration
+        assert (
+            config._settings.prefect.server.host
+            == scheduling_service.backend.config.server.host
+        )
+        assert (
+            config._settings.prefect.server.host_port
+            == scheduling_service.backend.config.host_port
+        )
+        assert (
+            config._settings.prefect.server.tag
+            == scheduling_service.backend.config.server.tag
+        )
+
+        assert (
+            config._settings.prefect.graphql.host
+            == scheduling_service.backend.config.graphql.host
+        )
+        assert (
+            config._settings.prefect.graphql.host_port
+            == scheduling_service.backend.config.graphql.host_port
+        )
+
+        assert (
+            config._settings.prefect.hasura.host
+            == scheduling_service.backend.config.hasura.host
+        )
+        assert (
+            config._settings.prefect.hasura.host_port
+            == scheduling_service.backend.config.hasura.host_port
+        )
+
+        assert (
+            config._settings.prefect.postgres.host
+            == scheduling_service.backend.config.postgres.host
+        )
+        assert (
+            config._settings.prefect.postgres.host_port
+            == scheduling_service.backend.config.postgres.host_port
+        )
+        assert (
+            config._settings.prefect.postgres.password
+            == scheduling_service.backend.config.postgres.password
+        )
+        assert (
+            config._settings.prefect.postgres.user
+            == scheduling_service.backend.config.postgres.user
+        )
+        assert (
+            config._settings.prefect.postgres.db
+            == scheduling_service.backend.config.postgres.db
+        )
 
     def test_configure_from_settings(self, lume_service_settings):
         config.context = None
