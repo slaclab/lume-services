@@ -87,7 +87,7 @@ class TestLumeSettings:
         )
         assert (
             config._settings.prefect.server.host_port
-            == scheduling_service.backend.config.host_port
+            == scheduling_service.backend.config.server.host_port
         )
         assert (
             config._settings.prefect.server.tag
