@@ -215,25 +215,32 @@ class LocalBackend(Backend):
         """Raise LocalBackendError for calls to register_flow server-type method.
 
         Raises:
-            LocalBackendError
+            LocalBackendError: Indicates that a server-backend operation has been
+                executed against the LocalBackend. Server-backend operations include
+                flow registration and remote execution.
 
         """
-        raise LocalBackendError
+        raise LocalBackendError()
 
     def register_flow(self, *args, **kwargs) -> None:
         """Raise LocalBackendError for calls to register_flow server-type method.
 
         Raises:
-            LocalBackendError
+            LocalBackendError: Indicates that a server-backend operation has been
+                executed against the LocalBackend. Server-backend operations include
+                flow registration and remote execution.
+
 
         """
-        raise LocalBackendError
+        raise LocalBackendError()
 
     def load_flow(self, *args, **kwargs) -> None:
         """Raise LocalBackendError for calls to load_flow server-type method.
 
         Raises:
-            LocalBackendError
+            LocalBackendError: Indicates that a server-backend operation has been
+                executed against the LocalBackend. Server-backend operations include
+                flow registration and remote execution.
 
         """
-        raise LocalBackendError
+        raise LocalBackendError()
