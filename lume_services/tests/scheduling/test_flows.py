@@ -5,6 +5,7 @@ from datetime import timedelta
 import yaml
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
+from lume_services.services.scheduling.backends.docker import DockerRunConfig
 
 
 from lume_services.tasks.db import LoadDBResult
@@ -45,6 +46,27 @@ class TestFlows:
     text1 = "hey"
     text2 = " you"
 
+    @pytest.fixture()
+    def run_config(
+        self, prefect_docker_tag, prefect_docker_agent, lume_env, mounted_filesystem
+    ):
+        mounts = [
+            {
+                "target": mounted_filesystem.mount_alias,
+                "source": mounted_filesystem.mount_path,
+                "type": "bind",
+            }
+        ]
+
+        host_config = {"mounts": mounts}
+
+        return DockerRunConfig(
+            image=prefect_docker_tag,
+            labels=["lume-services"],
+            env=lume_env,
+            host_config=host_config,
+        )
+
     @pytest.fixture(scope="class")
     def flow1_filename(self, mounted_filesystem):
         return f"{mounted_filesystem.mount_alias}/flow1_res.txt"
@@ -58,8 +80,7 @@ class TestFlows:
         self,
         prefect_client,
         flow1_id,
-        docker_backend,
-        docker_run_config,
+        run_config,
         flow1_filename,
         mounted_filesystem,
     ):
@@ -72,7 +93,7 @@ class TestFlows:
                 "filename": flow1_filename,
                 "filesystem_identifier": mounted_filesystem.identifier,
             },
-            run_config=docker_backend.get_run_config(docker_run_config),
+            run_config=run_config.build(),  # convert to prefect RunConfig
         )
 
         # watch and block
@@ -117,8 +138,7 @@ class TestFlows:
         self,
         prefect_client,
         flow2_id,
-        docker_backend,
-        docker_run_config,
+        run_config,
         test_flow1_run,
         results_db_service,
     ):
@@ -126,7 +146,7 @@ class TestFlows:
         flow_run_id = prefect_client.create_flow_run(
             flow_id=flow2_id,
             parameters={"file_rep": test_flow1_run},
-            run_config=docker_backend.get_run_config(docker_run_config),
+            run_config=run_config.build(),  # convert to prefect RunConfig
         )
 
         # watch and block
@@ -163,8 +183,7 @@ class TestFlows:
         self,
         prefect_client,
         flow3_id,
-        docker_backend,
-        docker_run_config,
+        run_config,
         test_flow2_run,
         results_db_service,
     ):
@@ -180,7 +199,7 @@ class TestFlows:
         flow_run_id = prefect_client.create_flow_run(
             flow_id=flow3_id,
             parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
-            run_config=docker_backend.get_run_config(docker_run_config),
+            run_config=run_config.build(),  # convert to prefect RunConfig
         )
 
         # watch and block
