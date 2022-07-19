@@ -139,7 +139,7 @@ class ServerBackend(Backend):
         flow: Flow,
         project_name: str,
         image_tag: str = None,
-        labels: List[str] = ["lume-services"],
+        labels: List[str] = None,
         idempotency_key: str = None,
         version_group_id: str = None,
         build: bool = True,
@@ -312,6 +312,7 @@ class ServerBackend(Backend):
         flow_run_id = self._client.create_flow_run(
             flow_id=flow_id, parameters=data, run_config=prefect_run_config
         )
+        flow_view = FlowView.from_flow_id(flow_id)
 
         # watch flow run and stream logs until timeout
         try:
@@ -336,42 +337,48 @@ class ServerBackend(Backend):
                 exception_message=flow_run.state.message,
             )
 
+        task_runs = flow_run.get_all_task_runs()
+
+        # populate tasks
+        results = {}
+        for task_run in task_runs:
+            slug = task_run.task_slug
+            if not task_run.state.is_successful():
+                raise TaskNotCompletedError(slug, flow_id, flow_run_id)
+
+            try:
+                res = task_run.get_result()
+            # location is not set, no result
+            except ValueError:
+                res = None
+
+            results[slug] = res
+
         # get task run
         if task_name is not None:
             # filter tasks based on name
-            task_runs = flow_run.get_all_task_runs()
-            task_runs = [
-                task_run for task_run in task_runs if task_run.name == task_name
-            ]
+            task_runs = {
+                slug: res for slug, res in results.items() if task_name in slug
+            }
+            logger.debug(task_runs)
 
             if not len(task_runs):
-                raise TaskNotInFlowError(flow_run.name, task_name)
-
-            results = {}
-            for task_run in task_runs:
-                slug = task_run.task_slug
-                if not task_run.state.is_successful():
-                    raise TaskNotCompletedError(slug, flow_id, flow_run_id)
-
-                res = task_run.get_result()
-                if res is None:
-                    raise EmptyResultError(flow_id, flow_run_id, slug)
-
-                results[slug] = res
+                raise TaskNotInFlowError(
+                    flow_name=flow_view.name,
+                    project_name=flow_view.project_name,
+                    task_name=task_name,
+                )
 
             if len(task_runs) == 1:
-                res = results.values()[0]
+                res = list(task_runs.values())[0]
                 if res is None:
                     raise EmptyResultError(flow_id, flow_run_id, slug)
 
                 return res
 
             else:
-                return results
+                return task_runs
 
         # assume flow result, return all results
         else:
-            if not flow_run.state._result:
-                raise EmptyResultError(flow_id, flow_run_id)
-
-            return flow_run.state.load_result()
+            return results
