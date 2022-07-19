@@ -171,7 +171,7 @@ def docker_backend(prefect_config):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def prefect_client(prefect_api_str, prefect_docker_agent):
+def prefect_client(prefect_api_str, prefect_docker_agent, prefect_config):
     client = prefect.Client(api_server=prefect_api_str)
     client.graphql("query{hello}", retry_on_api_error=False)
     return client
