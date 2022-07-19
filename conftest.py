@@ -1,7 +1,9 @@
 import pytest
 import os
 import docker
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
 
 from lume_services.services.files.filesystems import (
     LocalFilesystem,
@@ -34,15 +36,28 @@ def pytest_addoption(parser):
         help="Prefect postgres password",
         default="prefect_password",
     )
-    parser.addini(name="apollo_host_port", help="Prefect apollo api port", default=4200)
+    parser.addini(name="server_tag", help="Prefect server image tag", default="latest")
+    parser.addini(
+        name="server_host_port", help="Prefect server apollo api port", default=4200
+    )
+    parser.addini(
+        name="server_host", help="Prefect server apollo host IP", default="127.0.0.1"
+    )
     parser.addini(
         name="hasura_host_port", help="Prefect hasura host port", default=3000
     )
+    parser.addini(name="hasura_host", help="Hasura host IP", default="127.0.0.1")
     parser.addini(
-        name="postgres_host_port", help="Prefect postgres host port", default=3000
+        name="postgres_host_port", help="Prefect postgres host port", default=5432
+    )
+    parser.addini(
+        name="postgres_host", help="Prefect postgres host IP", default="127.0.0.1"
     )
     parser.addini(
         name="graphql_host_port", help="Prefect graphql host port", default=4201
+    )
+    parser.addini(
+        name="graphql_host", help="Prefect graphql host IP", default="127.0.0.1"
     )
 
 
@@ -100,66 +115,105 @@ def base_mysql_uri(mysql_user, mysql_password, mysql_host, mysql_port):
     return f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}"
 
 
-## Prefect
+@pytest.fixture(scope="session")
+def server_tag(request):
+    tag = request.config.getini("server_tag")
+    os.environ["LUME_PREFECT__SERVER__TAG"] = tag
+    return tag
 
 
 @pytest.fixture(scope="session")
-def apollo_host_port(request):
-    port = request.config.getini("apollo_host_port")
-    os.environ["APOLLO_HOST_PORT"] = port
+def server_host_port(request):
+    port = request.config.getini("server_host_port")
+    os.environ["LUME_PREFECT__SERVER__HOST_PORT"] = port
+    return port
+
+
+@pytest.fixture(scope="session")
+def sever_host(request):
+    port = request.config.getini("server_host")
+    os.environ["LUME_PREFECT__SERVER__HOST"] = port
     return port
 
 
 @pytest.fixture(scope="session")
 def hasura_host_port(request):
     port = request.config.getini("hasura_host_port")
-    os.environ["HASURA_HOST_PORT"] = port
+    os.environ["LUME_PREFECT__HASURA__HOST_PORT"] = port
+    return port
+
+
+@pytest.fixture(scope="session")
+def hasura_host(request):
+    port = request.config.getini("hasura_host")
+    os.environ["LUME_PREFECT__HASURA__HOST"] = port
     return port
 
 
 @pytest.fixture(scope="session")
 def graphql_host_port(request):
     port = request.config.getini("graphql_host_port")
-    os.environ["GRAPHQL_HOST_PORT"] = port
+    os.environ["LUME_PREFECT__GRAPHQL__HOST_PORT"] = port
+    return port
+
+
+@pytest.fixture(scope="session")
+def graphql_host(request):
+    port = request.config.getini("graphql_host")
+    os.environ["LUME_PREFECT__GRAPHQL__HOST"] = port
     return port
 
 
 @pytest.fixture(scope="session")
 def postgres_db(request):
     db = request.config.getini("postgres_db")
-    os.environ["POSTGRES_DB"] = db
+    os.environ["LUME_PREFECT__POSTGRES__DB"] = db
     return db
 
 
 @pytest.fixture(scope="session")
 def postgres_user(request):
     user = request.config.getini("postgres_user")
-    os.environ["POSTGRES_USER"] = user
+    os.environ["LUME_PREFECT__POSTGRES__USER"] = user
     return user
 
 
 @pytest.fixture(scope="session")
 def postgres_password(request):
     password = request.config.getini("postgres_password")
-    os.environ["POSTGRES_PASSWORD"] = password
+    os.environ["LUME_PREFECT__POSTGRES__PASSWORD"] = password
     return password
 
 
 @pytest.fixture(scope="session")
 def postgres_data_path(tmp_path_factory):
     temp_path = tmp_path_factory.mktemp("postgres_data_path")
-    os.environ["POSTGRES_DATA_PATH"] = str(temp_path)
+    os.environ["LUME_PREFECT__POSTGRES__DATA_PATH"] = str(temp_path)
     return temp_path
 
 
 @pytest.fixture(scope="session")
-def prefect_api_str(apollo_host_port):
-    return f"http://localhost:{apollo_host_port}"
+def postgres_host(request):
+    host = request.config.getini("postgres_host")
+    os.environ["LUME_PREFECT__POSTGRES__HOST"] = host
+    return host
 
 
 @pytest.fixture(scope="session")
-def graphql_api_str(apollo_host_port):
-    return f"http://localhost:{apollo_host_port}/graphql"
+def postgres_host(request):
+    port = request.config.getini("postgres_host_port")
+    os.environ["LUME_PREFECT__POSTGRES__HOST_PORT"] = port
+    return port
+
+
+@pytest.fixture(scope="session")
+def prefect_api_str(service_host_port):
+    return f"http://localhost:{server_host_port}"
+
+
+@pytest.fixture(scope="session")
+def graphql_api_str(server_host_port):
+    return f"http://localhost:{server_host_port}/graphql"
 
 
 ## mongodb
