@@ -50,7 +50,7 @@ def mysql_config(
 
 
 @pytest.mark.usefixtures("mysql_server")
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def mysql_service(mysql_config):
     mysql_service = MySQLModelDB(mysql_config)
     return mysql_service
