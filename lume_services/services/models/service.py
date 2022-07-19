@@ -7,7 +7,6 @@ from lume_services.services.models.db.schema import (
     Model,
     Deployment,
     Flow,
-    DeploymentFlow,
     Project,
     FlowOfFlows,
 )
@@ -95,12 +94,9 @@ class ModelDBService:
             str: inserted flow id
         """
 
-        insert_stmts = [
-            insert(Flow).values(flow_id=flow_id, **kwargs),
-            insert(DeploymentFlow).values(deployment_id=deployment_id, flow_id=flow_id),
-        ]
+        insert_stmt = insert(Flow).values(flow_id=flow_id, **kwargs)
 
-        results = self._model_db.insert_many(insert_stmts)
+        results = self._model_db.insert_many(insert_stmt)
 
         # flow_id is result of first insert
         if len(results):
@@ -231,30 +227,6 @@ class ModelDBService:
                 )
 
             return result[0]
-
-        else:
-            raise FlowNotFoundError(query)
-
-    @validate_kwargs_exist(DeploymentFlow)
-    def get_deployment_flow(self, **kwargs) -> Flow:
-        """Get a flow from criteria
-
-        Returns:
-            Flow:
-        """
-
-        query = select(DeploymentFlow).filter_by(**kwargs)
-        result = self._model_db.select(query)
-
-        if len(result):
-            if len(result) > 1:
-                logger.warning(
-                    "Multiple flows returned from query. get_deployment_flow is returning the \
-                        first result with  %s",
-                    result[0].flow_id,
-                )
-
-            return result[0].flow
 
         else:
             raise FlowNotFoundError(query)
