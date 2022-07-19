@@ -1,5 +1,4 @@
 from sqlalchemy import insert, select, desc
-from typing import List
 import logging
 
 from lume_services.services.models.db import ModelDB
@@ -10,6 +9,7 @@ from lume_services.services.models.db.schema import (
     Flow,
     DeploymentFlow,
     Project,
+    FlowOfFlows,
 )
 
 from lume_services.services.models.utils import validate_kwargs_exist
@@ -18,6 +18,7 @@ from lume_services.errors import (
     ModelNotFoundError,
     DeploymentNotFoundError,
     ProjectNotFoundError,
+    FlowOfFlowsNotFoundError,
 )
 
 
@@ -86,30 +87,24 @@ class ModelDBService:
         else:
             return None
 
-    @validate_kwargs_exist(Flow, ignore="deployment_ids")
-    def store_flow(self, deployment_ids=List[int], flow_id=str, **kwargs) -> str:
+    @validate_kwargs_exist(Flow, ignore="deployment_id")
+    def store_flow(self, deployment_id=int, flow_id=str, **kwargs) -> str:
         """Store a flow.
 
         Returns:
             str: inserted flow id
         """
 
-        insert_stmnts = []
+        insert_stmts = [
+            insert(Flow).values(flow_id=flow_id, **kwargs),
+            insert(DeploymentFlow).values(deployment_id=deployment_id, flow_id=flow_id),
+        ]
 
-        insert_stmt = insert(Flow).values(flow_id=flow_id, **kwargs)
-        result = self._model_db.insert(insert_stmt)
+        results = self._model_db.insert_many(insert_stmts)
 
-        for deployment_id in deployment_ids:
-
-            insert_stmnt = insert(DeploymentFlow).values(
-                deployment_id=deployment_id, flow_id=flow_id
-            )
-            insert_stmnts.append(insert_stmnt)
-
-        self._model_db.insert_many(insert_stmnts)
-
-        if len(result):
-            return result[0]
+        # flow_id is result of first insert
+        if len(results):
+            return results[0]
 
         else:
             return None
@@ -239,6 +234,47 @@ class ModelDBService:
 
         else:
             raise FlowNotFoundError(query)
+
+    @validate_kwargs_exist(DeploymentFlow)
+    def get_deployment_flow(self, **kwargs) -> Flow:
+        """Get a flow from criteria
+
+        Returns:
+            Flow:
+        """
+
+        query = select(DeploymentFlow).filter_by(**kwargs)
+        result = self._model_db.select(query)
+
+        if len(result):
+            if len(result) > 1:
+                logger.warning(
+                    "Multiple flows returned from query. get_deployment_flow is returning the \
+                        first result with  %s",
+                    result[0].flow_id,
+                )
+
+            return result[0].flow
+
+        else:
+            raise FlowNotFoundError(query)
+
+    @validate_kwargs_exist(FlowOfFlows)
+    def get_flow_of_flows(self, **kwargs) -> Flow:
+        """Get a flow from criteria
+
+        Returns:
+            Flow:
+        """
+
+        query = select(FlowOfFlows).filter_by(**kwargs)
+        result = self._model_db.select(query)
+
+        if len(result):
+            return [res.flow for res in result]
+
+        else:
+            raise FlowOfFlowsNotFoundError(query)
 
     def apply_schema(self) -> None:
         """Applies database schema to connected service."""
