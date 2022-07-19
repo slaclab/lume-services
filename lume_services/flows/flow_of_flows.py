@@ -1,7 +1,7 @@
 import os
 import yaml
-from pydantic import BaseModel, validator
-from typing import List, Optional, get_args
+from pydantic import validator
+from typing import List, get_args
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -9,38 +9,16 @@ from prefect.tasks.prefect import (
 )
 from prefect import Flow as PrefectFlow
 from lume_services.flows.flow import Flow, MappedParameter
-from lume_services.services.scheduling.tasks import LoadDBResult
+from lume_services.tasks import LoadDBResult
+from lume_services.errors import (
+    ParameterNotInFlowError,
+    ParentFlowNotInFlowsError,
+    TaskNotInFlowError,
+)
 
 
-class ParameterNotInFlowError(Exception):
-    def __init__(self, parameter_name: str, flow_name: str):
-        self.flow_name = flow_name
-        self.parameter_name = parameter_name
-        self.message = "Parameter %s not in flow %s."
-        super().__init__(self.message, self.parameter_name, self.flow_name)
-
-
-class ParentFlowNotInFlowsError(Exception):
-    def __init__(self, flow_name: str, flows: List[str]):
-        self.flow_name = flow_name
-        self.flows = flows
-        self.message = "Parent flow %s not in flows: %s"
-        super().__init__(self.message, self.flow_name, ", ".join(self.flows))
-
-
-class TaskNotInFlowError(Exception):
-    def __init__(self, flow_name: str, task_name: str):
-        self.flow_name = flow_name
-        self.task_name = task_name
-        self.message = "Task %s not in flow %s."
-        super().__init__(self.message, self.task_name, self.flow_name)
-
-
-class FlowOfFlows(BaseModel):
-    name: str
-    project_name: str
+class FlowOfFlows(Flow):
     composing_flows: dict
-    prefect_flow: Optional[PrefectFlow]
 
     class Config:
         arbitrary_types_allowed = True
@@ -207,7 +185,6 @@ class FlowOfFlows(BaseModel):
         # assign to obj
         self.prefect_flow = flow_of_flows
 
-        # flow_id = flow_of_flows.register(project_name=self.project_name)
         return flow_of_flows
 
     def compose_and_register(self):
@@ -220,7 +197,10 @@ class FlowOfFlows(BaseModel):
 
         flow = self.compose()
         flow_id = flow.register(self.project_name)
-        return flow_id
+        self.flow = flow
+        self.flow_id = flow_id
+        self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
+        self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
 
     def compose_local(self):
         """

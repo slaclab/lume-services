@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, Field
 from prefect import Parameter
-from prefect.backend.flow import FlowView
 from prefect.run_configs import RunConfig
 from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
+from dependency_injector.wiring import Provide, inject
+from lume_services.config import Context
+
+
+from lume_services.services.scheduling import SchedulingService
 
 # Pydantic schema describing flow of flows composition
 
@@ -14,7 +18,7 @@ class MappedParameter(BaseModel):
 
     file: File parameters are file outputs that will be loaded in downstream flows.
     Downstream loading must use the packaged `load_file` task in
-    `lume_services.services.scheduling.tasks.file`.
+    `lume_services.tasks.file`.
 
     db: Database results ...
 
@@ -57,7 +61,15 @@ def _get_mapped_parameter_type(map_type: str):
 
 
 class Flow(BaseModel):
+    """
+
+    mapped_parameters (Optional[Dict[str, MappedParameter]]): Parameters to be
+        collected from other flows
+
+    """
+
     name: str
+    flow_id: Optional[str]
     project_name: str
     parameters: Optional[Dict[str, Parameter]]
     mapped_parameters: Optional[Dict[str, MappedParameter]]
@@ -67,6 +79,7 @@ class Flow(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        validate_assignment = True
 
     @validator("mapped_parameters", pre=True)
     def validate_mapped_parameters(cls, v):
@@ -98,15 +111,31 @@ class Flow(BaseModel):
 
         return mapped_parameters
 
-    def load(self):
-        flow = FlowView.from_flow_name(
-            self.name, project_name=self.project_name, last_updated=True
-        ).flow
+    @inject
+    def load(
+        self,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+        flow = scheduling_service.load_flow(self.name, self.project_name)
 
         # assign attributes
         self.prefect_flow = flow
         self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
         self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
+
+    @inject
+    def register(
+        self,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+
+        if self.flow is None:
+            # attempt loading
+            self.load()
+
+        self.flow_id = scheduling_service.register_flow(
+            self.flow, self.name, self.project_name
+        )
 
 
 class FlowConfig(BaseModel):
