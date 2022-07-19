@@ -180,7 +180,9 @@ class LocalBackend(Backend):
             # get tasks
             tasks = flow.get_tasks(name=task_name)
             if not len(tasks):
-                raise TaskNotInFlowError(flow_name=flow.name, task_name=task_name)
+                raise TaskNotInFlowError(
+                    flow_name=flow.name, project_name="local", task_name=task_name
+                )
 
             results = []
             for task in tasks:
