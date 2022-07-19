@@ -133,15 +133,15 @@ class TestRunConfigs:
 
 
 class TestLocalBackend:
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def run_config(self, lume_env):
         return LocalRunConfig(labels=["test"], env=lume_env)
 
-    @pytest.fixture()
-    def backend(self, run_config):
+    @pytest.fixture(scope="class")
+    def backend(self):
         return LocalBackend()
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def data(self, tmp_path):
         return {
             "text1": "hey",
@@ -200,7 +200,7 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def run_config(
         self, prefect_docker_tag, prefect_docker_agent, lume_env, mounted_filesystem
     ):
@@ -222,18 +222,18 @@ class TestDockerBackend:
             host_config=host_config,
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def backend(self, prefect_config):
         return DockerBackend(config=prefect_config)
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def project_name(self, prefect_client):
         project_name = "test_docker_backend"
         prefect_client.create_project(project_name=project_name)
         return project_name
 
     # tests flow registration
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def flow_id(self, backend, project_name, prefect_docker_tag):
         flow.run_config = None
         return backend.register_flow(
@@ -243,7 +243,7 @@ class TestDockerBackend:
             labels=["lume-services"],
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def failure_flow_id(self, backend, project_name, prefect_docker_tag):
         return backend.register_flow(
             failure_flow,
@@ -252,8 +252,8 @@ class TestDockerBackend:
             labels=["lume-services"],
         )
 
-    @pytest.fixture()
-    def data(self, run_config, mounted_filesystem):
+    @pytest.fixture(scope="class")
+    def data(self, mounted_filesystem):
         return {
             "text1": "hey",
             "text2": " you",

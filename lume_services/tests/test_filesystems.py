@@ -13,8 +13,8 @@ def text_serializer():
 
 
 class TestLocalFilesystem:
-    @pytest.fixture()
-    def test_local_filesystem(self, tmp_path):
+    @pytest.fixture(scope="class")
+    def test_local_filesystem(self):
         return LocalFilesystem()
 
     def test_local_filesystem_dir_exists(self, test_local_filesystem, tmp_path):
@@ -69,7 +69,7 @@ class TestLocalFilesystem:
 
 
 class TestMountedFilesystem:
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def test_mounted_filesystem(self, tmp_path, fs):
         return MountedFilesystem(mount_alias="/test_base", mount_path=str(tmp_path))
 
