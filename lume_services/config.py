@@ -78,6 +78,8 @@ class Context(containers.DeclarativeContainer):
         packages=[
             "lume_services.files",
             "lume_services.results",
+            "lume_services.flows",
+            #           "lume_services.models",
         ],
     )
 
