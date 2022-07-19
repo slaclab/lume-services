@@ -9,6 +9,7 @@ from prefect import Client, Flow, config as prefect_config
 from prefect.run_configs import RunConfig as PrefectRunConfig
 from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
+from prefect.utilities import backend as backend_util
 
 from lume_services.services.scheduling.backends.backend import Backend, RunConfig
 from lume_services.errors import (
@@ -75,9 +76,8 @@ class PrefectConfig(BaseModel):
     backend: str = "server"
 
     def apply(self):
-        prefect_config.update(
-            backend=self.backend, home_dir=self.home_dir, debug=self.debug
-        )
+        prefect_config.update(home_dir=self.home_dir, debug=self.debug)
+        backend_util.save_backend(self.backend)
         prefect_config.server.update(**self.server.dict())
         prefect_config.server.graphql.update(**self.graphql.dict())
         prefect_config.server.hasura.update(**self.hasura.dict())
