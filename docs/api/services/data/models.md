@@ -1,1 +1,1 @@
-::: lume_services.services.data.models
+::: lume_services.services.models

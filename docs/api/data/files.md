@@ -1,4 +1,4 @@
-::: lume_services.data.files
+::: lume_services.files
     selection:
         filters:
             - "!^Config"
