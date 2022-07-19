@@ -183,15 +183,13 @@ class TestFileServiceInjection:
     def configure(self, lume_service_settings):
         config.configure(lume_service_settings)
 
-    def test_file_service_injection_local(
-        self, tmp_path, local_filesystem_handler, configure
-    ):
+    def test_file_service_injection_local(self, tmp_path, local_filesystem, configure):
         filepath = f"{tmp_path}/tmp_file.txt"
         text = "test text"
         text_file = TextFile(
             obj=text,
             filename=filepath,
-            filesystem_identifier=local_filesystem_handler.identifier,
+            filesystem_identifier=local_filesystem.identifier,
         )
         text_file.write(create_dir=True)
 
