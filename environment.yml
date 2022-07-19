@@ -16,8 +16,6 @@ dependencies:
   - dependency_injector
   - lume-base
   - h5py
-  - sqlalchemy_schemadisplay
-  - graphviz
   - pyyaml
   - docker-py>=5.0
   - lume-base>=0.2.2
