@@ -30,14 +30,13 @@ def mongodb_config(
 def is_database_ready(docker_ip, mongodb_config):
     try:
         MongoClient(
-            **mongodb_config.dict(
-                by_alias=True, exclude_none=True, exclude={"database"}
-            ),
+            **mongodb_config.dict(by_alias=True, exclude_none=True),
             password=mongodb_config.password.get_secret_value(),
             connectTimeoutMS=20000,
             connect=True
         )
         return True
+
     except Exception as e:
         logger.error(e)
         return False
