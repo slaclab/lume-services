@@ -19,11 +19,11 @@ class TestModelDB:
     is_live = 1
 
     # project
-    project_name = ("my_project",)
+    project = "my_project"
     project_description = "placeholder"
 
     # flow
-    flow_id = 0
+    flow_id_placeholder = "test"
     flow_name = "my_test_flow"
 
     @pytest.fixture(scope="class")
@@ -118,7 +118,7 @@ class TestModelDB:
     def project_name(self, model_db_service):
 
         project_name = model_db_service.store_project(
-            project_name=self.project_name, description=self.project_description
+            project_name=self.project, description=self.project_description
         )
 
         assert project_name is not None
@@ -131,14 +131,14 @@ class TestModelDB:
 
     def test_missing_project_description(self, model_db_service):
         with pytest.raises(OperationalError):
-            model_db_service.store_project(project_name=self.project_name)
+            model_db_service.store_project(project_name=self.project)
 
     @pytest.fixture()
     def flow_id(self, model_db_service, deployment_id, project_name):
         flow_id = model_db_service.store_flow(
             project_name=project_name,
             deployment_id=deployment_id,
-            flow_id=self.flow_id,
+            flow_id=self.flow_id_placeholder,
             flow_name=self.flow_name,
         )
 
