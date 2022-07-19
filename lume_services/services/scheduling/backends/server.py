@@ -1,9 +1,9 @@
 from abc import abstractproperty
 from datetime import timedelta
 import warnings
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 from prefect import Client, Flow, config as prefect_config
 from prefect.run_configs import RunConfig as PrefectRunConfig
@@ -23,35 +23,36 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class PrefectPostgresConfig(BaseModel):
+    host: str = "0.0.0.0"
+    host_port: str = "5432"
+    db: str
+    user: str
+    password: SecretStr = SecretStr("lume_services")
+    data_path: str = "/tmp/lume/postgresql"
+
+
 class PrefectGraphQLConfig(BaseModel):
     host: str = "0.0.0.0"
-    port: str = "4201"
     host_port: str = "4201"
-    debug: bool = False
-    path: str = "/graphql/"
 
 
 class PrefectServerConfig(BaseModel):
+    tag: str = "core-1.2.4"
     host: str = "http://localhost"
-    port: str = "4200"
     host_port: str = "4200"
     host_ip: str = "127.0.0.1"
 
 
 class PrefectHasuraConfig(BaseModel):
     host: str = "localhost"
-    port: str = "3000"
     host_port: str = "3000"
-    admin_secret: str = (
-        ""  # a string. One will be automatically generated if not provided.
-    )
     claims_namespace: str = "hasura-claims"
     execute_retry_seconds: str = 10
 
 
 class PrefectUIConfig(BaseModel):
     host: str = "http://localhost"
-    port: str = "8080"
     host_port: str = "8080"
     host_ip: str = "127.0.0.1"
     apollo_url: str = "http://localhost:4200/graphql"
@@ -63,6 +64,7 @@ class PrefectTelemetryConfig(BaseModel):
 
 class PrefectConfig(BaseModel):
     # https://github.com/PrefectHQ/prefect/blob/master/src/prefect/config.toml
+    postgres: Optional[PrefectPostgresConfig]
     server: PrefectServerConfig = PrefectServerConfig()
     graphql: PrefectGraphQLConfig = PrefectGraphQLConfig()
     hasura: PrefectHasuraConfig = PrefectHasuraConfig()
