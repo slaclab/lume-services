@@ -4,7 +4,6 @@ import pytest
 
 def test_prefect_config(prefect_config):
     # check assignment, has already been applied
-    assert prefect.config.backend == "server"
     assert prefect.config.debug == prefect_config.debug
     assert prefect.config.home_dir == prefect_config.home_dir
 
