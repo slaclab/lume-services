@@ -1,7 +1,7 @@
 import os
 from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
-from typing import Optional
+from typing import Optional, Literal
 
 from lume_services.services.models.db import ModelDB
 from lume_services.services.models import ModelDBService
@@ -19,7 +19,13 @@ from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
-from lume_services.services.scheduling import PrefectConfig
+from lume_services.services.scheduling import PrefectConfig, SchedulingService
+from lume_services.services.scheduling.backends import (
+    Backend,
+    LocalBackend,
+    DockerBackend,
+    KubernetesBackend,
+)
 
 
 import logging
@@ -48,7 +54,9 @@ class Context(containers.DeclarativeContainer):
 
     results_db = providers.Dependency(instance_of=ResultsDB)
 
-    # filter on the case that a filesystem is undefiled
+    scheduling_backend = providers.Dependency(instance_of=Backend)
+
+    # filter on the case that a filesystem is undefined
     file_service = providers.Singleton(
         FileService, filesystems=providers.List(local_filesystem, mounted_filesystem)
     )
@@ -62,10 +70,9 @@ class Context(containers.DeclarativeContainer):
         results_db=results_db,
     )
 
-    # scheduling_service = providers.Singleton(
-    #    SchedulingService,
-    #    config=config.scheduling
-    # )
+    scheduling_service = providers.Singleton(
+        SchedulingService, backend=scheduling_backend
+    )
 
     wiring_config = containers.WiringConfiguration(
         packages=[
@@ -82,6 +89,7 @@ class LUMEServicesSettings(BaseSettings):
     results_db: MongodbResultsDBConfig
     prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
+    backend: Optional[Literal["kubernetes", "local", "docker"]]
 
     class Config:
         # env_file = '.env'
@@ -127,10 +135,26 @@ def configure(settings: LUMEServicesSettings = None):
     model_db = MySQLModelDB(settings.model_db)
     results_db = MongodbResultsDB(settings.results_db)
 
+    # this could be moved to an enum
+    if settings.backend is not None:
+        if settings.backend == "kubernetes":
+            backend = KubernetesBackend(config=settings.prefect)
+
+        elif settings.backend == "docker":
+            backend = DockerBackend(config=settings.prefect)
+
+        elif settings.backend == "docker":
+            backend = LocalBackend()
+
+    # default to local
+    else:
+        backend = LocalBackend()
+
     context = Context(
         model_db=model_db,
         results_db=results_db,
         mounted_filesystem=settings.mounted_filesystem,
+        scheduling_backend=backend,
     )
     _settings = settings
 
