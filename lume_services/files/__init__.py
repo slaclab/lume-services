@@ -4,5 +4,5 @@ from .file import (
     HDF5File,
     ImageFile,
     YAMLFile,
-    get_file_from_serializer_string,
 )
+from .utils import get_file_from_serializer_string
