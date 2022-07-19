@@ -264,7 +264,7 @@ def mount_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def local_filesystem_handler():
+def local_filesystem():
     return LocalFilesystem()
 
 
