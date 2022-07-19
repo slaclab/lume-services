@@ -3,8 +3,7 @@ import os
 
 from subprocess import Popen, PIPE
 import time
-
-from prefect import Client
+import prefect
 
 import docker
 
@@ -22,25 +21,35 @@ from lume_services.services.scheduling.backends import (
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_docker_tag():
-    return "pytest-prefect"
+    return "lume_services:pytest"
+    # return "build-test:latest"
 
 
 @pytest.fixture(scope="session")
 def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client = docker.from_env()
-    image, _ = docker_client.images.build(
+    image, build_logs = docker_client.images.build(
         path=str(rootdir),
         dockerfile=f"{rootdir}/Dockerfile",
-        nocache=False,
+        nocache=True,
         tag=prefect_docker_tag,
         quiet=False,
-        target="dev",
+        buildargs={"LUME_SERVICES_VERSION": "pytest"},
         rm=True,
         forcerm=True,
     )
+    for chunk in build_logs:
+        if "stream" in chunk:
+            for line in chunk["stream"].splitlines():
+                logger.info(line)
+
     yield image
 
     docker_client.images.remove(image.id, noprune=False)
@@ -50,7 +59,7 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
 def prefect_tenant(prefect_api_str):
 
     # Get a client with the correct server port
-    client = Client(api_server=prefect_api_str)
+    client = prefect.Client(api_server=prefect_api_str)
     client.graphql("query{hello}", retry_on_api_error=False)
     time.sleep(2)
     client.create_tenant(name="default", slug="default")
@@ -69,6 +78,7 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
             "lume-services",
             "--network",
             "prefect-server",
+            "--show-flow-logs",
             "--no-pull",
             "--api",
             prefect_api_str,
@@ -85,6 +95,10 @@ def prefect_docker_agent(prefect_tenant, prefect_api_str):
     # Shut it down at the end of the pytest session
     agent_proc.terminate()
 
+    output = agent_proc.communicate()[0]
+    for line in output.split(b"\n"):
+        logger.debug(output)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_config(apollo_host_port, graphql_host_port, hasura_host_port):
@@ -99,14 +113,18 @@ def prefect_config(apollo_host_port, graphql_host_port, hasura_host_port):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def docker_run_config(
-    prefect_docker_tag, docker_services, prefect_job_docker, file_service
-):
+def lume_env():
     lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
-
     # Need to convert to docker network hostnames
     lume_env["LUME_RESULTS_DB__HOST"] = "mongodb"
     lume_env["LUME_MODEL_DB__HOST"] = "mysql"
+    return lume_env
+
+
+@pytest.fixture(scope="session", autouse=True)
+def docker_run_config(
+    prefect_docker_tag, docker_services, prefect_job_docker, file_service, lume_env
+):
 
     mounted_filesystems = file_service.get_mounted_filesystems()
     mounts = []
@@ -133,6 +151,6 @@ def docker_backend(prefect_config):
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_client(prefect_api_str, prefect_docker_agent):
-    client = Client(api_server=prefect_api_str)
+    client = prefect.Client(api_server=prefect_api_str)
     client.graphql("query{hello}", retry_on_api_error=False)
     return client
