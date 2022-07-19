@@ -12,6 +12,7 @@ from lume_services.errors import (
     LocalBackendError,
     TaskNotCompletedError,
     TaskNotInFlowError,
+    FlowFailedError,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class LocalRunConfig(RunConfig):
     working_dir, an error will be raised.
 
     Attributes:
-        labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+        labels (Optional[List[str]]): an list of labels to apply to this run
             config. Labels are string identifiers used by Prefect Agents for selecting
             valid flow runs when polling for work
         env (Optional[Dict[str, str]]): Dictionary of environment variables to use for
@@ -73,7 +74,7 @@ class LocalBackend(Backend):
         """Run flow execution. Does not return result.
 
         Args:
-            labels (Optional[Iterable[str]]): an iterable of labels to apply to this run
+            labels (Optional[List[str]]): an list of labels to apply to this run
                 config. Labels are string identifiers used by Prefect Agents for
                 selecting valid flow runs when polling for work.
             env (Optional[dict]): Additional environment variables to set on the job
@@ -147,7 +148,24 @@ class LocalBackend(Backend):
 
         # apply run config
         flow.run_config = prefect_run_config
-        flow_run = flow.run(parameters=data)
+
+        try:
+            flow_run = flow.run(parameters=data)
+            if flow_run.is_failed():
+                logger.exception(flow_run.message)
+                raise FlowFailedError(
+                    flow_id="local_flow",
+                    flow_run_id="local_flow_run",
+                    exception_message=flow_run.message,
+                )
+
+        except Exception as e:
+            logger.exception(e.message)
+            raise FlowFailedError(
+                flow_id="local_flow",
+                flow_run_id="local_flow_run",
+                exception_message=e.message,
+            )
 
         result = flow_run.result
 
@@ -162,7 +180,7 @@ class LocalBackend(Backend):
             # get tasks
             tasks = flow.get_tasks(name=task_name)
             if not len(tasks):
-                raise TaskNotInFlowError(flow.name, task_name)
+                raise TaskNotInFlowError(flow_name=flow.name, task_name=task_name)
 
             results = []
             for task in tasks:
