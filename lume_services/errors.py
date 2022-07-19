@@ -21,11 +21,14 @@ class ParentFlowNotInFlowsError(Exception):
 
 
 class TaskNotInFlowError(Exception):
-    def __init__(self, flow_name: str, task_name: str):
+    def __init__(self, flow_name: str, project_name: str, task_name: str):
         self.flow_name = flow_name
         self.task_name = task_name
+        self.project_name = project_name
         self.message = "Task %s not in flow %s."
-        super().__init__(self.message, self.task_name, self.flow_name)
+        super().__init__(
+            self.message, self.task_name, self.project_name, self.flow_name
+        )
 
 
 class TaskNotCompletedError(Exception):
