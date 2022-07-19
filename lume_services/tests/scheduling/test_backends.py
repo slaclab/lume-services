@@ -24,8 +24,6 @@ from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
 
-from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -204,18 +202,15 @@ class TestLocalBackend:
 class TestDockerBackend:
     @pytest.fixture()
     def run_config(
-        self, prefect_docker_tag, prefect_docker_agent, lume_env, file_service
+        self, prefect_docker_tag, prefect_docker_agent, lume_env, mounted_filesystem
     ):
-        mounted_filesystems = file_service.get_mounted_filesystems()
-        mounts = []
-        for filesystem in mounted_filesystems.values():
-            mounts = [
-                {
-                    "target": filesystem.mount_alias,
-                    "source": filesystem.mount_path,
-                    "type": "bind",
-                }
-            ]
+        mounts = [
+            {
+                "target": mounted_filesystem.mount_alias,
+                "source": mounted_filesystem.mount_path,
+                "type": "bind",
+            }
+        ]
 
         host_config = {"mounts": mounts}
 
@@ -258,13 +253,12 @@ class TestDockerBackend:
         )
 
     @pytest.fixture()
-    def data(self, run_config):
-        dir = run_config.host_config["mounts"][0]["target"]
+    def data(self, run_config, mounted_filesystem):
         return {
             "text1": "hey",
             "text2": " you",
-            "filename": f"{dir}/test_local_backend.txt",
-            "filesystem_identifier": "local",
+            "filename": f"{mounted_filesystem.mount_alias}/test_local_backend.txt",
+            "filesystem_identifier": mounted_filesystem.identifier,
         }
 
     def test_run_flow_type_error(self, backend, data, run_config):

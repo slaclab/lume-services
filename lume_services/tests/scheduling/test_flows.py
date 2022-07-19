@@ -17,9 +17,6 @@ from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
 
 from lume_services.flows.flow_of_flows import FlowOfFlows
-from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -49,12 +46,12 @@ class TestFlows:
     text2 = " you"
 
     @pytest.fixture(scope="class")
-    def flow1_filename(self, mounted_filesystem_handler):
-        return f"{mounted_filesystem_handler.mount_alias}/flow1_res.txt"
+    def flow1_filename(self, mounted_filesystem):
+        return f"{mounted_filesystem.mount_alias}/flow1_res.txt"
 
     @pytest.fixture(scope="class")
-    def flow1_filename_local(self, mounted_filesystem_handler):
-        return f"{mounted_filesystem_handler.mount_path}/flow1_res.txt"
+    def flow1_filename_local(self, mounted_filesystem):
+        return f"{mounted_filesystem.mount_path}/flow1_res.txt"
 
     @pytest.fixture()
     def test_flow1_run(
@@ -64,7 +61,7 @@ class TestFlows:
         docker_backend,
         docker_run_config,
         flow1_filename,
-        mounted_filesystem_handler,
+        mounted_filesystem,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -73,7 +70,7 @@ class TestFlows:
                 "text1": self.text1,
                 "text2": self.text2,
                 "filename": flow1_filename,
-                "filesystem_identifier": mounted_filesystem_handler.identifier,
+                "filesystem_identifier": mounted_filesystem.identifier,
             },
             run_config=docker_backend.get_run_config(docker_run_config),
         )
@@ -108,7 +105,7 @@ class TestFlows:
         text_file = TextFile(
             obj=text,
             filename=flow1_filename,
-            filesystem_identifier=mounted_filesystem_handler.identifier,
+            filesystem_identifier=mounted_filesystem.identifier,
         )
         text_file_rep = text_file.jsonable_dict()
 

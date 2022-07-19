@@ -1,6 +1,5 @@
 import prefect
 import pytest
-from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 
 
 def test_prefect_config(prefect_config):

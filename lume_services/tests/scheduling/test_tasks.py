@@ -18,9 +18,6 @@ from lume_services.tasks import (
 )
 from lume_services.tests.files import SAMPLE_TEXT_FILE
 from lume_services.files import TextFile
-from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 
 from lume_services import config
 
