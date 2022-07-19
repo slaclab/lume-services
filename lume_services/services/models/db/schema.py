@@ -117,9 +117,6 @@ class Flow(Base):
         onupdate="cascade",
     )
 
-    # relationships
-    flow_to_deployment = relationship("DeploymentFlow", backref="flow")
-
     def __repr__(self):
         return f"Flow( \
                 flow_id={self.flow_id!r}, \
@@ -170,6 +167,7 @@ class DeploymentFlow(Base):
     flow_id = Column(
         "flow_id", ForeignKey("flow.flow_id"), nullable=False, onupdate="cascade"
     )
+    flow = relationship("Flow", foreign_keys=[flow_id])
     deployment_id = Column(
         "deployment_id",
         ForeignKey("deployment.deployment_id"),
