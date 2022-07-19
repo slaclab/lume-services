@@ -8,10 +8,6 @@ from dependency_injector.containers import DynamicContainer
 from lume_services import config
 from lume_services.results import Result
 from lume_services.services.files.filesystems.mounted import MountedFilesystem
-from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.scheduling import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="class", autouse=True)
@@ -117,6 +113,57 @@ class TestLumeSettings:
         assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
 
         # prefect configuration
+        assert (
+            config._settings.prefect.server.host
+            == lume_service_settings.prefect.server.host
+        )
+        assert (
+            config._settings.prefect.server.host_port
+            == lume_service_settings.prefect.server.host_port
+        )
+        assert (
+            config._settings.prefect.server.tag
+            == lume_service_settings.prefect.server.tag
+        )
+
+        assert (
+            config._settings.prefect.graphql.host
+            == lume_service_settings.prefect.graphql.host
+        )
+        assert (
+            config._settings.prefect.graphql.host_port
+            == lume_service_settings.prefect.graphql.host_port
+        )
+
+        assert (
+            config._settings.prefect.hasura.host
+            == lume_service_settings.prefect.hasura.host
+        )
+        assert (
+            config._settings.prefect.hasura.host_port
+            == lume_service_settings.prefect.hasura.host_port
+        )
+
+        assert (
+            config._settings.prefect.postgres.host
+            == lume_service_settings.prefect.postgres.host
+        )
+        assert (
+            config._settings.prefect.postgres.host_port
+            == lume_service_settings.prefect.postgres.host_port
+        )
+        assert (
+            config._settings.prefect.postgres.password
+            == lume_service_settings.prefect.postgres.password
+        )
+        assert (
+            config._settings.prefect.postgres.user
+            == lume_service_settings.prefect.postgres.user
+        )
+        assert (
+            config._settings.prefect.postgres.db
+            == lume_service_settings.prefect.postgres.db
+        )
 
     def test_configure_from_env_failure(self):
         mongodb_host = os.environ.pop("LUME_RESULTS_DB__HOST")
@@ -151,20 +198,18 @@ class TestFileServiceInjection:
         new_text = text_file.read()
         assert new_text == text
 
-    def test_file_service_injection_mounted(
-        self, mounted_filesystem_handler, configure, fs
-    ):
+    def test_file_service_injection_mounted(self, mounted_filesystem, configure, fs):
 
-        filepath = f"{mounted_filesystem_handler.mount_alias}/tmp_file.txt"
+        filepath = f"{mounted_filesystem.mount_alias}/tmp_file.txt"
         text = "test text"
         text_file = TextFile(
             obj=text,
             filename=filepath,
-            filesystem_identifier=mounted_filesystem_handler.identifier,
+            filesystem_identifier=mounted_filesystem.identifier,
         )
         text_file.write(create_dir=True)
 
-        assert mounted_filesystem_handler.file_exists(filepath)
+        assert mounted_filesystem.file_exists(filepath)
 
         # read
         new_text = text_file.read()
