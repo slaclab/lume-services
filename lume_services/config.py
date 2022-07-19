@@ -19,8 +19,8 @@ from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
+from lume_services.services.scheduling import PrefectConfig
 
-from lume_services.services.scheduling.service import PrefectConfig
 
 import logging
 
@@ -69,7 +69,6 @@ class Context(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "lume_services.services.scheduling",
             "lume_services.files",
             "lume_services.results",
         ],
@@ -81,7 +80,7 @@ class LUMEServicesSettings(BaseSettings):
 
     model_db: MySQLModelDBConfig
     results_db: MongodbResultsDBConfig
-    scheduling: Optional[PrefectConfig]
+    prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
 
     class Config:
