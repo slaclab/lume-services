@@ -116,6 +116,8 @@ class TestLumeSettings:
 
         assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
 
+        # prefect configuration
+
     def test_configure_from_env_failure(self):
         mongodb_host = os.environ.pop("LUME_RESULTS_DB__HOST")
 
@@ -174,6 +176,17 @@ class TestFileServiceInjection:
 
 
 class TestResultServiceInjection:
+    @pytest.fixture()
+    def generic_result(self):
+        return Result(
+            flow_id="test_flow_id",
+            inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+            outputs={
+                "output1": 2.0,
+                "output2": [1, 2, 3, 4, 5],
+            },
+        )
+
     @pytest.fixture
     def configure(self, lume_service_settings):
         config.configure(lume_service_settings)
