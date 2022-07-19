@@ -32,7 +32,7 @@ def docker_config(
     mongodb_port,
     mongodb_database,
     mongodb_password,
-    mounted_filesystem_handler,
+    mounted_filesystem,
 ):
     pass
 
