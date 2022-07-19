@@ -130,7 +130,7 @@ def server_host_port(request):
 
 
 @pytest.fixture(scope="session")
-def sever_host(request):
+def server_host(request):
     port = request.config.getini("server_host")
     os.environ["LUME_PREFECT__SERVER__HOST"] = port
     return port
@@ -189,7 +189,7 @@ def postgres_password(request):
 def postgres_data_path(tmp_path_factory):
     temp_path = tmp_path_factory.mktemp("postgres_data_path")
     os.environ["LUME_PREFECT__POSTGRES__DATA_PATH"] = str(temp_path)
-    return temp_path
+    return str(temp_path)
 
 
 @pytest.fixture(scope="session")
@@ -200,14 +200,14 @@ def postgres_host(request):
 
 
 @pytest.fixture(scope="session")
-def postgres_host(request):
+def postgres_host_port(request):
     port = request.config.getini("postgres_host_port")
     os.environ["LUME_PREFECT__POSTGRES__HOST_PORT"] = port
     return port
 
 
 @pytest.fixture(scope="session")
-def prefect_api_str(service_host_port):
+def prefect_api_str(server_host_port):
     return f"http://localhost:{server_host_port}"
 
 
@@ -269,7 +269,7 @@ def local_filesystem_handler():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mounted_filesystem_handler(mount_path):
+def mounted_filesystem(mount_path):
     os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS"] = "/User/my_user/data"
@@ -283,3 +283,12 @@ def mounted_filesystem_handler(mount_path):
 # def mock_settings_env_vars():
 #    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
 #        yield
+
+# Now setup all fixtures
+pytest_plugins = [
+    "lume_services.tests.fixtures.docker",
+    "lume_services.tests.fixtures.services.files",
+    "lume_services.tests.fixtures.services.models",
+    "lume_services.tests.fixtures.services.results",
+    "lume_services.tests.fixtures.services.scheduling",
+]
