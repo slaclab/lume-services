@@ -1,5 +1,4 @@
 import pytest
-from lume_services.tests.fixtures.services.models import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="module", autouse=True)

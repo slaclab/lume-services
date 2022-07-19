@@ -13,8 +13,6 @@ from lume_services.results import (
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
-from lume_services.tests.fixtures.services.results import *  # noqa: F403, F401
-from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
 
 @pytest.mark.parametrize(

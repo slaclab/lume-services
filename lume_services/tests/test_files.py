@@ -8,7 +8,6 @@ from lume_services.tests.files import (
     SAMPLE_TEXT_FILE,
 )
 from lume_services.files import TextFile, ImageFile, YAMLFile, HDF5File
-from lume_services.tests.fixtures.services.files import *  # noqa: F403, F401
 
 
 class TestTextFile:
