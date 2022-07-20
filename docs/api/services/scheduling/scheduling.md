@@ -1,3 +1,3 @@
 
 
-::: lume_services.services.scheduling
+::: lume_services.services.scheduling.service
