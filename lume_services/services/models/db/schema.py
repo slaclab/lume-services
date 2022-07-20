@@ -26,6 +26,7 @@ class Model(Base):
     beampath = Column("beampath", String(255), nullable=False)
     description = Column("description", String(255), nullable=False)
 
+    # one to many relationship with deployment
     deployment = relationship("Deployment", backref="model")
 
     def __repr__(self):
@@ -62,8 +63,8 @@ class Deployment(Base):
         "model_id", ForeignKey("model.model_id"), nullable=False, onupdate="cascade"
     )
 
-    # relationshipts
-    flow_to_deployment = relationship("DeploymentFlow", backref="deployment")
+    # one -> many
+    flow = relationship("Flow", backref="deployment")
 
     # unique constraints
     __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)
@@ -89,18 +90,14 @@ class Project(Base):
     # columns
     project_name = Column("project_name", String(255), primary_key=True)
     description = Column("description", String(255), nullable=False)
-    create_date = Column(
-        "create_date", DateTime(timezone=True), server_default=func.now()
-    )
 
     # relationships
-    children = relationship("Flow", backref="project")
+    flows = relationship("Flow", backref="project")
 
     def __repr__(self):
         return f"Project( \
                 project_name={self.project_name!r}, \
                 description={self.description!r}, \
-                create_date={self.create_date!r}, \
                 )"
 
 
@@ -108,11 +105,18 @@ class Flow(Base):
     __tablename__ = "flow"
 
     # columns
-    flow_id = Column("flow_id", String(255), primary_key=True)
+    flow_id = Column("flow_id", String(255), primary_key=True, nullable=False)
     flow_name = Column("flow_name", String(255), nullable=False)
     project_name = Column(
         "project_name",
         ForeignKey("project.project_name"),
+        nullable=False,
+        onupdate="cascade",
+    )
+    # one to many mapping deployment_id -> flow
+    deployment_id = Column(
+        "deployment_id",
+        ForeignKey("deployment.deployment_id"),
         nullable=False,
         onupdate="cascade",
     )
@@ -140,9 +144,13 @@ class FlowOfFlows(Base):
     # position in execution order
     position = Column("position", Integer, nullable=False)
 
-    # relationships
-    parent = relationship("Flow", foreign_keys=[parent_flow_id])
-    flow = relationship("Flow", foreign_keys=[flow_id])
+    parent = relationship(
+        "Flow",
+        foreign_keys="FlowOfFlows.parent_flow_id",
+        backref="composing_flows",
+        lazy="joined",
+    )
+    flow = relationship("Flow", foreign_keys="FlowOfFlows.flow_id", lazy="joined")
 
     # constraints
     __table_args__ = (
@@ -155,32 +163,4 @@ class FlowOfFlows(Base):
                 flow_id={self.flow_id!r}, \
                 parent_flow_id={self.parent_flow_id!r}, \
                 position={self.position!r} \
-                )"
-
-
-class DeploymentFlow(Base):
-    __tablename__ = "deployment_flow"
-
-    # columns
-    #  _id not necessarily referenced, but need pk for performance
-    id = Column("_id", Integer, primary_key=True, autoincrement=True)
-    flow_id = Column(
-        "flow_id", ForeignKey("flow.flow_id"), nullable=False, onupdate="cascade"
-    )
-    flow = relationship("Flow", foreign_keys=[flow_id])
-    deployment_id = Column(
-        "deployment_id",
-        ForeignKey("deployment.deployment_id"),
-        nullable=False,
-        onupdate="cascade",
-    )
-
-    __table_args__ = (
-        UniqueConstraint("flow_id", "deployment_id", name="_unique_flow_deployment"),
-    )
-
-    def __repr__(self):
-        return f"DeploymentFlow( \
-                flow_id={self.flow_id!r}, \
-                deployment_id={self.deployment_id!r} \
                 )"
