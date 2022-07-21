@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import Insert, Select
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.engine.base import Connection
 
-from typing import List
+from typing import List, Union, Optional
 
 from urllib.parse import quote_plus
 from lume_services.services.models.db.db import ModelDBConfig, ModelDB
@@ -19,16 +19,31 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionConfig(BaseModel):
-    pool_size: int = None
+    """Configuration for creating sqlalchemy engine.
+
+    Args:
+        pool_size (int): Number of connections to maintain in the connection pool.
+            Establishing connections is expensive and maintaining multiple connections
+            in a pool allows for availability.
+        pool_pre_ping (bool):
+
+    """
+
+    pool_size: Optional[int]
     pool_pre_ping: bool = True
 
 
 class MySQLModelDBConfig(ModelDBConfig):
     """Configuration for MySQL connection.
 
-    pool_size: Number of connections to maintain in the connection pool. Establishing
-        connections is expensive and maintaining multiple connections in a pool
-        allows for availability.
+    Args:
+        host (str):
+        port (str):
+        user (str):
+        password (SecretStr):
+        database (str):
+        connection (ConnectionConfig): Configuration options for creating sqlalchemy
+            engine.
 
     """
 
@@ -134,8 +149,10 @@ class MySQLModelDB(ModelDB):
         after session closing.
 
         """
+        logger.debug("MySQLModelDB creating session.")
         with self.connection():
             session = self._sessionmaker()
+            logger.debug("MySQLModelDB session created.")
             session.expire_on_commit = False
             return session
 
@@ -149,10 +166,13 @@ class MySQLModelDB(ModelDB):
             list: Results of query operation
 
         """
+        logger.info("MySQLModelDB executing: %s", str(sql))
         with self.session() as session:
 
             res = session.execute(sql)
             session.commit()
+
+        logger.info("MySQLModelDB executed: %s", str(sql))
 
         return res
 
@@ -166,6 +186,7 @@ class MySQLModelDB(ModelDB):
             list: Results of selection operation
 
         """
+        logger.info("MySQLModelDB selecting: %s", str(sql))
         with self.session() as session:
 
             res = session.execute(sql).scalars().all()
@@ -177,30 +198,35 @@ class MySQLModelDB(ModelDB):
         """Execute and insert operation inside a managed session.
 
         Args:
-            sql (Insert): Execute a sqlalchemy insert operation
+            sql (Insert): Sqlalchemy insert operation
 
         Returns:
-            primary key returned from insert operation
+            Union[str, int]: primary key returned from insert operation
 
         """
+        logger.info("MySQLModelDB inserting: %s", str(sql))
         with self.session() as session:
 
             res = session.execute(sql)
             session.commit()
 
+        logger.info("Sucessfully executed: %s", str(sql))
+
         return res.inserted_primary_key
 
-    def insert_many(self, sql: List[Insert]):
+    def insert_many(self, sql: List[Insert]) -> List[Union[str, int]]:
         """Execute many inserts within a managed session.
 
         Args:
             sql (List[Insert]): Execute a sqlalchemy insert operation
 
         Returns:
-            list of primary keys returned from insert operation
+            List[Union[str, int]]: List of primary keys returned from insert operation
 
         """
-
+        logger.info(
+            "MySQLModelDB inserting many: %s", [str(statement) for statement in sql]
+        )
         with self.session() as session:
 
             results = []
@@ -211,9 +237,12 @@ class MySQLModelDB(ModelDB):
 
             session.commit()
 
+        logger.info("Sucessfully executed: %s", [str(statement) for statement in sql])
+
         return [res.inserted_primary_key for res in results]
 
     @classmethod
-    def from_config_init(cls, *args, **kwargs):
-        config = MySQLModelDBConfig(*args, **kwargs)
+    def from_config_init(cls, **kwargs):
+        """Initialize database handler from MySQLModelDBConfig kwargs."""
+        config = MySQLModelDBConfig(**kwargs)
         return cls(config=config)
