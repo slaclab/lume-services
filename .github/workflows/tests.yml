@@ -3,7 +3,7 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     runs-on: ${{ matrix.os }}
     defaults:
         run:
@@ -32,15 +32,37 @@ jobs:
         run: |
           pip install -e .
 
+      - run: mkdir coverage
+
       - name: Run Tests
         shell: bash -l {0}
         run: |
-          mkdir coverage
           pytest --cov-report term --cov=lume_services --junitxml=./coverage/pytest.xml | tee ./coverage/pytest-coverage.txt
-        env:
-          COVERAGE_FILE: coverage/ubuntu-latest-${{ matrix.python-version }}
 
+      - name: store coverage files
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    defaults:
+        run:
+          shell: bash
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: get coverage files
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage
+          path: coverage
+      
       - name: Pytest coverage comment
+        id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: ./coverage/pytest-coverage.txt
@@ -63,8 +85,8 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.0.0
         with:
           auth: ${{ secrets.PYTEST_COVERAGE_COMMENT }}
-          gistID: 5e90d640f8c212ab7bbac38f72323f80
-          filename: pytest-coverage-comment__main.json
+          gistID: 61dce43449fc0509f34520fd7efc41b1
+          filename: slaclab-lume-services-coverage.json 
           label: Coverage Report
           message: ${{ steps.coverageComment.outputs.coverage }}
           color: ${{ steps.coverageComment.outputs.color }}
