@@ -1,7 +1,7 @@
 from abc import abstractproperty
 from datetime import timedelta
 import warnings
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Literal
 
 from pydantic import BaseModel, Field, SecretStr
 
@@ -9,7 +9,6 @@ from prefect import Client, Flow, config as prefect_config
 from prefect.run_configs import RunConfig as PrefectRunConfig
 from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
-from prefect.utilities import backend as backend_util
 
 from lume_services.services.scheduling.backends.backend import Backend, RunConfig
 from lume_services.errors import (
@@ -73,11 +72,12 @@ class PrefectConfig(BaseModel):
     telemetry: PrefectTelemetryConfig = PrefectTelemetryConfig()
     home_dir: str = "~/.prefect"
     debug: bool = False
-    backend: str = "server"
+    backend: Literal["server", "cloud"] = "server"
 
     def apply(self):
-        prefect_config.update(home_dir=self.home_dir, debug=self.debug)
-        backend_util.save_backend(self.backend)
+        prefect_config.update(
+            backend="server", home_dir=self.home_dir, debug=self.debug
+        )
         prefect_config.server.update(**self.server.dict())
         prefect_config.server.graphql.update(**self.graphql.dict())
         prefect_config.server.hasura.update(**self.hasura.dict())
