@@ -69,17 +69,17 @@ class TestLocalFilesystem:
 
 
 class TestMountedFilesystem:
-    @pytest.fixture(scope="class")
+    @pytest.fixture()
     def test_mounted_filesystem(self, tmp_path, fs):
         return MountedFilesystem(mount_alias="/test_base", mount_path=str(tmp_path))
 
-    def test_mounted_filesystem_dir_does_not_exist(self, test_mounted_filesystem):
+    def test_mounted_filesystem_dir_does_not_exist(self, test_mounted_filesystem, fs):
         assert not test_mounted_filesystem.dir_exists(
             test_mounted_filesystem.mount_alias, create_dir=False
         )
 
     def test_mounted_filesystem_dir_does_not_exist_on_file_read(
-        self, test_mounted_filesystem, text_serializer
+        self, test_mounted_filesystem, text_serializer, fs
     ):
 
         tmp_file = "/some_unknown_dir/test.txt"

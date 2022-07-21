@@ -142,11 +142,12 @@ class TestLocalBackend:
         return LocalBackend()
 
     @pytest.fixture(scope="class")
-    def data(self, tmp_path):
+    def data(self, tmp_path_factory):
+        temp_path = tmp_path_factory.mktemp("test_local_backend")
         return {
             "text1": "hey",
             "text2": " you",
-            "filename": f"{tmp_path}/test_local_backend.txt",
+            "filename": f"{temp_path}/test_local_backend.txt",
             "filesystem_identifier": "local",
         }
 

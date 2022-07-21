@@ -84,19 +84,18 @@ class Services:
 
         return match
 
+    def wait_until_responsive(self, check, timeout, pause, clock=timeit.default_timer):
+        """Wait until a service is responsive."""
 
-def wait_until_responsive(self, check, timeout, pause, clock=timeit.default_timer):
-    """Wait until a service is responsive."""
+        ref = clock()
+        now = ref
+        while (now - ref) < timeout:
+            if check():
+                return
+            time.sleep(pause)
+            now = clock()
 
-    ref = clock()
-    now = ref
-    while (now - ref) < timeout:
-        if check():
-            return
-        time.sleep(pause)
-        now = clock()
-
-    raise Exception("Timeout reached while waiting on service!")
+        raise Exception("Timeout reached while waiting on service!")
 
 
 def str_to_list(arg):
