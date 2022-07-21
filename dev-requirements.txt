@@ -5,3 +5,4 @@ lume-impact
 docker-compose
 pyfakefs
 pytest-cov
+black

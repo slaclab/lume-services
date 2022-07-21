@@ -30,3 +30,4 @@ dependencies:
   - lume-impact
   - docker-compose
   - pyfakefs
+  - black
