@@ -16,19 +16,28 @@ nav:
     - Modeling Service: services/modeling_service.md
     - Scheduling Service: services/scheduling_service.md
   - API:
-    - Data:
-      - Files:
-        - Files: api/data/files.md
-        - Serializers: api/data/files/serializers.md
-      - results: api/data/results.md
+    - Files:
+      - File: api/files/files.md
+      - Serializers: api/files/serializers.md
+      - Utils: /api/files/utils.md
+    - Results: api/results.md
+    - Config: api/config.md
+    - Errors: api/errors.md
+    - Utils: api/utils.md
+    - Flows: api/flows.md
     - Services:
-      - Data:
-        - Files:
-          - File Service: api/services/data/files/file_service.md
-          - Filesystems: api/services/data/files/filesystems.md
-        - Results: api/services/data/results.md
-        - Models: api/services/data/models.md
-      - Scheduling: api/services/scheduling.md
+      - Results:
+        - Results Database Service: api/services/results/results.md
+        - Database:  api/services/results/db.md
+      - Files:
+        - File Service: api/services/files/files.md
+        - Filesystems: api/services/files/filesystems.md
+      - Model:
+          - Model Database Service: api/services/models/models.md
+          - Database:  api/services/models/db.md
+      - Scheduling:
+          - Scheduling Service: api/services/scheduling/scheduling.md
+          - Backends: api/services/scheduling/backends.md
   - Developer:
     - Setup:  developer/setup.md
     - Data:  developer/data.md
@@ -49,6 +58,7 @@ plugins:
             filters:
               - "!^_"  # exlude all members starting with _
               - "^__init__$"  # but always include __init__ modules and methods
+              - "!^logger"
           rendering:
             show_source: true
             show_root_toc_entry: false
