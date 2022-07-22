@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from numpy import deprecate
 from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.run_configs import RunConfig
@@ -157,9 +158,9 @@ class FlowRunConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
-# UNUSED
+@deprecate
 def build_parameters(task, prefix: str = None):
-    """
+    """Utility for building parameters
 
     Args:
         task: Task for which to build params
