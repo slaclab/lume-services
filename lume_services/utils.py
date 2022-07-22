@@ -18,9 +18,15 @@ def docker_api_version():
     return client.api.version()["ApiVersion"]
 
 
-def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings):
+def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings) -> dict:
     """Utility function for checking the membership of dictionary keys in a settings
-    class definition."""
+    class definition.
+
+    Args:
+        dictionary (dict): Dictionary to check
+        settings_obj (BaseSettings): Settings object for composing
+
+    """
     not_in_settings = [
         key for key in dictionary.keys() if key not in settings_obj.attributes
     ]
