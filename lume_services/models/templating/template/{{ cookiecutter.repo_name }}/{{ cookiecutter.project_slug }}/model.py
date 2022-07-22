@@ -18,7 +18,7 @@ class {{ cookiecutter.model_class }}(BaseModel):
 
     def evaluate(self, input_variables: Dict[str, InputVariable]) -> Dict[str, OutputVariable]:
         """Class method for evaluating and storing new input and output variables
-        
+
         """
         self.input_variables = input_variables
 

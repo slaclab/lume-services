@@ -14,9 +14,9 @@ import copy
 
 @task(log_stdout=True)
 def format_input_vars(**input_variable_parameter_dict):
-    """Assumes input_var_rep is a dict mapping var_name to value. The input variables have already been instantiated, so here we assign their values. 
-    
-    """ 
+    """Assumes input_var_rep is a dict mapping var_name to value. The input variables have already been instantiated, so here we assign their values.
+
+    """
     input_variables = copy.deepcopy(INPUT_VARIABLES)
 
     for var_name in INPUT_VARIABLES:
@@ -46,7 +46,7 @@ def store_db_results(model_predict_results):
     return dat
 
 @task(result=FileResult)
-def store_result_artifact(model_predict_results):    
+def store_result_artifact(model_predict_results):
     return model_predict_results["output_filename"]
 
 
@@ -58,7 +58,7 @@ with Flow(
 
     input_variable_parameter_dict = {
         var_name: Parameter(var_name, default=var.default) for var, var_name in INPUT_VARIABLES.items()
-    }   
+    }
 
 
     model_settings = Parameter("model_settings", default=None)
@@ -69,7 +69,7 @@ with Flow(
     # Can expand this for extended functionality
     formatted_input_vars = format_input_vars(**input_variable_parameter_dict)
     model_output = model_predict(formatted_input_vars, model_settings)
-    store_db_results(model_output) 
+    store_db_results(model_output)
     store_result_artifact(model_output)
 
 

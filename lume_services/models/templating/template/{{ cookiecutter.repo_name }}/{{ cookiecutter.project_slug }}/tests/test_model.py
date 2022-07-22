@@ -2,7 +2,7 @@ from {{ cookiecutter.project_slug }}.model import {{ cookiecutter.model_class }}
 
 def test_model():
     """Minimal test of model execution using the defaults save on input variables.
-    
+
     """
     model = {{ cookiecutter.model_class }}()
     input_vars = {{ cookiecutter.model_class }}.input_variables

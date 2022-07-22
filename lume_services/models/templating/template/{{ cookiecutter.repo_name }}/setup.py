@@ -32,6 +32,8 @@ setup(
             "{{ cookiecutter.project_slug }}.flow=\
                 {{ cookiecutter.project_slug }}.flow.flow:get_flow",
         ],
-        "console_scripts": ["build-viz={{ cookiecutter.project_slug }}.scripts.build_viz"]
+        "console_scripts": [
+            "build-viz={{ cookiecutter.project_slug }}.scripts.build_viz"
+        ],
     },
 )
