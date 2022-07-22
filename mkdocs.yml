@@ -6,8 +6,8 @@ nav:
   - Notes: notes.md
   - Configuration: config.md
   - Model Packaging: model_packaging.md
-  - Data: data.md
   - Workflows: workflows.md
+  - Github: https://github.com/slaclab/lume-services
   - TODO: todo.md
   - Services:
     - File Service: services/file_service.md
@@ -84,3 +84,6 @@ theme:
 
 markdown_extensions:
   - pymdownx.tasklist
+
+extra_css:
+  - stylesheets/extra.css
