@@ -5,3 +5,4 @@ mkdocstrings-python
 mkdocs-material
 pymdown-extensions>9.4
 Pygments>=2.12
+diagrams
