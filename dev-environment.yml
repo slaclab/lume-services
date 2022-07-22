@@ -31,3 +31,10 @@ dependencies:
   - docker-compose
   - pyfakefs
   - black
+
+# Docs
+  - mkdocs
+  - mkdocstrings
+  - mkdocs-material
+  - mkdocstrings-python
+  - diagrams
