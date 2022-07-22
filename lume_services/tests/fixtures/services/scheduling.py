@@ -166,7 +166,7 @@ def docker_run_config(
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_backend(prefect_config):
-    os.environ["LUME_BACKEND"] = "docker"
+    os.environ["LUME_PREFECT_BACKEND"] = "docker"
     return DockerBackend(config=prefect_config)
 
 
