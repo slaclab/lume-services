@@ -37,4 +37,8 @@ dependencies:
   - mkdocstrings
   - mkdocs-material
   - mkdocstrings-python
+  - pymdown-extensions>9.4
+  - Pygments>=2.12
   - diagrams
+  - asciitree
+  - mkdocs-jupyter
