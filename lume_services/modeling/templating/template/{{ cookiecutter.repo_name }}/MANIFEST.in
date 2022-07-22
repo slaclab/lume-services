@@ -1,3 +1,0 @@
-recursive-include {{ cookiecutter.project_slug }}/files *
-recursive include .github/ *
-recursive include docs/ *
