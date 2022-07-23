@@ -63,7 +63,6 @@ plugins:
             show_source: true
             show_root_toc_entry: false
             show_root_full_path: true
-            show_root_members_full_path: true
             show_root_heading: true
             show_if_no_docstring: true
             show_signature_annotations: true
@@ -73,6 +72,7 @@ plugins:
             heading_level: 2
             members_order: source
             show_category_heading: true
+
 
 theme:
   name: material
@@ -84,6 +84,7 @@ theme:
 
 markdown_extensions:
   - pymdownx.tasklist
+#  - attr_list
 
 extra_css:
   - stylesheets/extra.css
