@@ -1,8 +1,46 @@
-# Flows
+# Workflows
+
+LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be thought of as scoped units of work.
+
+A flow looks like:
+```
+
+
+```
+
+Parameters are data objects passed into the flow at runtime.
+
+
+
+
+Flow Parameters have some constraints. To see why those constraints exist, see developer docs [here](developer/prefect.md#serialization).
+1. Flow-level parameters must be serializable, meaning they must be of types:
+
+|  Python          | JSON    |
+|----------------------------|
+| dict             | object  |
+| list, tuple      | array   |
+| str              | string  |
+| int, long, float | number  |
+| True             | true    |
+| False            | false   |
+| None             |         |
+
+2. In order to access the results of tasks inside a flow, the task-level parameters must be JSON serializable. LUME-services packages some utilities for interacting with custom result types using JSON representations of the result that can be used to load at runtime.
+
+# CAN I PUT THIS IN NOTEBOOK?
+```python
+
+
+```
 
 Variable names inside the flow context are used to compose the workflow
 
 configure_services task uses environment variable names to configure the lume-services api endpoints
+
+
+
+
 
 must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
 
@@ -11,8 +49,8 @@ must be set as upstream taks to any tasks using those services using `my_task.se
 ```python
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
-from lume_services.services.scheduling.tasks import configure_services, SaveFile
-from lume_services.data.files import TextFile
+from lume_services.tasks import configure_services, SaveFile
+from lume_services.files import TextFile
 import logging
 
 logger = logging.getLogger(__name__)

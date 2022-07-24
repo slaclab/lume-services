@@ -3,15 +3,34 @@
 https://docs.prefect.io/core/concepts/configuration.html#user-configuration
 
 
+
 * Scheduling service provides interface to Prefect Scheduling
 * Configurable backends
 * Backend returns a Prefect Run Config
 
 ![Screenshot](files/services/scheduling_service.drawio.png)
 
+## Prefect
+Core functionality
+- Ability to programatically create workflows
+    - functional organization of workflow steps
+    - mapping the outputs of one task to inputs of another
+    - result persistence
+- Specifications for how to store the workflows
+
+
+How LUME-services uses Prefect:
+- Creation of workflows
+    - Workflows defined a single flow file packaged with a project
+    -
+
+
 ## Backends
 
 The Scheduling Service is set up to interface with a backend
+
+## Agents
+
 
 ### Kubernetes
 
@@ -50,14 +69,14 @@ get_file_result task will load results with packaged types
 
 
 
-Other results can be created very easily by composing a class from the generic `lume_services.data.files.File` class with a custom serializer with base class `lume.serializers.base.SerializerBase`. For example:
+Other results can be created very easily by composing a class from the generic `lume_services.files.File` class with a custom serializer with base class `lume.serializers.base.SerializerBase`. For example:
 
 ```python
 from typing import List
 import csv
 
 from lume.serializers.base import SerializerBase
-from lume_services.data.files import File
+from lume_services.files import File
 
 class CSVSerializer(SerializerBase):
 
