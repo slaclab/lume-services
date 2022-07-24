@@ -2,12 +2,12 @@ site_name: lume-services
 site_url: https://jacquelinegarrahan.github.io/lume-services
 repo_url: https://github.com/jacquelinegarrahan/lume-services
 nav:
-  - Overview: index.md
-  - Notes: notes.md
-  - Configuration: config.md
-  - Model Packaging: model_packaging.md
-  - Workflows: workflows.md
-  - Github: https://github.com/slaclab/lume-services
+  - Overview:
+    - LUME-Services: index.md
+  -   Notes: notes.md
+  -   Configuration: config.md
+  -   Model Packaging: model_packaging.md
+  -   Workflows: workflows.md
   - TODO: todo.md
   - Services:
     - File Service: services/file_service.md
