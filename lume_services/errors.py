@@ -1,4 +1,26 @@
 from typing import Optional, List
+from pydantic import ValidationError
+import os
+
+
+class EnvironmentNotConfiguredError(Exception):
+    """Error for marking unconfigured environment."""
+
+    def __init__(self, env_vars, validation_error: ValidationError):
+        self.env = dict(os.environ)
+        self.env_vars = []
+
+        for service in env_vars:
+            self.env_vars += env_vars[service]
+
+        self.missing_vars = [var for var in self.env_vars if var not in self.env]
+
+        self.message = "%s. Evironment variables not defined: %s"
+
+        super().__init__(
+            self.message, str(validation_error), ", ".join(self.missing_vars)
+        )
+
 
 # Model errors
 
