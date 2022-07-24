@@ -1,4 +1,3 @@
-import os
 from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
 from typing import Optional, Literal
@@ -27,6 +26,8 @@ from lume_services.services.scheduling.backends import (
     KubernetesBackend,
 )
 
+
+from lume_services.errors import EnvironmentNotConfiguredError
 
 import logging
 
@@ -99,24 +100,6 @@ class LUMEServicesSettings(BaseSettings):
         validate_assignment = True
         env_prefix = "LUME_"
         env_nested_delimiter = "__"
-
-
-class EnvironmentNotConfiguredError(Exception):
-    def __init__(self, env_vars, validation_error: ValidationError):
-        self.env = os.environ
-        self.env_vars = []
-
-        for service in env_vars:
-            self.env_vars += env_vars[service]
-
-        self.missing_vars = [var for var in self.env_vars if var not in self.env]
-
-        self.message = """%s. Evironment variables not defined: %s"
-        """
-
-        super().__init__(
-            self.message, str(validation_error), ", ".join(self.missing_vars)
-        )
 
 
 def configure(settings: LUMEServicesSettings = None):
