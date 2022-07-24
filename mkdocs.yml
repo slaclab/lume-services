@@ -40,11 +40,12 @@ nav:
           - Backends: api/services/scheduling/backends.md
   - Developer:
     - Setup:  developer/setup.md
-    - Data:  developer/data.md
     - Testing:  developer/testing.md
+    - Documentation: developer/documentation.md
     - Services:
       - File: developer/services/file.md
       - Scheduling: developer/services/scheduling.md
+      - Results: developer/services/results.md
 
 plugins:
   - search:
