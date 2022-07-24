@@ -8,7 +8,6 @@ nav:
   -   Configuration: config.md
   -   Model Packaging: model_packaging.md
   -   Workflows: workflows.md
-  - TODO: todo.md
   - Services:
     - File Service: services/file_service.md
     - Results DB Service: services/results_db_service.md
@@ -42,6 +41,7 @@ nav:
     - Setup:  developer/setup.md
     - Testing:  developer/testing.md
     - Documentation: developer/documentation.md
+    - TODO: developer/todo.md
     - Services:
       - File: developer/services/file.md
       - Scheduling: developer/services/scheduling.md
