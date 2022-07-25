@@ -35,6 +35,13 @@ def docker_api_version():
     return docker_api_version_util()
 
 
+@pytest.fixture(autouse=True)
+def lume_service_settings(
+    file_service, model_db_service, results_db_service, scheduling_service
+):
+    return config.LUMEServicesSettings()
+
+
 class TestRunConfigs:
     labels = ["test"]
     image = "placeholder_image_tag"
