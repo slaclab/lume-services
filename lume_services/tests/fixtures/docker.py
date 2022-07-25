@@ -11,6 +11,10 @@ from lume_services.docker.compose import (
     get_cleanup_commands,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_config(
@@ -18,6 +22,7 @@ def docker_config(
     mysql_user,
     mysql_port,
     mysql_password,
+    mysql_database,
     server_host,
     server_host_port,
     hasura_host_port,
@@ -25,6 +30,8 @@ def docker_config(
     graphql_host,
     graphql_host_port,
     postgres_db,
+    postgres_host,
+    postgres_host_port,
     postgres_user,
     postgres_password,
     postgres_data_path,
@@ -34,6 +41,8 @@ def docker_config(
     mongodb_database,
     mongodb_password,
     mounted_filesystem,
+    prefect_backend,
+    lume_backend,
 ):
     pass
 
@@ -79,13 +88,23 @@ def get_docker_services(
     docker_cleanup,
     docker_config,
 ):
+    logger.info(dict(os.environ))
     docker_compose = DockerComposeExecutor(
         docker_compose_file, docker_compose_project_name
     )
 
     # setup containers.
     if docker_setup:
-        docker_compose.execute(docker_setup)
+        try:
+            docker_compose.execute(docker_setup)
+        except Exception as e:
+            for cmd in docker_cleanup:
+                try:
+                    docker_compose.execute(cmd)
+                except Exception:
+                    pass
+
+            raise e
 
     try:
         # Let test(s) run.

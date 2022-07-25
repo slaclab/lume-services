@@ -1,8 +1,6 @@
 import pytest
 import os
 
-from subprocess import Popen, PIPE
-import time
 import prefect
 
 import docker
@@ -32,6 +30,39 @@ def prefect_docker_tag():
 
 
 @pytest.fixture(scope="session", autouse=True)
+def prefect_config(
+    server_host,
+    server_host_port,
+    graphql_host,
+    graphql_host_port,
+    hasura_host,
+    hasura_host_port,
+    postgres_host,
+    postgres_host_port,
+    postgres_db,
+    postgres_user,
+    postgres_password,
+    postgres_data_path,
+):
+    config = PrefectConfig(
+        backend="server",
+        server=PrefectServerConfig(host=server_host, host_port=server_host_port),
+        graphql=PrefectGraphQLConfig(host=graphql_host, host_port=graphql_host_port),
+        hasura=PrefectHasuraConfig(host=hasura_host, host_port=hasura_host_port),
+        postgres=PrefectPostgresConfig(
+            host=postgres_host,
+            host_port=postgres_host_port,
+            db=postgres_db,
+            user=postgres_user,
+            password=postgres_password,
+            data_path=postgres_data_path,
+        ),
+    )
+
+    return config
+
+
+@pytest.fixture(scope="session", autouse=True)
 def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client = docker.from_env()
     image, build_logs = docker_client.images.build(
@@ -54,82 +85,34 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client.images.remove(image.id, noprune=False)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def prefect_tenant(prefect_api_str):
+def is_prefect_ready(prefect_api_str):
+    try:
+        client = prefect.Client(api_server=prefect_api_str)
+        client.graphql("query{hello}", retry_on_api_error=False)
+        return True
+    except Exception as e:
+        logger.error(e)
+        return False
 
-    # Get a client with the correct server port
+
+# allows us to wait until we get a response from the Prefect services
+# and allow startup time
+@pytest.fixture(scope="session", autouse=True)
+def prefect_services(docker_services, prefect_api_str):
+    docker_services.wait_until_responsive(
+        timeout=60.0,
+        pause=1,
+        check=lambda: is_prefect_ready(prefect_api_str),
+    )
+    return
+
+
+@pytest.mark.usefixtures("prefect_config")
+@pytest.mark.usefixtures("prefect_services")
+@pytest.fixture(scope="session", autouse=True)
+def prefect_client(prefect_api_str):
     client = prefect.Client(api_server=prefect_api_str)
-    client.graphql("query{hello}", retry_on_api_error=False)
-    time.sleep(0.5)
-    client.create_tenant(name="default", slug="default")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_docker_agent(prefect_tenant, prefect_api_str):
-
-    agent_proc = Popen(
-        [
-            "prefect",
-            "agent",
-            "docker",
-            "start",
-            "--label",
-            "lume-services",
-            "--network",
-            "prefect-server",
-            "--show-flow-logs",
-            "--no-pull",
-            "--api",
-            prefect_api_str,
-        ],
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    # Give the agent time to start
-    time.sleep(1)
-
-    # Check it started successfully
-    assert not agent_proc.poll(), agent_proc.stdout.read().decode("utf-8")
-    yield agent_proc
-    # Shut it down at the end of the pytest session
-    agent_proc.terminate()
-
-    output = agent_proc.communicate()[0]
-    for line in output.split(b"\n"):
-        logger.debug(output)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_config(
-    server_host,
-    server_host_port,
-    graphql_host,
-    graphql_host_port,
-    hasura_host,
-    hasura_host_port,
-    postgres_host,
-    postgres_host_port,
-    postgres_db,
-    postgres_user,
-    postgres_password,
-    postgres_data_path,
-):
-    config = PrefectConfig(
-        server=PrefectServerConfig(host=server_host, host_port=server_host_port),
-        graphql=PrefectGraphQLConfig(host=graphql_host, host_port=graphql_host_port),
-        hasura=PrefectHasuraConfig(host=hasura_host, host_port=hasura_host_port),
-        postgres=PrefectPostgresConfig(
-            host=postgres_host,
-            host_port=postgres_host_port,
-            db=postgres_db,
-            user=postgres_user,
-            password=postgres_password,
-            data_path=postgres_data_path,
-        ),
-    )
-    config.apply()
-
-    return config
+    return client
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -141,10 +124,9 @@ def lume_env():
     return lume_env
 
 
+@pytest.mark.usefixtures("prefect_services")
 @pytest.fixture(scope="session", autouse=True)
-def docker_run_config(
-    prefect_docker_tag, docker_services, prefect_job_docker, file_service, lume_env
-):
+def docker_run_config(prefect_docker_tag, file_service, lume_env):
 
     mounted_filesystems = file_service.get_mounted_filesystems()
     mounts = []
@@ -164,19 +146,15 @@ def docker_run_config(
     )
 
 
+@pytest.mark.usefixtures("prefect_services")
 @pytest.fixture(scope="session", autouse=True)
 def docker_backend(prefect_config):
-    os.environ["LUME_PREFECT_BACKEND"] = "docker"
+    os.environ["LUME_BACKEND"] = "docker"
     return DockerBackend(config=prefect_config)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def prefect_client(prefect_api_str, prefect_docker_agent, prefect_config):
-    client = prefect.Client(api_server=prefect_api_str)
-    client.graphql("query{hello}", retry_on_api_error=False)
-    return client
-
-
+@pytest.mark.usefixtures("prefect_services")
+@pytest.mark.usefixtures("docker_backend")
 @pytest.fixture(scope="session", autouse=True)
 def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)

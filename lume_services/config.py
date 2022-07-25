@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
-from typing import Optional, Literal
+from typing import Optional
 
 from lume_services.services.models.db import ModelDB
 from lume_services.services.models import ModelDBService
@@ -92,7 +92,9 @@ class LUMEServicesSettings(BaseSettings):
     results_db: MongodbResultsDBConfig
     prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
-    backend: Optional[Literal["kubernetes", "local", "docker"]]
+    backend: str = "local"
+    # something wrong with pydantic literal parsing?
+    # Literal["kubernetes", "local", "docker"] = "local"
 
     class Config:
         # env_file = '.env'
@@ -107,7 +109,7 @@ def configure(settings: LUMEServicesSettings = None):
     and MongodbResultsDB.
 
     """
-    if not settings:
+    if settings is None:
         try:
             settings = LUMEServicesSettings()
 
@@ -128,8 +130,11 @@ def configure(settings: LUMEServicesSettings = None):
         elif settings.backend == "docker":
             backend = DockerBackend(config=settings.prefect)
 
-        elif settings.backend == "docker":
+        elif settings.backend == "local":
             backend = LocalBackend()
+
+        else:
+            raise ValueError(f"Unsupported backend {settings.backend}")
 
     # default to local
     else:
