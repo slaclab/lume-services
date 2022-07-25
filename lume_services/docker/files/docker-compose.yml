@@ -142,10 +142,10 @@ services:
     image: prefecthq/prefect:1.2.3-python3.10
     command: >
       bash -c "prefect server create-tenant --name default --slug default &&
-      prefect agent docker start --label lume-services --agent-address http://localhost:5000/"
+      prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs"
     volumes:
         - type: bind
-          source:  ${LUME_SERVICES_ROOTDIR}/config.toml
+          source:  ${LUME_SERVICES_ROOTDIR}/lume_services/docker/files/config.toml
           target: /root/.prefect/config.toml
           read_only: true
     ports:
