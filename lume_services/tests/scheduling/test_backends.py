@@ -23,6 +23,7 @@ from lume_services.errors import (
 from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+from lume_services import config
 
 import logging
 
@@ -201,10 +202,12 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture(scope="class")
-    def run_config(
-        self, prefect_docker_tag, prefect_docker_agent, lume_env, mounted_filesystem
-    ):
+    @pytest.fixture()
+    def configure(self, lume_service_settings):
+        config.configure(lume_service_settings)
+
+    @pytest.fixture()
+    def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem, configure):
         mounts = [
             {
                 "target": mounted_filesystem.mount_alias,
@@ -224,7 +227,7 @@ class TestDockerBackend:
         )
 
     @pytest.fixture(scope="class")
-    def backend(self, prefect_config):
+    def backend(self, prefect_config, prefect_services):
         return DockerBackend(config=prefect_config)
 
     @pytest.fixture(scope="class")
@@ -237,6 +240,7 @@ class TestDockerBackend:
     @pytest.fixture(scope="class")
     def flow_id(self, backend, project_name, prefect_docker_tag):
         flow.run_config = None
+        flow.storage = None
         return backend.register_flow(
             flow,
             project_name=project_name,
@@ -267,19 +271,18 @@ class TestDockerBackend:
             backend.run(data, run_config, flow_id=flow)
 
     def test_run_flow(self, backend, data, run_config, flow_id):
+        logger.info(run_config)
         backend.run(data, run_config, flow_id=flow_id)
 
     def test_run_flow_and_return(self, backend, data, run_config, flow_id):
         # get all results
         res = backend.run_and_return(data, run_config, flow_id=flow_id)
         assert isinstance(res, (dict,))
-        logger.debug(str(res))
 
         res = backend.run_and_return(
             data, run_config, flow_id=flow_id, task_name="save_text_file"
         )
         assert isinstance(res, (dict,))
-        logger.debug(str(res))
 
     def test_task_not_in_flow_error(self, backend, data, flow_id, run_config):
         with pytest.raises(TaskNotInFlowError):

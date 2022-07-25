@@ -14,10 +14,13 @@ from lume_services.tests.files.flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
+from lume_services import config
 
 from lume_services.flows.flow_of_flows import FlowOfFlows
 
 
+# use prefect config, want config applied
+@pytest.mark.usefixtures("prefect_config")
 @pytest.fixture(scope="session", autouse=True)
 def project_name(prefect_client):
     project_name = "test"
@@ -44,6 +47,10 @@ class TestFlows:
     text1 = "hey"
     text2 = " you"
 
+    @pytest.fixture()
+    def configure(self, lume_service_settings):
+        config.configure(lume_service_settings)
+
     @pytest.fixture(scope="class")
     def flow1_filename(self, mounted_filesystem):
         return f"{mounted_filesystem.mount_alias}/flow1_res.txt"
@@ -60,6 +67,7 @@ class TestFlows:
         docker_run_config,
         flow1_filename,
         mounted_filesystem,
+        configure,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -118,6 +126,7 @@ class TestFlows:
         docker_run_config,
         test_flow1_run,
         results_db_service,
+        configure,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -163,6 +172,7 @@ class TestFlows:
         docker_run_config,
         test_flow2_run,
         results_db_service,
+        configure,
     ):
 
         # want to bind our task kwargs to flow2 outputs
@@ -193,9 +203,14 @@ class TestFlows:
 
 
 class TestFlowOfFlows:
+    @pytest.fixture()
+    def configure(self, lume_service_settings):
+        config.configure(lume_service_settings)
+
     def test_load_yaml(self):
         with open(FLOW_OF_FLOWS_YAML, "r") as file:
             _ = yaml.safe_load(file)
 
-    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id):
+    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id, configure):
+        # using injection here...
         _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
