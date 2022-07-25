@@ -6,6 +6,10 @@ import timeit
 
 import attr
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def execute(command, success_codes=(0,)):
     """Run a shell command."""
@@ -21,6 +25,7 @@ def execute(command, success_codes=(0,)):
         command = error.cmd
 
     if status not in success_codes:
+        logger.info(dict(os.environ))
         raise Exception(
             'Command {} returned {}: """{}""".'.format(
                 command, status, output.decode("utf-8")
