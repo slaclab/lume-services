@@ -11,6 +11,34 @@
 Model documents define the schema for a model's stored results
 
 
+## Files
+
+
+## Results Database Entries
+
+Results objects provide an easy interface with ...
+
+
+PrefectResults stored in Prefect Core's server
+
+
+### Generic
+
+### Impact
+
+### Custom
+
+Subclasses of the generic Result must define the model_type as a pydantic field with the alias `collection`.
+
+```python
+class CustomResult(Result):
+    """Extends Result base and implements model specific attributes"""
+
+    model_type: str = Field("MyCustomModel", alias="collection")
+```
+
+
+
 
 
 ###
@@ -27,19 +55,19 @@ In the event that a different result storage scheme would like to be used the st
 1. Subclass result
     -
 2. Creation of database service
-    - Implementation of `DBService` class in `lume_services.services.data.results.db`.
+    - Implementation of `ResultsDB` class in `lume_services.services.results.db`.
     - Methods should manage connections (multiprocessing and thread-safe) & translate above custom document representations to database
 
 
 
 ```python
-from lume_services.services.data.results.db import ResultsDBService
-from lume_services.services.data.results.results_service import ResultsDBService
+from lume_services.services.results.db import ResultsDB, ResultsDBConfig
+from lume_services.services.results.results_service import ResultsDBService
 
-class MyCustomDBService(DBService):
+class MyCustomDB(ResultsDB):
     ...
 
-class CustomDBServiceConfig(BServiceConfig):
+class CustomDBServiceConfig(ResultsDBConfig):
     url: str
 
 custom_db_service_config = CustomDBServiceConfig(

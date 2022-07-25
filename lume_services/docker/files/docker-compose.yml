@@ -6,21 +6,33 @@ services:
         - ${LUME_MODEL_DB__PORT:-3306}:3306
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       MYSQL_ROOT_HOST: '%'
-      MYSQL_ROOT_USER: ${LUME_MODEL_DB_USER}
+      MYSQL_ROOT_USER: ${LUME_MODEL_DB__USER:-root}
+
+  # Mongodb
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
+    ports:
+      - ${LUME_RESULTS_DB__PORT:-27017}:27017
+    networks:
+      - prefect-server
 
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
     image: "postgres:11"
     ports:
-      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+      - "${LUME_PREFECT__POSTGRES__HOST_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${LUME_PREFECT__POSTGRES__USER:-prefect_user}
+      POSTGRES_PASSWORD: ${LUME_PREFECT__POSTGRES__PASSWORD:-prefect_password}
+      POSTGRES_DB: ${LUME_PREFECT__POSTGRES__DB:-prefect_db}
+
     volumes:
-      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
+      - ${LUME_PREFECT__POSTGRES__DATA_PATH:-/tmp/lume/postgresql}:/var/lib/postgresql/data
     networks:
       - prefect-server
     command:
@@ -29,7 +41,7 @@ services:
       - "-c"
       - "max_connections=150"
     healthcheck:
-      test: pg_isready -q -d $${POSTGRES_DB} -U $${POSTGRES_USER} || exit 1
+      test: pg_isready -q -d $${POSTGRES_DB:-prefect_db} -U $${POSTGRES_USER:-prefect_user} || exit 1
       interval: 10s
       timeout: 2s
       retries: 60
@@ -41,10 +53,10 @@ services:
     image: "hasura/graphql-engine:v2.1.1"
     init: true
     ports:
-      - "127.0.0.1:${HASURA_HOST_PORT:-3000}:3000"
+      - "${LUME_PREFECT__HASURA__HOST_PORT:-3000}:3000"
     command: "graphql-engine serve"
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://${LUME_PREFECT__POSTGRES__USER}:${LUME_PREFECT__POSTGRES__PASSWORD}@postgres:5432/${LUME_PREFECT__POSTGRES__DB}
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_SERVER_PORT: "3000"
       HASURA_GRAPHQL_QUERY_PLAN_CACHE_SIZE: 100
@@ -64,13 +76,13 @@ services:
 
   # GraphQL: provides most of the 'mutation' GraphQL API
   graphql:
-    image: "prefecthq/server:${PREFECT_SERVER_TAG:-latest}"
+    image: "prefecthq/server:${LUME_PREFECT__SERVER__TAG:-latest}"
     ports:
-      - "127.0.0.1:${GRAPHQL_HOST_PORT:-4201}:4201"
+      - "${LUME_PREFECT__GRAPHQL__HOST_PORT:-4201}:4201"
     command: bash -c "prefect-server database upgrade -y && python src/prefect_server/services/graphql/server.py"
     environment:
       PREFECT_SERVER_DB_CMD: prefect-server database upgrade -y
-      PREFECT_SERVER__DATABASE__CONNECTION_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PREFECT_SERVER__DATABASE__CONNECTION_URL: postgresql://${LUME_PREFECT__POSTGRES__USER}:${LUME_PREFECT__POSTGRES__PASSWORD}@postgres:5432/${LUME_PREFECT__POSTGRES__DB}
       PREFECT_SERVER__HASURA__ADMIN_SECRET: ${PREFECT_SERVER__HASURA__ADMIN_SECRET:-hasura-secret-admin-secret}
       PREFECT_SERVER__HASURA__HOST: hasura
       PREFECT_CORE_VERSION: ${PREFECT_CORE_VERSION:-"UNKNOWN"}
@@ -88,7 +100,7 @@ services:
 
   # Towel: runs a collection of simple services
   towel:
-    image: "prefecthq/server:${PREFECT_SERVER_TAG:-latest}"
+    image: "prefecthq/server:${LUME_PREFECT__SERVER__TAG:-latest}"
     command: "python src/prefect_server/services/towel/__main__.py"
     environment:
       PREFECT_SERVER__HASURA__ADMIN_SECRET: ${PREFECT_SERVER__HASURA__ADMIN_SECRET:-hasura-secret-admin-secret}
@@ -101,9 +113,9 @@ services:
 
   # Apollo: combines the hasura and graphql schemas into a unified schema, the primary API entrypoint
   apollo:
-    image: "prefecthq/apollo:${PREFECT_SERVER_TAG:-latest}"
+    image: "prefecthq/apollo:${LUME_PREFECT__SERVER__TAG:-latest}"
     ports:
-      - "${APOLLO_HOST_IP:-127.0.0.1}:${APOLLO_HOST_PORT:-4200}:4200"
+      - "${LUME_PREFECT__SERVER__HOST_PORT:-4200}:4200"
     command: bash -c "./post-start.sh && npm run serve"
     environment:
       HASURA_API_URL: ${HASURA_API_URL:-http://hasura:3000/v1alpha1/graphql}
@@ -125,14 +137,33 @@ services:
       - graphql
       - hasura
 
-  # Mongodb
-  mongodb:
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
+  # agent
+  agent:
+    image: prefecthq/prefect:1.2.3-python3.10
+    command: >
+      bash -c "prefect server create-tenant --name default --slug default &&
+      prefect agent docker start --label lume-services --agent-address http://localhost:5000/"
+    volumes:
+        - type: bind
+          source:  ${LUME_SERVICES_ROOT}/config.toml
+          target: /root/.prefect/config.toml
+          read_only: true
     ports:
-      - ${LUME_RESULTS_DB__PORT:-27017}:27017
+      - 5000:5000
+    depends_on:
+      - apollo
+      - postgres
+      - graphql
+      - hasura
+    networks:
+      - prefect-server
+    restart: always
+    healthcheck:
+      test: curl --fail --silent "http://localhost:5000/api/health" &> /dev/null || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 60
+      start_period: 1s
 
 networks:
   prefect-server:

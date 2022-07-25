@@ -12,32 +12,29 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.8]
+        python-version: [3.9]
     name:  Build docs
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-activate-base: true
-          activate-environment: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge,anaconda
-          channel-priority: strict
+          mamba-version: "*"
+          channels: conda-forge
+          activate-environment: lume-services-dev
+          environment-file: dev-environment.yml
 
       - name: Build package
         shell: bash -l {0}
         run: |
-          conda config --set always_yes yes --set changeps1 no
-          conda install --file requirements.txt
-          conda install --file dev-requirements.txt
-          conda install --file docs-requirements.txt
-          pip install git+https://github.com/slaclab/lume-base.git@v0.2.0
           pip install -e .
 
       - name: Build file artifacts
         shell: bash -l {0}
         run: |
-          lume generate-schema-docs --uml_output_filename=docs/files/model_db_uml.png --schema_output_filename=docs/files/model_db_schema.png
+          python scripts/build_schema_diagrams.py generate-schema-docs \
+            --uml_output_filename=docs/files/model_db_uml.png \
+            --schema_output_filename=docs/files/model_db_schema.png
 
      # - name: Push schema docs
      #   uses: actions-x/commit@v6

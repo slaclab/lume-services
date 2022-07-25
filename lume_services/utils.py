@@ -2,6 +2,7 @@ import json
 import hashlib
 import inspect
 import logging
+import docker
 from importlib import import_module
 from pydantic import BaseSettings
 from typing import Any, Callable, Generic, List, Optional, TypeVar
@@ -12,9 +13,20 @@ from pydantic.generics import GenericModel
 logger = logging.getLogger(__name__)
 
 
-def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings):
+def docker_api_version():
+    client = docker.from_env()
+    return client.api.version()["ApiVersion"]
+
+
+def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings) -> dict:
     """Utility function for checking the membership of dictionary keys in a settings
-    class definition."""
+    class definition.
+
+    Args:
+        dictionary (dict): Dictionary to check
+        settings_obj (BaseSettings): Settings object for composing
+
+    """
     not_in_settings = [
         key for key in dictionary.keys() if key not in settings_obj.attributes
     ]
@@ -258,7 +270,7 @@ def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 
 class CallableModel(BaseModel):
     callable: Callable
-    signature: BaseModel
+    signature: SignatureModel
 
     class Config:
         arbitrary_types_allowed = True

@@ -2,12 +2,12 @@ site_name: lume-services
 site_url: https://jacquelinegarrahan.github.io/lume-services
 repo_url: https://github.com/jacquelinegarrahan/lume-services
 nav:
-  - Overview: index.md
-  - Notes: notes.md
-  - Configuration: config.md
-  - Model Packaging: model_packaging.md
-  - Data: data.md
-  - TODO: todo.md
+  - Overview:
+    - LUME-Services: index.md
+  -   Notes: notes.md
+  -   Configuration: config.md
+  -   Model Packaging: model_packaging.md
+  -   Workflows: workflows.md
   - Services:
     - File Service: services/file_service.md
     - Results DB Service: services/results_db_service.md
@@ -15,26 +15,37 @@ nav:
     - Modeling Service: services/modeling_service.md
     - Scheduling Service: services/scheduling_service.md
   - API:
-    - Data:
-      - Files:
-        - Files: api/data/files.md
-        - Serializers: api/data/files/serializers.md
-      - results: api/data/results.md
+    - Files:
+      - File: api/files/files.md
+      - Serializers: api/files/serializers.md
+      - Utils: /api/files/utils.md
+    - Results: api/results.md
+    - Config: api/config.md
+    - Errors: api/errors.md
+    - Utils: api/utils.md
+    - Flows: api/flows.md
     - Services:
-      - Data:
-        - Files:
-          - File Service: api/services/data/files/file_service.md
-          - Filesystems: api/services/data/files/filesystems.md
-        - Results: api/services/data/results.md
-        - Models: api/services/data/models.md
-      - Scheduling: api/services/scheduling.md
+      - Results:
+        - Results Database Service: api/services/results/results.md
+        - Database:  api/services/results/db.md
+      - Files:
+        - File Service: api/services/files/files.md
+        - Filesystems: api/services/files/filesystems.md
+      - Model:
+          - Model Database Service: api/services/models/models.md
+          - Database:  api/services/models/db.md
+      - Scheduling:
+          - Scheduling Service: api/services/scheduling/scheduling.md
+          - Backends: api/services/scheduling/backends.md
   - Developer:
     - Setup:  developer/setup.md
-    - Data:  developer/data.md
     - Testing:  developer/testing.md
+    - Documentation: developer/documentation.md
+    - TODO: developer/todo.md
     - Services:
       - File: developer/services/file.md
       - Scheduling: developer/services/scheduling.md
+      - Results: developer/services/results.md
 
 plugins:
   - search:
@@ -48,11 +59,11 @@ plugins:
             filters:
               - "!^_"  # exlude all members starting with _
               - "^__init__$"  # but always include __init__ modules and methods
+              - "!^logger"
           rendering:
             show_source: true
             show_root_toc_entry: false
             show_root_full_path: true
-            show_root_members_full_path: true
             show_root_heading: true
             show_if_no_docstring: true
             show_signature_annotations: true
@@ -62,6 +73,7 @@ plugins:
             heading_level: 2
             members_order: source
             show_category_heading: true
+
 
 theme:
   name: material
@@ -73,3 +85,7 @@ theme:
 
 markdown_extensions:
   - pymdownx.tasklist
+#  - attr_list
+
+extra_css:
+  - stylesheets/extra.css

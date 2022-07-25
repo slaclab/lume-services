@@ -1,6 +1,17 @@
 from prefect import task, Flow, Parameter
-from lume_services.services.scheduling.tasks import load_file_task, save_db_result_task
-from lume_services.data.results import Result
+from prefect.storage import Module
+from lume_services.tasks import (
+    LoadFile,
+    SaveDBResult,
+    configure_services,
+)
+
+from lume_services.results import Result
+import logging
+
+logger = logging.getLogger(__name__)
+
+logger.setLevel(logging.DEBUG)
 
 
 @task
@@ -8,14 +19,22 @@ def format_result(text):
     # get test flow id from prefect context
     result = Result(
         inputs={"input1": text},
-        outputs={},
+        outputs={"output1": text},
     )
     return result
 
 
-with Flow("flow2") as flow2:
+load_file = LoadFile()
+save_db_result = SaveDBResult()
+
+with Flow("flow2", storage=Module(__name__)) as flow:
     file_rep = Parameter("file_rep")
     # load file
-    loaded_text = load_file_task(file_rep)
+    configure = configure_services()
+    loaded_text = load_file(file_rep)
     result = format_result(loaded_text)
-    db_result = save_db_result_task(result)
+    db_result = save_db_result(result)
+
+    # set configure upstreams
+    loaded_text.set_upstream(configure)
+    db_result.set_upstream(configure)

@@ -1,16 +1,12 @@
 import pytest
-from datetime import datetime
-from lume_services.data.files import HDF5File, ImageFile
-from lume_services.services.data.results import (
+from lume_services.services.results import (
     ResultsDBService,
     MongodbResultsDB,
     MongodbResultsDBConfig,
 )
 from pymongo import MongoClient
 
-from lume_services.data.results import get_collections, Result, ImpactResult
-from lume_services.tests.files import SAMPLE_IMAGE_FILE, SAMPLE_IMPACT_ARCHIVE
-
+from lume_services.results import get_collections
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
 
 import logging
@@ -34,14 +30,13 @@ def mongodb_config(
 def is_database_ready(docker_ip, mongodb_config):
     try:
         MongoClient(
-            **mongodb_config.dict(
-                by_alias=True, exclude_none=True, exclude={"database"}
-            ),
+            **mongodb_config.dict(by_alias=True, exclude_none=True),
             password=mongodb_config.password.get_secret_value(),
             connectTimeoutMS=20000,
             connect=True
         )
         return True
+
     except Exception as e:
         logger.error(e)
         return False
@@ -74,32 +69,3 @@ def results_db_service(mongodb_results_db, mongodb_database, mongodb_server):
 
     with results_db_service._results_db.client() as client:
         client.drop_database(mongodb_database)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def generic_result():
-    return Result(
-        flow_id="test_flow_id",
-        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
-        outputs={
-            "output1": 2.0,
-            "output2": [1, 2, 3, 4, 5],
-        },
-    )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def impact_result():
-    return ImpactResult(
-        flow_id="test_flow_id",
-        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
-        outputs={
-            "output1": 2.0,
-            "output2": [1, 2, 3, 4, 5],
-            "output3": "my_file.txt",
-        },
-        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
-        archive=HDF5File(filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"),
-        pv_collection_isotime=datetime.now(),
-        config={"config1": 1, "config2": 2},
-    )

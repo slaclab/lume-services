@@ -1,25 +1,36 @@
-import os
 from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
 from typing import Optional
 
-from lume_services.services.data.models.db import ModelDB
-from lume_services.services.data.models import ModelDBService
-from lume_services.services.data.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
-from lume_services.services.data.results import (
+from lume_services.services.models.db import ModelDB
+from lume_services.services.models import ModelDBService
+from lume_services.services.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
+from lume_services.services.results import (
     ResultsDBService,
     ResultsDB,
 )
-from lume_services.services.data.results.mongodb import (
+from lume_services.services.results.mongodb import (
     MongodbResultsDBConfig,
     MongodbResultsDB,
 )
-from lume_services.services.data.files import FileService
-from lume_services.services.data.files.filesystems import (
+from lume_services.services.files import FileService
+from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
+from lume_services.services.scheduling import PrefectConfig, SchedulingService
+from lume_services.services.scheduling.backends import (
+    Backend,
+    LocalBackend,
+    DockerBackend,
+    KubernetesBackend,
+)
+
+
+from lume_services.errors import EnvironmentNotConfiguredError
+
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +55,12 @@ class Context(containers.DeclarativeContainer):
 
     results_db = providers.Dependency(instance_of=ResultsDB)
 
-    # filter on the case that a filesystem is undefiled
+    scheduling_backend = providers.Dependency(instance_of=Backend)
+
+    # filter on the case that a filesystem is undefined
     file_service = providers.Singleton(
         FileService, filesystems=providers.List(local_filesystem, mounted_filesystem)
     )
-
-    # scheduling_service = providers.Singleton(
-    #    SchedulingService,
-    #    ...
-    #    file_service = file_service
-    # )
 
     model_db_service = providers.Singleton(
         ModelDBService,
@@ -64,11 +71,16 @@ class Context(containers.DeclarativeContainer):
         results_db=results_db,
     )
 
+    scheduling_service = providers.Singleton(
+        SchedulingService, backend=scheduling_backend
+    )
+
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "lume_services.services.scheduling",
-            "lume_services.data.files",
-            "lume_services.data.results",
+            "lume_services.files",
+            "lume_services.results",
+            "lume_services.flows",
+            #           "lume_services.models",
         ],
     )
 
@@ -78,7 +90,11 @@ class LUMEServicesSettings(BaseSettings):
 
     model_db: MySQLModelDBConfig
     results_db: MongodbResultsDBConfig
+    prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
+    backend: str = "local"
+    # something wrong with pydantic literal parsing?
+    # Literal["kubernetes", "local", "docker"] = "local"
 
     class Config:
         # env_file = '.env'
@@ -88,30 +104,12 @@ class LUMEServicesSettings(BaseSettings):
         env_nested_delimiter = "__"
 
 
-class EnvironmentNotConfiguredError(Exception):
-    def __init__(self, env_vars, validation_error: ValidationError):
-        self.env = os.environ
-        self.env_vars = []
-
-        for service in env_vars:
-            self.env_vars += env_vars[service]
-
-        self.missing_vars = [var for var in self.env_vars if var not in self.env]
-
-        self.message = """%s. Evironment variables not defined: %s"
-        """
-
-        super().__init__(
-            self.message, str(validation_error), ", ".join(self.missing_vars)
-        )
-
-
 def configure(settings: LUMEServicesSettings = None):
     """Configure method with default methods for lume-services using MySQLModelDB
     and MongodbResultsDB.
 
     """
-    if not settings:
+    if settings is None:
         try:
             settings = LUMEServicesSettings()
 
@@ -124,10 +122,29 @@ def configure(settings: LUMEServicesSettings = None):
     model_db = MySQLModelDB(settings.model_db)
     results_db = MongodbResultsDB(settings.results_db)
 
+    # this could be moved to an enum
+    if settings.backend is not None:
+        if settings.backend == "kubernetes":
+            backend = KubernetesBackend(config=settings.prefect)
+
+        elif settings.backend == "docker":
+            backend = DockerBackend(config=settings.prefect)
+
+        elif settings.backend == "local":
+            backend = LocalBackend()
+
+        else:
+            raise ValueError(f"Unsupported backend {settings.backend}")
+
+    # default to local
+    else:
+        backend = LocalBackend()
+
     context = Context(
         model_db=model_db,
         results_db=results_db,
         mounted_filesystem=settings.mounted_filesystem,
+        scheduling_backend=backend,
     )
     _settings = settings
 
@@ -140,14 +157,34 @@ def list_env_vars(
     env_vars = {"base": []}
 
     def unpack_props(
-        props, parent, env_vars=env_vars, prefix=prefix, delimiter=delimiter
+        props,
+        parent,
+        env_vars=env_vars,
+        prefix=prefix,
+        delimiter=delimiter,
+        schema=schema,
     ):
 
         for prop_name, prop in props.items():
-
             if "properties" in prop:
                 unpack_props(
                     prop["properties"], prefix=f"{prefix}{delimiter}{prop_name}"
+                )
+
+            elif "allOf" in prop:
+
+                sub_prop_reference = prop["allOf"][0]["$ref"]
+                # prepare from format #/
+                sub_prop_reference = sub_prop_reference.replace("#/", "")
+                sub_prop_reference = sub_prop_reference.split("/")
+                reference_locale = schema
+                for reference in sub_prop_reference:
+                    reference_locale = reference_locale[reference]
+
+                unpack_props(
+                    reference_locale["properties"],
+                    parent=parent,
+                    prefix=f"{prefix}{delimiter}{prop_name}",
                 )
 
             else:

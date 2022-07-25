@@ -1,59 +1,80 @@
-from pydantic import BaseModel
-from prefect.run_configs import DockerRun
-from typing import Optional, Union
+from pydantic import validator, Field
+from typing import Optional, List, Dict, Any
 import logging
 
-from lume_services.services.scheduling.backends import Backend
+from prefect.run_configs import DockerRun
+
+from docker.types import HostConfig
+from lume_services.services.scheduling.backends.backend import RunConfig
+from lume_services.services.scheduling.backends.server import ServerBackend
+
+from lume_services.utils import docker_api_version
 
 logger = logging.getLogger(__name__)
 
 
-class DockerResourceRequest(BaseModel):
-    # CPU shares (relative weight).
-    cpu_shares: int = None
-    # CPUs in which to allow execution (0-3, 0,1).
-    cpuset_cpus: int = None
-    # Microseconds of CPU time that the container can get in a CPU period.
-    cpu_quota: int = None
-    # The length of a CPU period in microseconds.
-    cpu_period: int = None
-    # Memory limit. Accepts float values (which represent the memory limit of the
-    # created container in bytes) or a string with a units identification char
-    # (100000b, 1000k, 128m, 1g).
-    mem_limit: Union[float, str] = None
-    # Memory soft limit.
-    mem_reservation: Union[float, str] = None
-    # Tune a container’s memory swappiness behavior. Accepts number between 0 and 100.
-    mem_swappiness: int = None
-    #  Maximum amount of memory + swap a container is allowed to consume.
-    memswap_limit: Union[str, int]
+class DockerRunConfig(RunConfig):
+    """Pydantic representation of a Docker Prefect run configuration:
+    https://docs.prefect.io/api/latest/run_configs.html#dockerrun
 
+    Attributes:
+        labels (Optional[List[str]]): an list of labels to apply to this run
+            config. Labels are string identifiers used by Prefect Agents for selecting
+            valid flow runs when polling for work
+        env (Optional[dict]): Additional environment variables to set on the job
+        image (str): Tag of image in which flow should run.
+        host_config (Optional[Dict[str, Any]]): Dictionary representing runtime args
+            to be passed to Docker agent. Full documentation of args can be found here:
+            https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config
+        ports (Optional[List[int]]): An list of ports numbers to expose on
+            container.
 
-class DockerHostConfig:
-    resource_request: Optional[DockerResourceRequest]
-    privileged: bool = False
-    read_only: bool = False
+    """  # noqa
 
-
-# can extend to use
-# https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config
-class DockerRunConfig:
     image: str
-    env: Optional[dict]
-    # labels:
-    host_config: DockerHostConfig
+    host_config: Dict[str, Any] = None
+    ports: Optional[List[int]]
 
-    # can extend to use
-    # https://docker-py.readthedocs.io/en/stable/api.html#docker.api.container.ContainerApiMixin.create_host_config
+    @validator("host_config", pre=True)
+    def validate_host_config(cls, v):
+        """Composes a model for the Docker host configuration and applies any passed
+        values.
+
+        """
+        if isinstance(v, (dict,)):
+            # test host config composition using api version
+            try:
+                HostConfig(version=docker_api_version(), **v)
+            except Exception as e:
+                logger.exception(e)
+                raise e
+
+        return v
+
+    def build(self) -> DockerRun:
+        """Method for converting to Prefect RunConfig type DockerRun.
+
+        Returns:
+            DockerRun
+
+        """
+        return DockerRun(**self.dict(exclude_none=True))
 
 
-class DockerBackend(Backend):
-    # default image
-    default_image: str = None
+class DockerBackend(ServerBackend):
+    """Implementation of Backend used for interacting with prefect deployed in
+    cluster of Docker containers, as with docker-compose.
 
-    def get_run(
-        self,
-        run_config: DockerRunConfig,
-    ):
+    Attributes:
+        config (PrefectConfig): Instantiated PrefectConfig object describing connection
+            to Prefect server.
+        _client (Client): Prefect client connection created on instantiation.
+        _run_config_type (type): Type used to compose Prefect run configuration.
 
-        return DockerRun(**run_config.dict(exclude_none=True))
+    """
+
+    _run_config_type: type = Field(DockerRunConfig, exclude=True)
+
+    @property
+    def run_config_type(self):
+        return self._run_config_type

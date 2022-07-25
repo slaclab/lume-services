@@ -6,14 +6,19 @@ composing_flows:
   - name: flow2
     project_name: test
     mapped_parameters:
-      parameter_1:
+      file_rep:
         parent_flow_name: flow1
         parent_project_name: test
-        parent_task_name: multiply
+        parent_task_name: save_text_file
+        map_type: file
   - name: flow3
     project_name: test
     mapped_parameters:
-      parameter_1:
+      text1:
         parent_flow_name: flow2
         parent_project_name: test
-        parent_task_name: add
+        parent_task_name: save_db_result
+        map_type: db
+        attribute: outputs
+        attribute_index:
+          - output1

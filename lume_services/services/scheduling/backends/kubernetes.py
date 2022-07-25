@@ -1,16 +1,13 @@
-from pydantic import BaseModel, validator
-from prefect.run_configs import KubernetesRun
-from typing import List, Optional, Dict, Union
+from pydantic import validator, Field
+from typing import List, Optional, Union, Literal
 import logging
 
-from lume_services.data.files import FileService
-from lume_services.context import Context
-from dependency_injector.wiring import Provide
+from prefect.run_configs import KubernetesRun
 
-from lume_services.data.files.serializers.yaml import YAMLSerializer
-from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE_FILE
+from lume_services.services.scheduling.backends.backend import RunConfig
+from lume_services.services.scheduling.backends.server import ServerBackend
+from lume_services.services.scheduling.files import KUBERNETES_JOB_TEMPLATE
 
-from lume_services.services.scheduling.backends import Backend
 
 logger = logging.getLogger(__name__)
 
@@ -30,17 +27,52 @@ KUBERNETES_REQUEST_SUFFIXES = [
 ]
 
 
-class KubernetesCPURequest(BaseModel):
-    limit: float = 1.0
-    request: float = 0.5
+class KubernetesRunConfig(RunConfig):
+    """Pydantic representation of args to:
+    https://docs.prefect.io/api/latest/run_configs.html#kubernetesrun
+    https://kubernetes.io/docs/concepts/configuration/overview/#container-images
 
+    Attributes:
+        labels (Optional[List[str]]): an list of labels to apply to this run
+            config. Labels are string identifiers used by Prefect Agents for selecting
+            valid flow runs when polling for work
+        env (Optional[dict]): Additional environment variables to set on the job
+        image (Optional[str]): The image to use. Can also be specified via job
+            template.
+        job_template_path (Optional[str]): Path to a job template to use. If a local
+            path (no file scheme, or a file/local scheme), the job template will be
+            loaded on initialization and stored on the KubernetesRun object as the
+            job_template field. Otherwise the job template will be loaded at runtime
+            on the agent. Supported runtime file schemes include (s3, gcs, and agent
+            (for paths local to the runtime agent)).
+        job_template (Optional[str]): An in-memory job template to use.
+        cpu_limit (Union[float, str]): The CPU limit to use for the job
+        cpu_request (Union[float, str]): The CPU request to use for the job
+        memory_limit (Optional[str]): The memory limit to use for the job
+        memory_request (Optional[str]): The memory request to use for the job
+        service_account_name (Optional[str]): A service account name to use for this
+            job. If present, overrides any service account configured on the agent or
+            in the job template.
+        image_pull_secrets (Optional[list]): A list of image pull secrets to use for
+            this job. If present, overrides any image pull secrets configured on the
+            agent or in the job template.
+        image_pull_policy (Optional[str]): The imagePullPolicy to use for the job.
 
-class KubernetesMemoryRequest(BaseModel):
-    limit: Union[str, int] = None
-    request: Union[str, int] = None
+    """
 
-    @validator("limit", "request")
-    def validate_request(cls, v):
+    image: Optional[str]
+    image_pull_secrets: Optional[List[str]]
+    job_template: Optional[dict]
+    job_template_path: Optional[str]
+    service_account_name: Optional[str]
+    image_pull_policy: Literal["Always", "IfNotPresent", "Never"] = "IfNotPresent"
+    cpu_limit: Union[float, str] = 1.0
+    cpu_request: Union[float, str] = 0.5
+    memory_limit: Union[str, int] = None
+    memory_request: Union[str, int] = None
+
+    @validator("memory_limit", "memory_request")
+    def validate_memory(cls, v):
         """Validate w.r.t. Kubernetes resource formats: int, fixed-point number using
         quantity suffixes: E, P, T, G, M, k or power-of-two equivalents: Ei, Pi,
         Ti, Gi, Mi, Ki
@@ -80,59 +112,34 @@ class KubernetesMemoryRequest(BaseModel):
 
         return v
 
+    def build(self) -> KubernetesRun:
+        """Method for converting to Prefect RunConfig type KubernetesRun.
 
-class KubernetesResourceRequest(BaseModel):
-    # for implementing device resources check
-    # https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/
-    cpu: KubernetesCPURequest = KubernetesCPURequest()
-    memory: KubernetesMemoryRequest = KubernetesMemoryRequest()
+        Returns:
+            KubernetesRun
 
+        """
+        # if job template and job template path missing, use packaged template
+        if self.job_template is None and self.job_template_path is None:
+            self.job_template = KUBERNETES_JOB_TEMPLATE
 
-class KubernetesJobTemplate(BaseModel):
-    filepath: str = KUBERNETES_JOB_TEMPLATE_FILE
-    filesystem_identifier: str
-
-
-class KubernetesRunConfig(BaseModel):
-    resource_request: Optional[KubernetesResourceRequest]
-    env: Optional[Dict[str, str]]
-    image: Optional[str]
-    image_pull_secrets: Optional[List[str]]
+        return KubernetesRun(**self.dict(exclude_none=True))
 
 
-#   labels: Optional[List[str]]
-#   service_account_name = Optional[str]
+class KubernetesBackend(ServerBackend):
+    """Implementation of Backend used for interacting with Prefect deployed in
+    K8 cluster.
 
+    Attributes:
+        config (PrefectConfig): Instantiated PrefectConfig object describing connection
+            to Prefect server.
+        _client (Client): Prefect client connection created on instantiation.
+        _run_config_type (type): Type used to compose run configuration.
 
-class KubernetesBackend(Backend):
-    job_template: KubernetesJobTemplate = None
-    image_pull_policy: str = "IfNotPresent"  # Always, IfNotPresent, Never
+    """
 
-    # default image
-    default_image: str = None
+    _run_config_type: type = Field(KubernetesRunConfig, exclude=True)
 
-    def get_run(
-        self,
-        run_config: KubernetesRunConfig,
-        file_service: FileService = Provide[Context.file_service],
-    ):
-
-        job_template = file_service.read(
-            self.config.job_template.filesystem_identifier,
-            self.config.job_template.filepath,
-            YAMLSerializer,
-        )
-
-        return KubernetesRun(
-            image_pull_policy=self.image_pull_policy,
-            image=self.image,
-            cpu_limit=run_config.resource_request.cpu.limit,
-            cpu_request=run_config.resource_request.cpu.request,
-            memory_limit=run_config.resource_request.memory.limit,
-            memory_request=run_config.resource_request.memory.request,
-            image_pull_secrets=run_config.image_pull_secrets,
-            env=run_config.env,
-            job_template=job_template,
-            # labels = run_config.labels,
-            # service_account_name = run_config.service_account_name
-        )
+    @property
+    def run_config_type(self):
+        return self._run_config_type
