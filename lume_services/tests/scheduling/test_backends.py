@@ -209,12 +209,12 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def configure(self, lume_service_settings):
         config.configure(lume_service_settings)
 
     @pytest.fixture()
-    def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem, configure):
+    def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem):
         mounts = [
             {
                 "target": mounted_filesystem.mount_alias,

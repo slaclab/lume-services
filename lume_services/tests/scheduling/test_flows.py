@@ -54,7 +54,7 @@ class TestFlows:
     text1 = "hey"
     text2 = " you"
 
-    @pytest.fixture()
+    @pytest.fixture(scope="class")
     def configure(self, lume_service_settings):
         config.configure(lume_service_settings)
 
