@@ -7,9 +7,10 @@ from dependency_injector.containers import DynamicContainer
 
 from lume_services import config
 from lume_services.results import Result
+from lume_services.errors import EnvironmentNotConfiguredError
 from lume_services.services.files.filesystems.mounted import MountedFilesystem
 
-from prefect.utilities.backend import load_backend
+from prefect.utilities.backend import load_backend, save_backend
 
 
 @pytest.fixture(scope="class", autouse=True)
@@ -31,7 +32,7 @@ class TestLumeSettings:
     def test_configure_from_env(
         self, file_service, model_db_service, results_db_service, scheduling_service
     ):
-
+        save_backend("cloud")
         assert config.context is None
         config.configure()
         assert config.context is not None
@@ -229,14 +230,14 @@ class TestLumeSettings:
     def test_configure_from_env_failure(self):
         mongodb_host = os.environ.pop("LUME_RESULTS_DB__HOST")
 
-        with pytest.raises(config.EnvironmentNotConfiguredError):
+        with pytest.raises(EnvironmentNotConfiguredError):
             config.configure()
 
         os.environ["LUME_RESULTS_DB__HOST"] = mongodb_host
 
     @classmethod
     def teardown_class(cls):
-        config.context = None
+        save_backend("server")
 
 
 class TestFileServiceInjection:

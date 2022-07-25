@@ -3,7 +3,7 @@ import os
 import docker
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 from lume_services.services.files.filesystems import (
     LocalFilesystem,
@@ -12,11 +12,14 @@ from lume_services.services.files.filesystems import (
 
 
 def pytest_addoption(parser):
+    parser.addini("backend", default="docker", help="Backend interface to use")
+    parser.addini(
+        "prefect_backend", default="server", help="Prefect backend: server or cloud"
+    )
     parser.addini("mysql_host", default="127.0.0.1", help="MySQL host")
     parser.addini("mysql_port", default=3306, help="MySQL port")
     parser.addini("mysql_user", default="root", help="MySQL user")
     parser.addini("mysql_password", default="root", help="MySQL password")
-    parser.addini(name="mysql_dbname", help="Mysql database name", default="test")
     parser.addini("mysql_database", default="model_db", help="Model database name")
     parser.addini("mysql_poolsize", default=1, help="MySQL client poolsize")
 
@@ -66,6 +69,13 @@ def rootdir(request):
     rootdir = request.config.rootpath
     os.environ["LUME_SERVICES_ROOTDIR"] = str(rootdir)
     return rootdir
+
+
+@pytest.fixture(scope="session", autouse=True)
+def lume_backend(request):
+    lume_backend = request.config.getini("backend")
+    os.environ["LUME_BACKEND"] = lume_backend
+    return lume_backend
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -120,6 +130,13 @@ def server_tag(request):
     tag = request.config.getini("server_tag")
     os.environ["LUME_PREFECT__SERVER__TAG"] = tag
     return tag
+
+
+@pytest.fixture(scope="session")
+def prefect_backend(request):
+    backend = request.config.getini("prefect_backend")
+    os.environ["LUME_PREFECT__SERVER__BACKEND"] = backend
+    return backend
 
 
 @pytest.fixture(scope="session")
