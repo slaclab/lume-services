@@ -145,7 +145,7 @@ services:
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/"
     volumes:
         - type: bind
-          source:  ${LUME_SERVICES_ROOT}/config.toml
+          source:  ${LUME_SERVICES_ROOTDIR}/config.toml
           target: /root/.prefect/config.toml
           read_only: true
     ports:
