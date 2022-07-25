@@ -11,6 +11,7 @@ from prefect.backend import FlowRunView, FlowView
 from prefect.backend.flow_run import watch_flow_run
 
 from lume_services.services.scheduling.backends.backend import Backend, RunConfig
+from prefect.utilities.backend import save_backend
 from lume_services.errors import (
     TaskNotCompletedError,
     EmptyResultError,
@@ -75,14 +76,13 @@ class PrefectConfig(BaseModel):
     backend: Literal["server", "cloud"] = "server"
 
     def apply(self):
-        prefect_config.update(
-            backend="server", home_dir=self.home_dir, debug=self.debug
-        )
+        prefect_config.update(home_dir=self.home_dir, debug=self.debug)
         prefect_config.server.update(**self.server.dict())
         prefect_config.server.graphql.update(**self.graphql.dict())
         prefect_config.server.hasura.update(**self.hasura.dict())
         prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.server.telemetry.update(**self.telemetry.dict())
+        save_backend(self.backend)
 
 
 class ServerBackend(Backend):
