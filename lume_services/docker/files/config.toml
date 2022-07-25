@@ -1,0 +1,12 @@
+# debug mode
+debug = true
+
+home_dir = "~/.prefect"
+
+backend = "server"
+
+[server]
+host = "http://apollo"
+port = "4200"
+host_port = "4200"
+endpoint = "${server.host}:${server.port}"

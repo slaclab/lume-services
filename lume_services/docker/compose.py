@@ -130,4 +130,4 @@ def get_cleanup_commands():
 
 def get_setup_command():
 
-    return "up --build -d"
+    return "up -d"

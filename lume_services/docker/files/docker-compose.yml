@@ -10,6 +10,17 @@ services:
       MYSQL_ROOT_HOST: '%'
       MYSQL_ROOT_USER: ${LUME_MODEL_DB__USER:-root}
 
+  # Mongodb
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
+    ports:
+      - ${LUME_RESULTS_DB__PORT:-27017}:27017
+    networks:
+      - prefect-server
+
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
     image: "postgres:11"
@@ -126,16 +137,33 @@ services:
       - graphql
       - hasura
 
-  # Mongodb
-  mongodb:
-    image: mongo:latest
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
+  # agent
+  agent:
+    image: prefecthq/prefect:1.2.3-python3.10
+    command: >
+      bash -c "prefect server create-tenant --name default --slug default &&
+      prefect agent docker start --label lume-services --agent-address http://localhost:5000/"
+    volumes:
+        - type: bind
+          source:  ${LUME_SERVICES_ROOT}/config.toml
+          target: /root/.prefect/config.toml
+          read_only: true
     ports:
-      - ${LUME_RESULTS_DB__PORT:-27017}:27017
+      - 5000:5000
+    depends_on:
+      - apollo
+      - postgres
+      - graphql
+      - hasura
     networks:
       - prefect-server
+    restart: always
+    healthcheck:
+      test: curl --fail --silent "http://localhost:5000/api/health" &> /dev/null || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 60
+      start_period: 1s
 
 networks:
   prefect-server:
