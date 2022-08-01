@@ -4,22 +4,19 @@
 
 <!-- SHIELDS -->
 
-[<div align="center"> ![Contributors][contributors-shield]][contributors-url]
+[<div align="center"> ![release][release][release-url]
+[![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
-[![License][license-shield]][license-url]
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]</div>][issues-closed-url]
 [![Tests][tests-workflow]</div>][tests-workflow]
 [![Docs][docs-workflow]</div>][docs-workflow]
 
-
 <br />
 
-
-
-![build](https://github.com/slaclab/lume-services/.github/workflows/tests.yml/badge.svg)
-![release](https://img.shields.io/github/v/release/slaclab/lume-services)
+![release](https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge)
+![lume-epics](https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge)
 
 <!-- Pytest Coverage Comment:Begin -->
 <!-- Pytest Coverage Comment:End -->
@@ -37,7 +34,7 @@
 [issues-url]: https://github.com/slaclab/lume-services/issues
 [issues-closed-shield]: https://img.shields.io/github/issues-closed/slaclab/lume-services.svg?style=for-the-badge
 [issues-closed-url]: https://github.com/slaclab/lume-services/issues?q=is%3Aissue+is%3Aclosed
-[license-shield]: https://img.shields.io/github/license/slaclab/lume-services.svg?style=for-the-badge
 [license-url]: https://github.com/slaclab/lume-services/blob/main/LICENSE
 [tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge
-[docs-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Docs?style=for-the-badge
+[docs-workflow]: https://img.shields.io/github/workflow/status/:user/lume-services/Docs?style=for-the-badge
+[release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
