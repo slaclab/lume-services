@@ -8,8 +8,8 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![Issues Closed][issues-closed-shield]</div>][issues-closed-url]
-[![Tests][tests-workflow]</div>][tests-workflow]
+[![Issues Closed][issues-closed-shield]][issues-closed-url]
+[![Tests][tests-workflow]][tests-workflow]
 [![Docs][docs-workflow]</div>][docs-workflow]
 
 <br />
