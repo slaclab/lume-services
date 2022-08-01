@@ -10,6 +10,9 @@
 [![License][license-shield]][license-url]
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]</div>][issues-closed-url]
+[![Tests][tests-workflow]</div>][tests-workflow]
+[![Docs][docs-workflow]</div>][docs-workflow]
+
 
 <br />
 
@@ -36,3 +39,5 @@
 [issues-closed-url]: https://github.com/slaclab/lume-services/issues?q=is%3Aissue+is%3Aclosed
 [license-shield]: https://img.shields.io/github/license/slaclab/lume-services.svg?style=for-the-badge
 [license-url]: https://github.com/slaclab/lume-services/blob/main/LICENSE
+[tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge
+[docs-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Docs?style=for-the-badge

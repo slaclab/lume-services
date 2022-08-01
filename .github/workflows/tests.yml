@@ -61,7 +61,7 @@ jobs:
         with:
           name: coverage
           path: coverage
-      
+
       - name: Pytest coverage comment
         id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
@@ -87,7 +87,7 @@ jobs:
         with:
           auth: ${{ secrets.PYTEST_COVERAGE_COMMENT }}
           gistID: 61dce43449fc0509f34520fd7efc41b1
-          filename: slaclab-lume-services-coverage.json 
+          filename: slaclab-lume-services-coverage.json
           label: Coverage Report
           message: ${{ steps.coverageComment.outputs.coverage }}
           color: ${{ steps.coverageComment.outputs.color }}

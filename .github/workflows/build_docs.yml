@@ -1,4 +1,4 @@
-name: Build docs
+name: Docs
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
      #     branch: main
      #     files: docs/files/model_db_uml.png docs/files/model_db_schema.png
 
-      - name: Build docs
+      - name: Build and deploy
         shell: bash -l {0}
         run: |
           mkdocs build
