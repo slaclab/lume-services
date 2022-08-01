@@ -3,8 +3,7 @@
 <div id="top"></div>
 
 <!-- SHIELDS -->
-
-[<div align="center"> ![release][release][release-url]
+[<div align="center"> ![release][release]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -14,9 +13,6 @@
 [![Docs][docs-workflow]</div>][docs-workflow]
 
 <br />
-
-![release](https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge)
-![lume-epics](https://img.shields.io/github/v/release/slaclab/lume-epics?style=for-the-badge)
 
 <!-- Pytest Coverage Comment:Begin -->
 <!-- Pytest Coverage Comment:End -->
