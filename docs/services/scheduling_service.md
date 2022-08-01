@@ -27,7 +27,16 @@ How LUME-services uses Prefect:
 
 ## Backends
 
-The Scheduling Service is set up to interface with a backend
+The Scheduling Service is set up to interface with different backends.
+
+
+### Kubernetes
+![kubernetes](files/services/kubernetes_architecture.png)
+
+
+### Docker
+
+
 
 ## Agents
 
