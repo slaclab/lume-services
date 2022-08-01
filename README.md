@@ -16,7 +16,7 @@
 <br />
 
 ![release](https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge)
-![lume-epics](https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge)
+![lume-epics](https://img.shields.io/github/v/release/slaclab/lume-epics?style=for-the-badge)
 
 <!-- Pytest Coverage Comment:Begin -->
 <!-- Pytest Coverage Comment:End -->
@@ -38,3 +38,4 @@
 [tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge
 [docs-workflow]: https://img.shields.io/github/workflow/status/:user/lume-services/Docs?style=for-the-badge
 [release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
+[release-url]: https://github.com/jacquelinegarrahan/lume-services/releases
