@@ -124,10 +124,14 @@ def build_compose(docker_compose_file, filename, show_defaults=False):
                 #  self.p(f"Service: {service_name}"
 
                 if "networks" in service_config.keys():
-                    # should only have one network assigned....
+                    # use first network for registering
                     network_name = service_config["networks"][0]
-                    with service_clusters[network_name]:
+                    if network_name == "default":
                         container = Docker(service_name, **node_attrs)
+
+                    else:
+                        with service_clusters[network_name]:
+                            container = Docker(service_name, **node_attrs)
 
                 else:
                     container = Docker(service_name, **node_attrs)
