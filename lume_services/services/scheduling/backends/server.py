@@ -183,6 +183,14 @@ class ServerBackend(Backend):
         if not image_tag:
             image_tag = self.default_image_tag
 
+        # clear run config labels
+        if flow.run_config is not None and labels is not None:
+            logger.info(
+                "Flow run config is not empty. Clearing existing labels and assigning \
+                    new."
+            )
+            flow.run_config.labels = set()
+
         # flow.storage.image_tag = image_tag
         flow_id = flow.register(
             project_name=project_name,
