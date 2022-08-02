@@ -1,5 +1,6 @@
 import yaml
 import os.path
+import click
 
 from diagrams import Cluster, Diagram, Edge
 
@@ -7,7 +8,7 @@ from diagrams.onprem.container import Docker
 from diagrams.onprem.compute import Server
 from diagrams.generic.storage import Storage as FileStorage
 
-# from diagrams.oci.compute import Container
+from lume_services.docker.files import DOCKER_COMPOSE
 
 
 def clean_mapped_value(val, show_defaults):
@@ -168,7 +169,21 @@ def build_compose(docker_compose_file, filename, show_defaults=False):
                     )
 
 
-if __name__ == "__main__":
-    from lume_services.docker.files import DOCKER_COMPOSE
+@click.command()
+@click.option("--output_filename", required=True, type=str)
+def build_compose_docs(output_filename):
+    if ".png" in output_filename:
+        output_filename = output_filename.replace(".png", "")
+    build_compose(DOCKER_COMPOSE, output_filename)
 
-    build_compose(DOCKER_COMPOSE, "test")
+
+@click.group()
+def main():
+    pass
+
+
+main.add_command(build_compose_docs)
+
+
+if __name__ == "__main__":
+    main()
