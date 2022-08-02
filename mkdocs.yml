@@ -42,6 +42,7 @@ nav:
     - Documentation: developer/documentation.md
     - TODO: developer/todo.md
     - Cluster Architecture: developer/cluster.md
+    - Configuration: developer/configuration.md
     - Services:
       - File: developer/services/file.md
       - Scheduling: developer/services/scheduling.md
