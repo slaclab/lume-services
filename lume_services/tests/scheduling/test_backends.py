@@ -35,7 +35,7 @@ def docker_api_version():
     return docker_api_version_util()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="class", autouse=True)
 def lume_service_settings(
     file_service, model_db_service, results_db_service, scheduling_service
 ):
@@ -245,9 +245,8 @@ class TestDockerBackend:
 
     # tests flow registration
     @pytest.fixture(scope="class")
-    def flow_id(self, backend, project_name, prefect_docker_tag):
-        flow.run_config = None
-        flow.storage = None
+    def test_flow_id(self, backend, project_name, prefect_docker_tag):
+
         return backend.register_flow(
             flow,
             project_name=project_name,
@@ -269,7 +268,7 @@ class TestDockerBackend:
         return {
             "text1": "hey",
             "text2": " you",
-            "filename": f"{mounted_filesystem.mount_alias}/test_local_backend.txt",
+            "filename": f"{mounted_filesystem.mount_alias}/test_docker_backend.txt",
             "filesystem_identifier": mounted_filesystem.identifier,
         }
 
@@ -278,7 +277,6 @@ class TestDockerBackend:
             backend.run(data, run_config, flow_id=flow)
 
     def test_run_flow(self, backend, data, run_config, flow_id):
-        logger.info(run_config)
         backend.run(data, run_config, flow_id=flow_id)
 
     def test_run_flow_and_return(self, backend, data, run_config, flow_id):
