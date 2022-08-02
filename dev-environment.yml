@@ -8,7 +8,7 @@ dependencies:
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
-  - prefect
+  - prefect<2.0
   - pandas
   - pymongo
   - click
@@ -40,5 +40,6 @@ dependencies:
   - pymdown-extensions>9.4
   - Pygments>=2.12
   - diagrams
-  - asciitree
   - mkdocs-jupyter
+  - mkdocs-click
+  - mcdocs-mermaid2

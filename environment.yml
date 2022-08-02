@@ -8,7 +8,7 @@ dependencies:
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
-  - prefect
+  - prefect<2.0
   - pandas
   - pymongo
   - click
