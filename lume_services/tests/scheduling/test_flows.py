@@ -19,7 +19,7 @@ from lume_services import config
 from lume_services.flows.flow_of_flows import FlowOfFlows
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="class", autouse=True)
 def lume_service_settings(
     file_service, model_db_service, results_db_service, scheduling_service
 ):
