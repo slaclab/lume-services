@@ -4,7 +4,6 @@ repo_url: https://github.com/jacquelinegarrahan/lume-services
 nav:
   - Overview:
     - LUME-Services: index.md
-  -   Notes: notes.md
   -   Configuration: config.md
   -   Model Packaging: model_packaging.md
   -   Workflows: workflows.md
