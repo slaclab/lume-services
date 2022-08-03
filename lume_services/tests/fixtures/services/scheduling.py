@@ -66,14 +66,6 @@ def prefect_services(docker_services, prefect_api_str):
     return
 
 
-@pytest.mark.usefixtures("lume_services_setttings")
-@pytest.mark.usefixtures("prefect_services")
-@pytest.fixture(scope="session", autouse=True)
-def prefect_client(prefect_api_str):
-    client = prefect.Client(api_server=prefect_api_str)
-    return client
-
-
 @pytest.fixture(scope="session", autouse=True)
 def lume_env():
     lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
@@ -117,3 +109,11 @@ def docker_backend(lume_services_settings):
 @pytest.fixture(scope="class", autouse=True)
 def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)
+
+
+@pytest.mark.usefixtures("lume_services_setttings")
+@pytest.mark.usefixtures("scheduling_service")
+@pytest.fixture(scope="class", autouse=True)
+def prefect_client(prefect_api_str):
+    client = prefect.Client(api_server=prefect_api_str)
+    return client
