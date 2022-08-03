@@ -23,7 +23,6 @@ from lume_services.errors import (
 from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
-from lume_services import config
 
 import logging
 
@@ -33,13 +32,6 @@ logger = logging.getLogger(__name__)
 @pytest.fixture(scope="session", autouse=True)
 def docker_api_version():
     return docker_api_version_util()
-
-
-@pytest.fixture(scope="class", autouse=True)
-def lume_service_settings(
-    file_service, model_db_service, results_db_service, scheduling_service
-):
-    return config.LUMEServicesSettings()
 
 
 class TestRunConfigs:
@@ -209,10 +201,6 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture(scope="class")
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
     @pytest.fixture()
     def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem):
         mounts = [
@@ -234,7 +222,7 @@ class TestDockerBackend:
         )
 
     @pytest.fixture(scope="class")
-    def backend(self, prefect_config, prefect_services, configure):
+    def backend(self, prefect_config, prefect_services, lume_service_settings):
         return DockerBackend(config=prefect_config)
 
     @pytest.fixture(scope="class")

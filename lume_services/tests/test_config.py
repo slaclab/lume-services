@@ -13,13 +13,6 @@ from lume_services.services.files.filesystems.mounted import MountedFilesystem
 from prefect.utilities.backend import load_backend, save_backend
 
 
-@pytest.fixture(scope="class", autouse=True)
-def lume_service_settings(
-    file_service, model_db_service, results_db_service, scheduling_service
-):
-    return config.LUMEServicesSettings()
-
-
 class TestLumeSettings:
     @classmethod
     def setup_class(cls):

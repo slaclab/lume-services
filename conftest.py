@@ -1,7 +1,16 @@
 import pytest
 import os
-import docker
 import logging
+
+from lume_services import config
+
+from lume_services.services.models.db.mysql import MySQLModelDBConfig
+from lume_services.services.results.mongodb import MongodbResultsDBConfig
+from lume_services.services.scheduling.backends.server import (
+    PrefectAgentConfig,
+    PrefectConfig,
+    PrefectServerConfig,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -196,7 +205,6 @@ def mongodb_database(request):
 
 ## Scheduling
 
-
 ## Filesystem
 @pytest.fixture(scope="session")
 def mount_path(tmp_path_factory):
@@ -223,6 +231,67 @@ def mounted_filesystem(mount_path):
 # def mock_settings_env_vars():
 #    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
 #        yield
+
+# Full configuration
+
+
+@pytest.fixture(scope="class", autouse=True)
+def lume_service_settings(
+    mysql_host,
+    mysql_port,
+    mysql_user,
+    mysql_password,
+    mysql_database,
+    mongodb_host,
+    mongodb_port,
+    mongodb_user,
+    mongodb_password,
+    mongodb_database,
+    server_host_port,
+    server_host,
+    server_tag,
+    agent_host,
+    agent_host_port,
+    prefect_backend,
+    lume_backend,
+    mounted_filesystem,
+):
+    model_db_config = MySQLModelDBConfig(
+        host=mysql_host,
+        port=mysql_port,
+        user=mysql_user,
+        password=mysql_password,
+        database=mysql_database,
+    )
+
+    results_db_config = MongodbResultsDBConfig(
+        port=mongodb_port,
+        host=mongodb_host,
+        username=mongodb_user,
+        database=mongodb_database,
+        password=mongodb_password,
+    )
+
+    prefect_config = PrefectConfig(
+        server=PrefectServerConfig(
+            host=server_host, host_port=server_host_port, tag=server_tag
+        ),
+        agent=PrefectAgentConfig(host=agent_host, host_port=agent_host_port),
+        backend=prefect_backend,
+    )
+
+    settings = config.LUMEServicesSettings(
+        model_db=model_db_config,
+        results_db=results_db_config,
+        prefect=prefect_config,
+        backend=lume_backend,
+        mounted_filesystem=mounted_filesystem,
+    )
+
+    config.configure(settings)
+
+    return settings
+
 
 # Now setup all fixtures
 pytest_plugins = [

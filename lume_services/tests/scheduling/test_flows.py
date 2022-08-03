@@ -14,16 +14,8 @@ from lume_services.tests.files.flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
-from lume_services import config
 
 from lume_services.flows.flow_of_flows import FlowOfFlows
-
-
-@pytest.fixture(scope="class", autouse=True)
-def lume_service_settings(
-    file_service, model_db_service, results_db_service, scheduling_service
-):
-    return config.LUMEServicesSettings()
 
 
 # use prefect config, want config applied
@@ -55,10 +47,6 @@ class TestFlows:
     text2 = " you"
 
     @pytest.fixture(scope="class")
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
-    @pytest.fixture(scope="class")
     def flow1_filename(self, mounted_filesystem):
         return f"{mounted_filesystem.mount_alias}/flow1_res.txt"
 
@@ -74,7 +62,7 @@ class TestFlows:
         docker_run_config,
         flow1_filename,
         mounted_filesystem,
-        configure,
+        lume_service_settings,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -133,7 +121,7 @@ class TestFlows:
         docker_run_config,
         test_flow1_run,
         results_db_service,
-        configure,
+        lume_service_settings,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -179,7 +167,7 @@ class TestFlows:
         docker_run_config,
         test_flow2_run,
         results_db_service,
-        configure,
+        lume_service_settings,
     ):
 
         # want to bind our task kwargs to flow2 outputs
@@ -210,14 +198,10 @@ class TestFlows:
 
 
 class TestFlowOfFlows:
-    @pytest.fixture()
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
     def test_load_yaml(self):
         with open(FLOW_OF_FLOWS_YAML, "r") as file:
             _ = yaml.safe_load(file)
 
-    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id, configure):
+    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id, lume_service_settings):
         # using injection here...
         _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
