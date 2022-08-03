@@ -49,7 +49,7 @@ def mongodb_server(docker_ip, docker_services, mongodb_config):
         pause=0.1,
         check=lambda: is_database_ready(docker_ip, mongodb_config),
     )
-    return
+    return True
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -57,7 +57,7 @@ def mongodb_results_db(mongodb_config, mongodb_server):
     return MongodbResultsDB(mongodb_config)
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def results_db_service(mongodb_results_db, mongodb_database, mongodb_server):
 
     collections = get_collections()

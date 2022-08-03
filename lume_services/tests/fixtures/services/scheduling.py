@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_docker_tag():
-    return "lume_services:pytest"
-    # return "build-test:latest"
+    # return "lume_services:pytest"
+    return "build-test:latest"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -124,6 +124,7 @@ def lume_env():
     return lume_env
 
 
+# @pytest.mark.usefixtures("prefect_job_docker")
 @pytest.mark.usefixtures("prefect_services")
 @pytest.fixture(scope="session", autouse=True)
 def docker_run_config(prefect_docker_tag, file_service, lume_env):
