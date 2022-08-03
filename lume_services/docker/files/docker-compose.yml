@@ -185,7 +185,7 @@ services:
       timeout: 5s
     image: prefecthq/ui:core-1.2.2
     networks:
-      - prefect-server
+      - service-net
     ports:
       - ${LUME_PREFECT__UI__HOST_PORT:-8080}:8080/tcp
     restart: always

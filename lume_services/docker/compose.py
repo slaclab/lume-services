@@ -14,7 +14,8 @@ from lume_services.docker.files import DOCKER_COMPOSE
 logger = logging.getLogger(__name__)
 
 
-_SETUP_COMMAND = "up -d"
+_BASE_SETUP_COMMAND = "up -d"
+_UI_SETUP_COMMAND = "up -d --profile with_ui"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
 
 
@@ -141,17 +142,22 @@ def get_cleanup_commands():
 
 
 def get_setup_command():
-    return _SETUP_COMMAND
+    return _BASE_SETUP_COMMAND
 
 
 @contextmanager
-def run_docker_services(project_name="lume-services"):
+def run_docker_services(project_name="lume-services", ui=False):
     logger.info(f"Running services in environment: {dict(os.environ)}")
     docker_compose = DockerComposeExecutor(DOCKER_COMPOSE, project_name)
 
+    if ui:
+        cmd = _UI_SETUP_COMMAND
+    else:
+        cmd = _BASE_SETUP_COMMAND
+
     # setup containers.
     try:
-        docker_compose.execute(_SETUP_COMMAND)
+        docker_compose.execute(cmd)
     except Exception as e:
         for cmd in _CLEANUP_COMMANDS:
             try:
