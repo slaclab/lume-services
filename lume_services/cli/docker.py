@@ -12,7 +12,7 @@ def docker():
 @click.option("--project_name", default="lume-services")
 def start_docker_services(project_name):
     try:
-        with run_docker_services(project_name=project_name):
+        with run_docker_services(project_name=project_name, ui=True):
             while True:
                 time.sleep(2)
                 print("Services started")
