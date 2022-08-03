@@ -118,6 +118,10 @@ def configure(settings: LUMEServicesSettings = None):
                 list_env_vars(LUMEServicesSettings.schema()), validation_error=e
             )
 
+    # apply prefect config
+    if settings.prefect is not None:
+        settings.prefect.apply()
+
     global context, _settings
     model_db = None
     if settings.model_db is not None:
