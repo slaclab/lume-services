@@ -12,11 +12,6 @@ Host port forwardings have default values, but can be modified at spin-up using 
 | LUME_PREFECT__SERVER__HOST_PORT   | 4200                 |
 | LUME_PREFECT__HASURA__HOST_PORT   | 3000                 |
 | LUME_PREFECT__GRAPHQL__HOST_PORT  | 4201                 |
-| LUME_PREFECT__POSTGRES__HOST_PORT | 5432                 |
-| LUME_PREFECT__POSTGRES__DB        | prefect_db           |
-| LUME_PREFECT__POSTGRES__USER      | prefect_user         |
-| LUME_PREFECT__POSTGRES__PASSWORD  | prefect_password     |
-| LUME_PREFECT__POSTGRES__DATA_PATH | /tmp/lume/postgresql |
 | LUME_RESULTS_DB__PORT             | 27017                |
 | LUME_RESULTS_DB__USERNAME         | root                 |
 | LUME_RESULTS_DB__PASSWORD         | password             |
