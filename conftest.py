@@ -37,14 +37,10 @@ def pytest_addoption(parser):
     parser.addini(
         name="server_host", help="Prefect server apollo host IP", default="127.0.0.1"
     )
-    parser.addini(
-        name="hasura_host_port", help="Prefect hasura host port", default=3000
-    )
-    parser.addini(name="hasura_host", help="Hasura host IP", default="127.0.0.1")
+    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
     parser.addini(
         name="agent_host_port", help="Prefect agent port for comms", default=5000
     )
-    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -133,20 +129,6 @@ def server_host_port(request):
 def server_host(request):
     port = request.config.getini("server_host")
     os.environ["LUME_PREFECT__SERVER__HOST"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def hasura_host_port(request):
-    port = request.config.getini("hasura_host_port")
-    os.environ["LUME_PREFECT__HASURA__HOST_PORT"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def hasura_host(request):
-    port = request.config.getini("hasura_host")
-    os.environ["LUME_PREFECT__HASURA__HOST"] = port
     return port
 
 
