@@ -7,7 +7,6 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - service-net
-   #   - default
     environment:
       MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       MYSQL_ROOT_HOST: '%'
@@ -28,16 +27,12 @@ services:
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
     image: "postgres:11"
-    #ports:
-    #  - "${LUME_PREFECT__POSTGRES__HOST_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: ${LUME_PREFECT__POSTGRES__USER:-prefect_user}
-      POSTGRES_PASSWORD: ${LUME_PREFECT__POSTGRES__PASSWORD:-prefect_password}
-      POSTGRES_DB: ${LUME_PREFECT__POSTGRES__DB:-prefect_db}
-
+      POSTGRES_USER: prefect_user
+      POSTGRES_PASSWORD: prefect_password
+      POSTGRES_DB: prefect_db
     volumes:
       - postgres:/var/lib/postgresql/data
-  #    - ${LUME_PREFECT__POSTGRES__DATA_PATH:-/tmp/lume/postgresql}:/var/lib/postgresql/data
     networks:
       - prefect-server
     command:
@@ -61,7 +56,8 @@ services:
     #  - "${LUME_PREFECT__HASURA__HOST_PORT:-3000}:3000"
     command: "graphql-engine serve"
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgresql://${LUME_PREFECT__POSTGRES__USER:-prefect_user}:${LUME_PREFECT__POSTGRES__PASSWORD:-prefect_password}@postgres:5432/${LUME_PREFECT__POSTGRES__DB:-prefect_db}
+      # url assembled from postres env vars above
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://prefect_user:prefect_password@postgres:5432/prefect_db
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_SERVER_PORT: "3000"
       HASURA_GRAPHQL_QUERY_PLAN_CACHE_SIZE: 100

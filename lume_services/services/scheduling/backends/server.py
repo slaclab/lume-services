@@ -1,9 +1,9 @@
 from abc import abstractproperty
 from datetime import timedelta
 import warnings
-from typing import Dict, Any, List, Optional, Literal
+from typing import Dict, Any, List, Literal
 
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field
 
 from prefect import Client, Flow, config as prefect_config
 from prefect.run_configs import RunConfig as PrefectRunConfig
@@ -27,16 +27,6 @@ logger = logging.getLogger(__name__)
 class PrefectAgentConfig(BaseModel):
     host: str = "0.0.0.0"
     host_port: str = "5000"
-
-
-# delete
-class PrefectPostgresConfig(BaseModel):
-    host: str = "0.0.0.0"
-    host_port: str = "5432"
-    db: str
-    user: str
-    password: SecretStr = SecretStr("lume_services")
-    data_path: str = "/tmp/lume/postgresql"
 
 
 # delete
@@ -73,7 +63,6 @@ class PrefectTelemetryConfig(BaseModel):
 
 class PrefectConfig(BaseModel):
     # https://github.com/PrefectHQ/prefect/blob/master/src/prefect/config.toml
-    postgres: Optional[PrefectPostgresConfig]
     server: PrefectServerConfig = PrefectServerConfig()
     graphql: PrefectGraphQLConfig = PrefectGraphQLConfig()
     hasura: PrefectHasuraConfig = PrefectHasuraConfig()
