@@ -52,8 +52,6 @@ services:
   hasura:
     image: "hasura/graphql-engine:v2.1.1"
     init: true
-    #ports:
-    #  - "${LUME_PREFECT__HASURA__HOST_PORT:-3000}:3000"
     command: "graphql-engine serve"
     environment:
       # url assembled from postres env vars above
@@ -78,12 +76,11 @@ services:
   # GraphQL: provides most of the 'mutation' GraphQL API
   graphql:
     image: "prefecthq/server:${LUME_PREFECT__SERVER__TAG:-latest}"
-    #ports:
-    #  - "${LUME_PREFECT__GRAPHQL__HOST_PORT:-4201}:4201"
     command: bash -c "prefect-server database upgrade -y && python src/prefect_server/services/graphql/server.py"
     environment:
       PREFECT_SERVER_DB_CMD: prefect-server database upgrade -y
-      PREFECT_SERVER__DATABASE__CONNECTION_URL: postgresql://${LUME_PREFECT__POSTGRES__USER:-prefect_user}:${LUME_PREFECT__POSTGRES__PASSWORD:-prefect_password}@postgres:5432/${LUME_PREFECT__POSTGRES__DB:-prefect_db}
+      # use postgres configured above
+      PREFECT_SERVER__DATABASE__CONNECTION_URL: postgresql://prefect_user:prefect_password@postgres:5432/prefect_db
       PREFECT_SERVER__HASURA__ADMIN_SECRET: ${PREFECT_SERVER__HASURA__ADMIN_SECRET:-hasura-secret-admin-secret}
       PREFECT_SERVER__HASURA__HOST: hasura
       PREFECT_CORE_VERSION: ${PREFECT_CORE_VERSION:-"1.2.4"}
@@ -180,7 +177,7 @@ services:
       apollo:
         condition: service_started
     environment:
-      PREFECT_SERVER__APOLLO_URL: http://localhost:4200/graphql
+      PREFECT_SERVER__APOLLO_URL: http://apollo:4200/graphql
     healthcheck:
       interval: 30s
       retries: 3
