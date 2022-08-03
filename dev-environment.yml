@@ -42,4 +42,3 @@ dependencies:
   - diagrams
   - mkdocs-jupyter
   - mkdocs-click
-  - mcdocs-mermaid2
