@@ -21,16 +21,6 @@ class TestPrefectConfig:
             attr = getattr(prefect.config.server, key)
             assert attr == value
 
-        # check graphql values
-        for key, value in prefect_config.graphql.dict().items():
-            attr = getattr(prefect.config.server.graphql, key)
-            assert attr == value
-
-        # check hasura values
-        for key, value in prefect_config.hasura.dict().items():
-            attr = getattr(prefect.config.server.hasura, key)
-            assert attr == value
-
         # check ui values
         for key, value in prefect_config.ui.dict().items():
             attr = getattr(prefect.config.server.ui, key)
@@ -45,26 +35,12 @@ class TestPrefectConfig:
         new_config = prefect_config.copy()
         new_config.server.host = "0.0.0.0"
         new_config.server.host_port = 4000
-        new_config.graphql.host = "0.0.0.0"
-        new_config.graphql.host_port = 4000
-        new_config.hasura.host = "0.0.0.0"
-        new_config.hasura.host_port = 4000
 
         new_config.apply()
 
         # check server values
         for key, value in prefect_config.server.dict().items():
             attr = getattr(prefect.config.server, key)
-            assert attr == value
-
-        # check graphql values
-        for key, value in prefect_config.graphql.dict().items():
-            attr = getattr(prefect.config.server.graphql, key)
-            assert attr == value
-
-        # check hasura values
-        for key, value in prefect_config.hasura.dict().items():
-            attr = getattr(prefect.config.server.hasura, key)
             assert attr == value
 
         # check ui values
