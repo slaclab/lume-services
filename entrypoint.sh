@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+prefect backend server
+
 if [ ! -z "$EXTRA_CONDA_PACKAGES" ]; then
   echo "+conda install $EXTRA_PIP_PACKAGES"
   conda install $EXTRA_CONDA_PACKAGES
