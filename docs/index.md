@@ -2,7 +2,7 @@
 
 LUME-services provides a set of common services for use in the orchestrations of models (here defined as a self-contained workflow) and simulations:
 
-- Contexturalized [file service])(services/files.md) (local/mounted/remote)
+- Contextualized [file service](services/files.md) (local/mounted/remote)
 - [Model database service](services/models.md) for tracking model deployments
 - [Results database service](services/results.md) for storing model output
 - [Scheduling service](services/scheduling.md) for deploying model runs with [Prefect](https://docs.prefect.io/)
