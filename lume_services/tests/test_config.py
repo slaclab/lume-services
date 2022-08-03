@@ -96,15 +96,6 @@ class TestLumeSettings:
         )
 
         assert (
-            config._settings.prefect.graphql.host
-            == scheduling_service.backend.config.graphql.host
-        )
-        assert (
-            config._settings.prefect.graphql.host_port
-            == scheduling_service.backend.config.graphql.host_port
-        )
-
-        assert (
             config._settings.prefect.hasura.host
             == scheduling_service.backend.config.hasura.host
         )
@@ -165,15 +156,6 @@ class TestLumeSettings:
         assert (
             config._settings.prefect.server.tag
             == lume_service_settings.prefect.server.tag
-        )
-
-        assert (
-            config._settings.prefect.graphql.host
-            == lume_service_settings.prefect.graphql.host
-        )
-        assert (
-            config._settings.prefect.graphql.host_port
-            == lume_service_settings.prefect.graphql.host_port
         )
 
         assert (

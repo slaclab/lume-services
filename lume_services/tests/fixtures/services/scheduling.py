@@ -7,7 +7,6 @@ import docker
 
 from lume_services.services.scheduling.backends.server import (
     PrefectConfig,
-    PrefectGraphQLConfig,
     PrefectHasuraConfig,
     PrefectServerConfig,
 )
@@ -32,15 +31,12 @@ def prefect_docker_tag():
 def prefect_config(
     server_host,
     server_host_port,
-    graphql_host,
-    graphql_host_port,
     hasura_host,
     hasura_host_port,
 ):
     config = PrefectConfig(
         backend="server",
         server=PrefectServerConfig(host=server_host, host_port=server_host_port),
-        graphql=PrefectGraphQLConfig(host=graphql_host, host_port=graphql_host_port),
         hasura=PrefectHasuraConfig(host=hasura_host, host_port=hasura_host_port),
     )
 

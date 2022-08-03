@@ -245,7 +245,7 @@ class TestDockerBackend:
 
     # tests flow registration
     @pytest.fixture(scope="class")
-    def test_flow_id(self, backend, project_name, prefect_docker_tag):
+    def flow_id(self, backend, project_name, prefect_docker_tag):
 
         return backend.register_flow(
             flow,

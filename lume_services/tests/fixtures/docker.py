@@ -27,8 +27,6 @@ def docker_config(
     server_host_port,
     hasura_host_port,
     hasura_host,
-    graphql_host,
-    graphql_host_port,
     mongodb_host,
     mongodb_user,
     mongodb_port,
