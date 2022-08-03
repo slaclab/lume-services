@@ -3,16 +3,24 @@ import re
 import subprocess
 import time
 import timeit
+from contextlib import contextmanager
+from prefect import Client
 
 import attr
 
 import logging
+from lume_services.docker.files import DOCKER_COMPOSE
 
 logger = logging.getLogger(__name__)
 
 
+_SETUP_COMMAND = "up -d"
+_CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
+
+
 def execute(command, success_codes=(0,)):
     """Run a shell command."""
+    print(os.environ)
     try:
         output = subprocess.check_output(
             command, stderr=subprocess.STDOUT, shell=True, env=os.environ
@@ -23,9 +31,11 @@ def execute(command, success_codes=(0,)):
         output = error.output or b""
         status = error.returncode
         command = error.cmd
+        message = error.message
 
     if status not in success_codes:
         logger.info(dict(os.environ))
+        logger.error(message)
         raise Exception(
             'Command {} returned {}: """{}""".'.format(
                 command, status, output.decode("utf-8")
@@ -122,12 +132,61 @@ class DockerComposeExecutor:
         command += ' -p "{}" {}'.format(self._compose_project_name, subcommand)
         return execute(command)
 
+    def wait_until_all_responsive(self):
+        ...
+
 
 def get_cleanup_commands():
-
-    return ["down -v", "rm --stop --force"]
+    return _CLEANUP_COMMANDS
 
 
 def get_setup_command():
+    return _SETUP_COMMAND
 
-    return "up -d"
+
+@contextmanager
+def run_docker_services(project_name="lume-services"):
+    logger.info(f"Running services in environment: {dict(os.environ)}")
+    docker_compose = DockerComposeExecutor(DOCKER_COMPOSE, project_name)
+
+    # setup containers.
+    try:
+        docker_compose.execute(_SETUP_COMMAND)
+    except Exception as e:
+        for cmd in _CLEANUP_COMMANDS:
+            try:
+                docker_compose.execute(cmd)
+            except Exception as cleanup_exception:
+                logger.warning(
+                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                )
+                pass
+        raise e
+
+    try:
+        # Let tests run.
+        yield Services(docker_compose)
+    # yield services
+    finally:
+        # Clean up.
+        for cmd in _CLEANUP_COMMANDS:
+            docker_compose.execute(cmd)
+
+
+def prefect_check(prefect_api_str):
+    try:
+        client = Client(api_server=prefect_api_str)
+        client.graphql("query{hello}", retry_on_api_error=False)
+        return True
+    except Exception as e:
+        logger.error(e)
+        return False
+
+
+def prefect_services(docker_services, prefect_api_str):
+    docker_services.wait_until_responsive(
+        timeout=60.0,
+        pause=1,
+        check=lambda: prefect_check(prefect_api_str),
+    )
+    return
