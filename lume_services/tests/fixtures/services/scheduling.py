@@ -7,7 +7,6 @@ import docker
 
 from lume_services.services.scheduling.backends.server import (
     PrefectConfig,
-    PrefectHasuraConfig,
     PrefectServerConfig,
 )
 from lume_services.services.scheduling.backends import (
@@ -31,13 +30,10 @@ def prefect_docker_tag():
 def prefect_config(
     server_host,
     server_host_port,
-    hasura_host,
-    hasura_host_port,
 ):
     config = PrefectConfig(
         backend="server",
         server=PrefectServerConfig(host=server_host, host_port=server_host_port),
-        hasura=PrefectHasuraConfig(host=hasura_host, host_port=hasura_host_port),
     )
 
     return config

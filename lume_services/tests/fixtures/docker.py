@@ -25,8 +25,6 @@ def docker_config(
     mysql_database,
     server_host,
     server_host_port,
-    hasura_host_port,
-    hasura_host,
     mongodb_host,
     mongodb_user,
     mongodb_port,
