@@ -95,15 +95,6 @@ class TestLumeSettings:
             == scheduling_service.backend.config.server.tag
         )
 
-        assert (
-            config._settings.prefect.hasura.host
-            == scheduling_service.backend.config.hasura.host
-        )
-        assert (
-            config._settings.prefect.hasura.host_port
-            == scheduling_service.backend.config.hasura.host_port
-        )
-
     def test_configure_from_settings(self, lume_service_settings):
         config.context = None
         assert config.context is None
@@ -156,15 +147,6 @@ class TestLumeSettings:
         assert (
             config._settings.prefect.server.tag
             == lume_service_settings.prefect.server.tag
-        )
-
-        assert (
-            config._settings.prefect.hasura.host
-            == lume_service_settings.prefect.hasura.host
-        )
-        assert (
-            config._settings.prefect.hasura.host_port
-            == lume_service_settings.prefect.hasura.host_port
         )
 
     def test_configure_from_env_failure(self):
