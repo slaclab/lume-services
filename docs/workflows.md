@@ -1,6 +1,6 @@
 # Workflows
 
-LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be thought of as scoped units of work.
+LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be conceptualized of as scoped units of work.
 
 A flow looks like:
 ```
