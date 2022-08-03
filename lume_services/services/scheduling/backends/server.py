@@ -29,25 +29,11 @@ class PrefectAgentConfig(BaseModel):
     host_port: str = "5000"
 
 
-# delete
-class PrefectGraphQLConfig(BaseModel):
-    host: str = "0.0.0.0"
-    host_port: str = "4201"
-
-
 class PrefectServerConfig(BaseModel):
     tag: str = "core-1.2.4"
     host: str = "http://localhost"
     host_port: str = "4200"
     host_ip: str = "127.0.0.1"
-
-
-# delete
-class PrefectHasuraConfig(BaseModel):
-    host: str = "localhost"
-    host_port: str = "3000"
-    claims_namespace: str = "hasura-claims"
-    execute_retry_seconds: str = 10
 
 
 class PrefectUIConfig(BaseModel):
@@ -64,8 +50,6 @@ class PrefectTelemetryConfig(BaseModel):
 class PrefectConfig(BaseModel):
     # https://github.com/PrefectHQ/prefect/blob/master/src/prefect/config.toml
     server: PrefectServerConfig = PrefectServerConfig()
-    graphql: PrefectGraphQLConfig = PrefectGraphQLConfig()
-    hasura: PrefectHasuraConfig = PrefectHasuraConfig()
     ui: PrefectUIConfig = PrefectUIConfig()
     telemetry: PrefectTelemetryConfig = PrefectTelemetryConfig()
     agent: PrefectAgentConfig = PrefectAgentConfig()
@@ -76,8 +60,6 @@ class PrefectConfig(BaseModel):
     def apply(self):
         prefect_config.update(home_dir=self.home_dir, debug=self.debug)
         prefect_config.server.update(**self.server.dict())
-        prefect_config.server.graphql.update(**self.graphql.dict())
-        prefect_config.server.hasura.update(**self.hasura.dict())
         prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.server.telemetry.update(**self.telemetry.dict())
         save_backend(self.backend)
