@@ -24,6 +24,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class PrefectAgentConfig(BaseModel):
+    host: str = "0.0.0.0"
+    host_port: str = "5000"
+
+
+# delete
 class PrefectPostgresConfig(BaseModel):
     host: str = "0.0.0.0"
     host_port: str = "5432"
@@ -33,6 +39,7 @@ class PrefectPostgresConfig(BaseModel):
     data_path: str = "/tmp/lume/postgresql"
 
 
+# delete
 class PrefectGraphQLConfig(BaseModel):
     host: str = "0.0.0.0"
     host_port: str = "4201"
@@ -45,6 +52,7 @@ class PrefectServerConfig(BaseModel):
     host_ip: str = "127.0.0.1"
 
 
+# delete
 class PrefectHasuraConfig(BaseModel):
     host: str = "localhost"
     host_port: str = "3000"
@@ -71,6 +79,7 @@ class PrefectConfig(BaseModel):
     hasura: PrefectHasuraConfig = PrefectHasuraConfig()
     ui: PrefectUIConfig = PrefectUIConfig()
     telemetry: PrefectTelemetryConfig = PrefectTelemetryConfig()
+    agent: PrefectAgentConfig = PrefectAgentConfig()
     home_dir: str = "~/.prefect"
     debug: bool = False
     backend: Literal["server", "cloud"] = "server"
@@ -329,6 +338,7 @@ class ServerBackend(Backend):
             for log in watch_flow_run(
                 flow_run_id, stream_states=True, stream_logs=True, max_duration=timeout
             ):
+                print(log)
                 logger.info(log)
         except RuntimeError as err:
             if cancel_on_timeout:
