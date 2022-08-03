@@ -113,27 +113,6 @@ class TestLumeSettings:
             == scheduling_service.backend.config.hasura.host_port
         )
 
-        assert (
-            config._settings.prefect.postgres.host
-            == scheduling_service.backend.config.postgres.host
-        )
-        assert (
-            config._settings.prefect.postgres.host_port
-            == scheduling_service.backend.config.postgres.host_port
-        )
-        assert (
-            config._settings.prefect.postgres.password
-            == scheduling_service.backend.config.postgres.password
-        )
-        assert (
-            config._settings.prefect.postgres.user
-            == scheduling_service.backend.config.postgres.user
-        )
-        assert (
-            config._settings.prefect.postgres.db
-            == scheduling_service.backend.config.postgres.db
-        )
-
     def test_configure_from_settings(self, lume_service_settings):
         config.context = None
         assert config.context is None
@@ -204,27 +183,6 @@ class TestLumeSettings:
         assert (
             config._settings.prefect.hasura.host_port
             == lume_service_settings.prefect.hasura.host_port
-        )
-
-        assert (
-            config._settings.prefect.postgres.host
-            == lume_service_settings.prefect.postgres.host
-        )
-        assert (
-            config._settings.prefect.postgres.host_port
-            == lume_service_settings.prefect.postgres.host_port
-        )
-        assert (
-            config._settings.prefect.postgres.password
-            == lume_service_settings.prefect.postgres.password
-        )
-        assert (
-            config._settings.prefect.postgres.user
-            == lume_service_settings.prefect.postgres.user
-        )
-        assert (
-            config._settings.prefect.postgres.db
-            == lume_service_settings.prefect.postgres.db
         )
 
     def test_configure_from_env_failure(self):
