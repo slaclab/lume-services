@@ -5,10 +5,6 @@ import prefect
 
 import docker
 
-from lume_services.services.scheduling.backends.server import (
-    PrefectConfig,
-    PrefectServerConfig,
-)
 from lume_services.services.scheduling.backends import (
     DockerBackend,
     DockerRunConfig,
@@ -24,19 +20,6 @@ logger = logging.getLogger(__name__)
 def prefect_docker_tag():
     # return "lume_services:pytest"
     return "build-test:latest"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_config(
-    server_host,
-    server_host_port,
-):
-    config = PrefectConfig(
-        backend="server",
-        server=PrefectServerConfig(host=server_host, host_port=server_host_port),
-    )
-
-    return config
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -84,7 +67,7 @@ def prefect_services(docker_services, prefect_api_str):
     return
 
 
-@pytest.mark.usefixtures("prefect_config")
+@pytest.mark.usefixtures("lume_services_setttings")
 @pytest.mark.usefixtures("prefect_services")
 @pytest.fixture(scope="session", autouse=True)
 def prefect_client(prefect_api_str):
@@ -125,14 +108,13 @@ def docker_run_config(prefect_docker_tag, file_service, lume_env):
 
 
 @pytest.mark.usefixtures("prefect_services")
-@pytest.fixture(scope="session", autouse=True)
-def docker_backend(prefect_config):
-    os.environ["LUME_BACKEND"] = "docker"
-    return DockerBackend(config=prefect_config)
+@pytest.fixture(scope="class", autouse=True)
+def docker_backend(lume_services_settings):
+    return DockerBackend(config=lume_services_settings.prefect)
 
 
 @pytest.mark.usefixtures("prefect_services")
 @pytest.mark.usefixtures("docker_backend")
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="class", autouse=True)
 def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)

@@ -5,7 +5,9 @@ from prefect.utilities.backend import load_backend
 
 
 class TestPrefectConfig:
-    def test_prefect_config(self, prefect_config):
+    def test_prefect_config(self, lume_services_settings):
+        prefect_config = lume_services_settings.prefect
+
         prefect_config.apply()
 
         # check that server has been applied
@@ -31,7 +33,9 @@ class TestPrefectConfig:
             attr = getattr(prefect.config.server.telemetry, key)
             assert attr == value
 
-    def test_prefect_update_config(self, prefect_config):
+    def test_prefect_update_config(self, lume_services_settings):
+        prefect_config = lume_services_settings.prefect
+
         new_config = prefect_config.copy()
         new_config.server.host = "0.0.0.0"
         new_config.server.host_port = 4000

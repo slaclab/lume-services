@@ -19,7 +19,7 @@ from lume_services.flows.flow_of_flows import FlowOfFlows
 
 
 # use prefect config, want config applied
-@pytest.mark.usefixtures("prefect_config")
+@pytest.mark.usefixtures("prefect_services")
 @pytest.fixture(scope="session", autouse=True)
 def project_name(prefect_client):
     project_name = "test"

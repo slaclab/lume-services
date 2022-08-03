@@ -222,8 +222,8 @@ class TestDockerBackend:
         )
 
     @pytest.fixture(scope="class")
-    def backend(self, prefect_config, prefect_services, lume_services_settings):
-        return DockerBackend(config=prefect_config)
+    def backend(self, prefect_services, lume_services_settings):
+        return DockerBackend(config=lume_services_settings.prefect)
 
     @pytest.fixture(scope="class")
     def project_name(self, prefect_client):
