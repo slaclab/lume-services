@@ -49,12 +49,6 @@ class TestPrefectConfig:
         new_config.graphql.host_port = 4000
         new_config.hasura.host = "0.0.0.0"
         new_config.hasura.host_port = 4000
-        new_config.postgres.host = "0.0.0.0"
-        new_config.postgres.host_port = 4000
-        new_config.postgres.db = "placeholder"
-        new_config.postgres.user = "placeholder"
-        new_config.postgres.password = "placeholder"
-        new_config.postgres.data_path = "placeholder"
 
         new_config.apply()
 
