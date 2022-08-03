@@ -7,8 +7,6 @@ from .local import LocalBackend, LocalRunConfig
 from .docker import DockerBackend, DockerRunConfig
 from .server import (
     PrefectConfig,
-    PrefectGraphQLConfig,
-    PrefectHasuraConfig,
     PrefectTelemetryConfig,
     PrefectUIConfig,
     PrefectServerConfig,
