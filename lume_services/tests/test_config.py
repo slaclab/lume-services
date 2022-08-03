@@ -88,42 +88,46 @@ class TestLumeSettings:
             == scheduling_service.backend.config.server.tag
         )
 
-    def test_configure_from_settings(self, lume_service_settings):
+    def test_configure_from_settings(self, lume_services_settings):
         config.context = None
         assert config.context is None
-        config.configure(lume_service_settings)
+        config.configure(lume_services_settings)
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
 
-        assert config._settings.model_db.user == lume_service_settings.model_db.user
+        assert config._settings.model_db.user == lume_services_settings.model_db.user
         assert (
             config._settings.model_db.password
-            == lume_service_settings.model_db.password
+            == lume_services_settings.model_db.password
         )
-        assert config._settings.model_db.host == lume_service_settings.model_db.host
-        assert config._settings.model_db.port == lume_service_settings.model_db.port
+        assert config._settings.model_db.host == lume_services_settings.model_db.host
+        assert config._settings.model_db.port == lume_services_settings.model_db.port
         assert (
             config._settings.model_db.database
-            == lume_service_settings.model_db.database
+            == lume_services_settings.model_db.database
         )
         assert (
             config._settings.model_db.connection.pool_size
-            == lume_service_settings.model_db.connection.pool_size
+            == lume_services_settings.model_db.connection.pool_size
         )
 
-        assert config._settings.results_db.host == lume_service_settings.results_db.host
-        assert config._settings.results_db.port == lume_service_settings.results_db.port
+        assert (
+            config._settings.results_db.host == lume_services_settings.results_db.host
+        )
+        assert (
+            config._settings.results_db.port == lume_services_settings.results_db.port
+        )
         assert (
             config._settings.results_db.username
-            == lume_service_settings.results_db.username
+            == lume_services_settings.results_db.username
         )
         assert (
             config._settings.results_db.password
-            == lume_service_settings.results_db.password
+            == lume_services_settings.results_db.password
         )
         assert (
             config._settings.results_db.database
-            == lume_service_settings.results_db.database
+            == lume_services_settings.results_db.database
         )
 
         assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
@@ -131,15 +135,15 @@ class TestLumeSettings:
         # prefect configuration
         assert (
             config._settings.prefect.server.host
-            == lume_service_settings.prefect.server.host
+            == lume_services_settings.prefect.server.host
         )
         assert (
             config._settings.prefect.server.host_port
-            == lume_service_settings.prefect.server.host_port
+            == lume_services_settings.prefect.server.host_port
         )
         assert (
             config._settings.prefect.server.tag
-            == lume_service_settings.prefect.server.tag
+            == lume_services_settings.prefect.server.tag
         )
 
     def test_configure_from_env_failure(self):
@@ -156,11 +160,9 @@ class TestLumeSettings:
 
 
 class TestFileServiceInjection:
-    @pytest.fixture
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
-    def test_file_service_injection_local(self, tmp_path, local_filesystem, configure):
+    def test_file_service_injection_local(
+        self, tmp_path, local_filesystem, lume_services_settings
+    ):
         filepath = f"{tmp_path}/tmp_file.txt"
         text = "test text"
         text_file = TextFile(
@@ -173,7 +175,9 @@ class TestFileServiceInjection:
         new_text = text_file.read()
         assert new_text == text
 
-    def test_file_service_injection_mounted(self, mounted_filesystem, configure, fs):
+    def test_file_service_injection_mounted(
+        self, mounted_filesystem, lume_services_settings, fs
+    ):
 
         filepath = f"{mounted_filesystem.mount_alias}/tmp_file.txt"
         text = "test text"
@@ -207,14 +211,10 @@ class TestResultServiceInjection:
             },
         )
 
-    @pytest.fixture
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
-    def test_result_insert_by_method(self, generic_result, configure):
+    def test_result_insert_by_method(self, generic_result, lume_services_settings):
         generic_result.insert()
 
-    def test_result_load_from_query(self, generic_result, configure):
+    def test_result_load_from_query(self, generic_result, lume_services_settings):
         new_generic_result = Result.load_from_query(
             {
                 "flow_id": generic_result.flow_id,

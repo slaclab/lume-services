@@ -62,7 +62,7 @@ class TestFlows:
         docker_run_config,
         flow1_filename,
         mounted_filesystem,
-        lume_service_settings,
+        lume_services_settings,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -121,7 +121,7 @@ class TestFlows:
         docker_run_config,
         test_flow1_run,
         results_db_service,
-        lume_service_settings,
+        lume_services_settings,
     ):
 
         flow_run_id = prefect_client.create_flow_run(
@@ -167,7 +167,7 @@ class TestFlows:
         docker_run_config,
         test_flow2_run,
         results_db_service,
-        lume_service_settings,
+        lume_services_settings,
     ):
 
         # want to bind our task kwargs to flow2 outputs
@@ -202,6 +202,6 @@ class TestFlowOfFlows:
         with open(FLOW_OF_FLOWS_YAML, "r") as file:
             _ = yaml.safe_load(file)
 
-    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id, lume_service_settings):
+    def test_validate_yaml(self, flow1_id, flow2_id, flow3_id, lume_services_settings):
         # using injection here...
         _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
