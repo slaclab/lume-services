@@ -11,7 +11,6 @@ Host port forwardings have default values, but can be modified at spin-up using 
 | LUME_PREFECT__SERVER__TAG         | core-1.2.4           |
 | LUME_PREFECT__SERVER__HOST_PORT   | 4200                 |
 | LUME_PREFECT__HASURA__HOST_PORT   | 3000                 |
-| LUME_PREFECT__GRAPHQL__HOST_PORT  | 4201                 |
 | LUME_RESULTS_DB__PORT             | 27017                |
 | LUME_RESULTS_DB__USERNAME         | root                 |
 | LUME_RESULTS_DB__PASSWORD         | password             |
