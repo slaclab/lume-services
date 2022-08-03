@@ -62,6 +62,10 @@ def pytest_addoption(parser):
     parser.addini(
         name="graphql_host", help="Prefect graphql host IP", default="127.0.0.1"
     )
+    parser.addini(
+        name="agent_host_port", help="Prefect agent port for comms", default=5000
+    )
+    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -220,6 +224,20 @@ def postgres_host(request):
 def postgres_host_port(request):
     port = request.config.getini("postgres_host_port")
     os.environ["LUME_PREFECT__POSTGRES__HOST_PORT"] = port
+    return port
+
+
+@pytest.fixture(scope="session")
+def agent_host(request):
+    host = request.config.getini("agent_host")
+    os.environ["LUME_PREFECT__AGENT__HOST"] = host
+    return host
+
+
+@pytest.fixture(scope="session")
+def agent_host_port(request):
+    port = request.config.getini("agent_host_port")
+    os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
     return port
 
 
