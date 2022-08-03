@@ -32,11 +32,10 @@ def execute(command, success_codes=(0,)):
         output = error.output or b""
         status = error.returncode
         command = error.cmd
-        message = error.message
 
     if status not in success_codes:
         logger.info(dict(os.environ))
-        logger.error(message)
+        logger.error(f"Subrocess {command} failed with output: {output}")
         raise Exception(
             'Command {} returned {}: """{}""".'.format(
                 command, status, output.decode("utf-8")
