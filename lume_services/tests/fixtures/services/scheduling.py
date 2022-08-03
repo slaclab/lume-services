@@ -9,7 +9,6 @@ from lume_services.services.scheduling.backends.server import (
     PrefectConfig,
     PrefectGraphQLConfig,
     PrefectHasuraConfig,
-    PrefectPostgresConfig,
     PrefectServerConfig,
 )
 from lume_services.services.scheduling.backends import (
@@ -37,26 +36,12 @@ def prefect_config(
     graphql_host_port,
     hasura_host,
     hasura_host_port,
-    postgres_host,
-    postgres_host_port,
-    postgres_db,
-    postgres_user,
-    postgres_password,
-    postgres_data_path,
 ):
     config = PrefectConfig(
         backend="server",
         server=PrefectServerConfig(host=server_host, host_port=server_host_port),
         graphql=PrefectGraphQLConfig(host=graphql_host, host_port=graphql_host_port),
         hasura=PrefectHasuraConfig(host=hasura_host, host_port=hasura_host_port),
-        postgres=PrefectPostgresConfig(
-            host=postgres_host,
-            host_port=postgres_host_port,
-            db=postgres_db,
-            user=postgres_user,
-            password=postgres_password,
-            data_path=postgres_data_path,
-        ),
     )
 
     return config

@@ -57,7 +57,7 @@ def mongodb_results_db(mongodb_config, mongodb_server):
     return MongodbResultsDB(mongodb_config)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="class", autouse=True)
 def results_db_service(mongodb_results_db, mongodb_database, mongodb_server):
 
     collections = get_collections()

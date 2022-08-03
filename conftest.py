@@ -30,15 +30,6 @@ def pytest_addoption(parser):
     parser.addini(name="mongodb_database", help="Mysql database name", default="test")
 
     # prefect
-    parser.addini(name="postgres_db", help="Prefect postgres db", default="prefect_db")
-    parser.addini(
-        name="postgres_user", help="Prefect postgres user", default="prefect_user"
-    )
-    parser.addini(
-        name="postgres_password",
-        help="Prefect postgres password",
-        default="prefect_password",
-    )
     parser.addini(name="server_tag", help="Prefect server image tag", default="latest")
     parser.addini(
         name="server_host_port", help="Prefect server apollo api port", default=4200
@@ -50,12 +41,6 @@ def pytest_addoption(parser):
         name="hasura_host_port", help="Prefect hasura host port", default=3000
     )
     parser.addini(name="hasura_host", help="Hasura host IP", default="127.0.0.1")
-    parser.addini(
-        name="postgres_host_port", help="Prefect postgres host port", default=5432
-    )
-    parser.addini(
-        name="postgres_host", help="Prefect postgres host IP", default="127.0.0.1"
-    )
     parser.addini(
         name="graphql_host_port", help="Prefect graphql host port", default=4201
     )
@@ -182,48 +167,6 @@ def graphql_host_port(request):
 def graphql_host(request):
     port = request.config.getini("graphql_host")
     os.environ["LUME_PREFECT__GRAPHQL__HOST"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def postgres_db(request):
-    db = request.config.getini("postgres_db")
-    os.environ["LUME_PREFECT__POSTGRES__DB"] = db
-    return db
-
-
-@pytest.fixture(scope="session")
-def postgres_user(request):
-    user = request.config.getini("postgres_user")
-    os.environ["LUME_PREFECT__POSTGRES__USER"] = user
-    return user
-
-
-@pytest.fixture(scope="session")
-def postgres_password(request):
-    password = request.config.getini("postgres_password")
-    os.environ["LUME_PREFECT__POSTGRES__PASSWORD"] = password
-    return password
-
-
-@pytest.fixture(scope="session")
-def postgres_data_path(tmp_path_factory):
-    temp_path = tmp_path_factory.mktemp("postgres_data_path")
-    os.environ["LUME_PREFECT__POSTGRES__DATA_PATH"] = str(temp_path)
-    return str(temp_path)
-
-
-@pytest.fixture(scope="session")
-def postgres_host(request):
-    host = request.config.getini("postgres_host")
-    os.environ["LUME_PREFECT__POSTGRES__HOST"] = host
-    return host
-
-
-@pytest.fixture(scope="session")
-def postgres_host_port(request):
-    port = request.config.getini("postgres_host_port")
-    os.environ["LUME_PREFECT__POSTGRES__HOST_PORT"] = port
     return port
 
 
