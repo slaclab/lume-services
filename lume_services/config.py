@@ -88,8 +88,8 @@ class Context(containers.DeclarativeContainer):
 class LUMEServicesSettings(BaseSettings):
     """Settings describing configuration for default LUME-services provider objects."""
 
-    model_db: MySQLModelDBConfig
-    results_db: MongodbResultsDBConfig
+    model_db: Optional[MySQLModelDBConfig]
+    results_db: Optional[MongodbResultsDBConfig]
     prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
     backend: str = "local"
@@ -119,8 +119,13 @@ def configure(settings: LUMEServicesSettings = None):
             )
 
     global context, _settings
-    model_db = MySQLModelDB(settings.model_db)
-    results_db = MongodbResultsDB(settings.results_db)
+    model_db = None
+    if settings.model_db is not None:
+        model_db = MySQLModelDB(settings.model_db)
+
+    results_db = None
+    if settings.results_db is not None:
+        results_db = MongodbResultsDB(settings.results_db)
 
     # this could be moved to an enum
     if settings.backend is not None:
