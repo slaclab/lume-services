@@ -1,5 +1,5 @@
 # conda env create -f environment.yml
-name: lume-services-2
+name: lume-services
 channels:
   - conda-forge
 dependencies:
