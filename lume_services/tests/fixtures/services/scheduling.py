@@ -2,6 +2,7 @@ import pytest
 import os
 
 import prefect
+from prefect.utilities.backend import load_backend
 
 import docker
 
@@ -114,6 +115,9 @@ def scheduling_service(docker_backend):
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
 def prefect_client(prefect_api_str, lume_services_settings):
+    backend_spec = load_backend()
     lume_services_settings.prefect.apply()
+
+    assert backend_spec["backend"] == "server"
     client = prefect.Client(api_server=prefect_api_str)
     return client
