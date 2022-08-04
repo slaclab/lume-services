@@ -48,7 +48,7 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
 def is_prefect_ready():
     try:
         client = prefect.Client()
-        client.graphql("query{hello}", retry_on_api_error=False)
+        client.graphql("query{hello}", raise_on_error=True)
         return True
     except Exception as e:
         logger.error(e)
