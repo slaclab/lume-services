@@ -227,7 +227,7 @@ class TestDockerBackend:
         return DockerBackend(config=lume_services_settings.prefect)
 
     @pytest.fixture(scope="class")
-    def project_name(self, prefect_client):
+    def project_name(self, prefect_client, backend):
         project_name = "test_docker_backend"
         prefect_client.create_project(project_name=project_name)
         return project_name
