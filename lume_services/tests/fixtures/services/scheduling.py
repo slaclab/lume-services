@@ -111,9 +111,9 @@ def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)
 
 
-@pytest.mark.usefixtures("lume_services_setttings")
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
-def prefect_client(prefect_api_str):
+def prefect_client(prefect_api_str, lume_services_settings):
+    lume_services_settings.prefect.apply()
     client = prefect.Client(api_server=prefect_api_str)
     return client
