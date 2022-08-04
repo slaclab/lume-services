@@ -178,9 +178,9 @@ def run_docker_services(project_name="lume-services", ui=False):
             docker_compose.execute(cmd)
 
 
-def prefect_check(prefect_api_str):
+def prefect_check():
     try:
-        client = Client(api_server=prefect_api_str)
+        client = Client()
         client.graphql("query{hello}", retry_on_api_error=False)
         return True
     except Exception as e:
@@ -188,10 +188,10 @@ def prefect_check(prefect_api_str):
         return False
 
 
-def prefect_services(docker_services, prefect_api_str):
+def prefect_services(docker_services):
     docker_services.wait_until_responsive(
         timeout=60.0,
         pause=1,
-        check=lambda: prefect_check(prefect_api_str),
+        check=lambda: prefect_check(),
     )
     return

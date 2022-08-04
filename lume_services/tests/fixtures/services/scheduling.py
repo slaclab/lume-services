@@ -2,7 +2,6 @@ import pytest
 import os
 
 import prefect
-from prefect.utilities.backend import load_backend
 
 import docker
 
@@ -45,9 +44,9 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client.images.remove(image.id, noprune=False)
 
 
-def is_prefect_ready(prefect_api_str):
+def is_prefect_ready():
     try:
-        client = prefect.Client(api_server=prefect_api_str)
+        client = prefect.Client()
         client.graphql("query{hello}", retry_on_api_error=False)
         return True
     except Exception as e:
@@ -58,11 +57,12 @@ def is_prefect_ready(prefect_api_str):
 # allows us to wait until we get a response from the Prefect services
 # and allow startup time
 @pytest.fixture(scope="session", autouse=True)
-def prefect_services(docker_services, prefect_api_str):
+def prefect_services(docker_services, lume_services_settings):
+    lume_services_settings.prefect.apply()
     docker_services.wait_until_responsive(
         timeout=60.0,
         pause=1,
-        check=lambda: is_prefect_ready(prefect_api_str),
+        check=lambda: is_prefect_ready(),
     )
     return
 
@@ -114,10 +114,7 @@ def scheduling_service(docker_backend):
 
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
-def prefect_client(prefect_api_str, lume_services_settings):
-    backend_spec = load_backend()
+def prefect_client(lume_services_settings):
     lume_services_settings.prefect.apply()
-
-    assert backend_spec["backend"] == "server"
-    client = prefect.Client(api_server=prefect_api_str)
+    client = prefect.Client()
     return client

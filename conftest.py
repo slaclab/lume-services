@@ -155,16 +155,6 @@ def agent_host_port(request):
     return port
 
 
-@pytest.fixture(scope="session")
-def prefect_api_str(server_host_port):
-    return f"http://localhost:{server_host_port}"
-
-
-@pytest.fixture(scope="session")
-def graphql_api_str(server_host_port):
-    return f"http://localhost:{server_host_port}/graphql"
-
-
 ## mongodb
 
 
