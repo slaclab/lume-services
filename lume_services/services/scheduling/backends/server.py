@@ -60,6 +60,10 @@ class PrefectConfig(BaseModel):
     def apply(self):
         prefect_config.update(home_dir=self.home_dir, debug=self.debug)
         prefect_config.server.update(**self.server.dict())
+        # must set endpoint because referenced by client
+        prefect_config.server.update(
+            {"endpoint": f"{self.server.host}:{self.server.host_port}"}
+        )
         prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.server.telemetry.update(**self.telemetry.dict())
         save_backend(self.backend)
@@ -208,7 +212,7 @@ class ServerBackend(Backend):
         run_config: RunConfig = None,
         *,
         flow_id: str,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Create a flow run for a flow.
 
@@ -255,7 +259,7 @@ class ServerBackend(Backend):
         flow_id: str,
         timeout: timedelta = timedelta(minutes=1),
         cancel_on_timeout: bool = True,
-        **kwargs
+        **kwargs,
     ):
         """Create a flow run for a flow and return the result.
 
