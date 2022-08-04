@@ -40,6 +40,7 @@ jobs:
           pytest --cov-report term --cov=lume_services --junitxml=./coverage/pytest.xml | tee ./coverage/pytest-coverage.txt
 
       - name: store coverage files
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: coverage
