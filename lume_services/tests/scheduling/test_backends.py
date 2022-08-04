@@ -1,5 +1,6 @@
 import os
 import pytest
+from prefect import Client
 from prefect.run_configs import LocalRun, DockerRun, KubernetesRun
 from lume_services.services.scheduling.backends.kubernetes import (
     KubernetesRunConfig,
@@ -234,7 +235,8 @@ class TestDockerBackend:
 
     @pytest.mark.usefixtures("backend")
     @pytest.fixture(scope="class")
-    def project_name(self, prefect_client):
+    def project_name(self):
+        prefect_client = Client()
         project_name = "test_docker_backend"
         prefect_client.create_project(project_name=project_name)
         return project_name

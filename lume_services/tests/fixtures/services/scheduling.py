@@ -10,7 +10,9 @@ from lume_services.services.scheduling.backends import (
     DockerRunConfig,
 )
 from lume_services.services.scheduling.service import SchedulingService
-from lume_services import config
+
+from prefect.utilities.backend import save_backend
+
 
 import logging
 
@@ -45,21 +47,26 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client.images.remove(image.id, noprune=False)
 
 
-def is_prefect_ready():
-    try:
-        client = prefect.Client()
-        client.graphql("query{hello}", raise_on_error=True)
-        return True
-    except Exception as e:
-        logger.error(e)
-        return False
-
-
 # allows us to wait until we get a response from the Prefect services
 # and allow startup time
 @pytest.fixture(scope="session", autouse=True)
 def prefect_services(docker_services, lume_services_settings):
-    config.configure(lume_services_settings)
+
+    # set backend
+    save_backend("server")
+
+    def is_prefect_ready():
+        try:
+            client = prefect.Client(
+                api_server=f"http://{lume_services_settings.prefect.server.host}:\
+                    {lume_services_settings.prefect.server.host_port}"
+            )
+            client.graphql("query{hello}", raise_on_error=True)
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
+
     docker_services.wait_until_responsive(
         timeout=60.0,
         pause=1,
@@ -111,11 +118,3 @@ def docker_backend(lume_services_settings):
 @pytest.fixture(scope="class", autouse=True)
 def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)
-
-
-@pytest.mark.usefixtures("scheduling_service")
-@pytest.fixture(scope="class", autouse=True)
-def prefect_client(lume_services_settings):
-    lume_services_settings.prefect.apply()
-    client = prefect.Client()
-    return client

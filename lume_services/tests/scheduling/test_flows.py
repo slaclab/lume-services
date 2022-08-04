@@ -3,6 +3,7 @@ import pytest
 from datetime import timedelta
 
 import yaml
+from prefect import Client
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
 
@@ -22,8 +23,10 @@ from lume_services.flows.flow_of_flows import FlowOfFlows
 
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
-def project_name(prefect_client, lume_services_settings):
+def project_name(lume_services_settings):
     lume_services_settings.prefect.apply()
+    prefect_client = Client()
+
     project_name = "test"
     prefect_client.create_project(project_name=project_name)
     return project_name
@@ -66,12 +69,12 @@ class TestFlows:
     @pytest.fixture()
     def test_flow1_run(
         self,
-        prefect_client,
         flow1_id,
         docker_run_config,
         flow1_filename,
         mounted_filesystem,
     ):
+        prefect_client = Client()
 
         flow_run_id = prefect_client.create_flow_run(
             flow_id=flow1_id,
@@ -125,12 +128,12 @@ class TestFlows:
     @pytest.fixture()
     def test_flow2_run(
         self,
-        prefect_client,
         flow2_id,
         docker_run_config,
         test_flow1_run,
         results_db_service,
     ):
+        prefect_client = Client()
 
         flow_run_id = prefect_client.create_flow_run(
             flow_id=flow2_id,
@@ -171,12 +174,12 @@ class TestFlows:
     @pytest.mark.usefixtures("_prepare")
     def test_flow3_run(
         self,
-        prefect_client,
         flow3_id,
         docker_run_config,
         test_flow2_run,
         results_db_service,
     ):
+        prefect_client = Client()
 
         # want to bind our task kwargs to flow2 outputs
         db_result = LoadDBResult().run(
