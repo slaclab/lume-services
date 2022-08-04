@@ -33,7 +33,7 @@ def pytest_addoption(parser):
     parser.addini("mysql_poolsize", default=1, help="MySQL client poolsize")
 
     parser.addini("mongodb_host", default="127.0.0.1", help="MySQL host")
-    parser.addini("mongodb_port", default=3306, help="MySQL port")
+    parser.addini("mongodb_port", default=27017, help="MySQL port")
     parser.addini("mongodb_user", default="root", help="MySQL user")
     parser.addini("mongodb_password", default="password", help="MySQL password")
     parser.addini(name="mongodb_database", help="Mysql database name", default="test")
