@@ -23,7 +23,7 @@ class TestLumeSettings:
         assert isinstance(env_vars, (dict,))
 
     def test_configure_from_env(
-        self, file_service, model_db_service, results_db_service, scheduling_service
+        self, model_db_service, results_db_service, scheduling_service
     ):
         save_backend("cloud")
         assert config.context is None
@@ -154,15 +154,14 @@ class TestLumeSettings:
 
         os.environ["LUME_RESULTS_DB__HOST"] = mongodb_host
 
-    @classmethod
-    def teardown_class(cls):
-        save_backend("server")
-
 
 class TestFileServiceInjection:
-    def test_file_service_injection_local(
-        self, tmp_path, local_filesystem, lume_services_settings
-    ):
+    @pytest.fixture(autouse=True, scope="class")
+    def _prepare(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
+    @pytest.mark.usefixtures("_prepare")
+    def test_file_service_injection_local(self, tmp_path, local_filesystem):
         filepath = f"{tmp_path}/tmp_file.txt"
         text = "test text"
         text_file = TextFile(
@@ -175,9 +174,8 @@ class TestFileServiceInjection:
         new_text = text_file.read()
         assert new_text == text
 
-    def test_file_service_injection_mounted(
-        self, mounted_filesystem, lume_services_settings, fs
-    ):
+    @pytest.mark.usefixtures("_prepare")
+    def test_file_service_injection_mounted(self, mounted_filesystem, fs):
 
         filepath = f"{mounted_filesystem.mount_alias}/tmp_file.txt"
         text = "test text"
@@ -200,6 +198,10 @@ class TestFileServiceInjection:
 
 
 class TestResultServiceInjection:
+    @pytest.fixture(autouse=True, scope="class")
+    def _prepare(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
     @pytest.fixture()
     def generic_result(self):
         return Result(
@@ -211,10 +213,12 @@ class TestResultServiceInjection:
             },
         )
 
-    def test_result_insert_by_method(self, generic_result, lume_services_settings):
+    @pytest.mark.usefixtures("_prepare")
+    def test_result_insert_by_method(self, generic_result):
         generic_result.insert()
 
-    def test_result_load_from_query(self, generic_result, lume_services_settings):
+    @pytest.mark.usefixtures("_prepare")
+    def test_result_load_from_query(self, generic_result):
         new_generic_result = Result.load_from_query(
             {
                 "flow_id": generic_result.flow_id,
@@ -226,7 +230,3 @@ class TestResultServiceInjection:
         assert generic_result.flow_id == new_generic_result.flow_id
         assert generic_result.inputs == new_generic_result.inputs
         assert generic_result.outputs == new_generic_result.outputs
-
-    @classmethod
-    def setup_class(cls):
-        config.context = None

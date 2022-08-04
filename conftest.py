@@ -225,7 +225,7 @@ def mounted_filesystem(mount_path):
 # Full configuration
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def lume_services_settings(
     mysql_host,
     mysql_port,
@@ -277,8 +277,6 @@ def lume_services_settings(
         backend=lume_backend,
         mounted_filesystem=mounted_filesystem,
     )
-
-    config.configure(settings)
 
     return settings
 

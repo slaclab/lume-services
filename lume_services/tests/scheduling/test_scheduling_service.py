@@ -3,12 +3,17 @@ import pytest
 
 from prefect.utilities.backend import load_backend
 
+from lume_services import config
+
 
 class TestPrefectConfig:
+    @pytest.fixture(autouse=True, scope="class")
+    def _prepare(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
+    @pytest.mark.usefixtures("_prepare")
     def test_prefect_config(self, lume_services_settings):
         prefect_config = lume_services_settings.prefect
-
-        prefect_config.apply()
 
         # check that server has been applied
         backend_spec = load_backend()
@@ -33,6 +38,7 @@ class TestPrefectConfig:
             attr = getattr(prefect.config.server.telemetry, key)
             assert attr == value
 
+    @pytest.mark.usefixtures("_prepare")
     def test_prefect_update_config(self, lume_services_settings):
         prefect_config = lume_services_settings.prefect
 
@@ -56,8 +62,6 @@ class TestPrefectConfig:
         for key, value in prefect_config.telemetry.dict().items():
             attr = getattr(prefect.config.server.telemetry, key)
             assert attr == value
-
-        prefect_config.apply()
 
 
 @pytest.mark.skip()

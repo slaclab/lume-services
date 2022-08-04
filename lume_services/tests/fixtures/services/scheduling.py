@@ -10,6 +10,7 @@ from lume_services.services.scheduling.backends import (
     DockerRunConfig,
 )
 from lume_services.services.scheduling.service import SchedulingService
+from lume_services import config
 
 import logging
 
@@ -58,7 +59,7 @@ def is_prefect_ready():
 # and allow startup time
 @pytest.fixture(scope="session", autouse=True)
 def prefect_services(docker_services, lume_services_settings):
-    lume_services_settings.prefect.apply()
+    config.configure(lume_services_settings)
     docker_services.wait_until_responsive(
         timeout=60.0,
         pause=1,
