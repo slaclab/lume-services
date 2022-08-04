@@ -18,10 +18,10 @@ from lume_services.results import get_result_from_string
 from lume_services.flows.flow_of_flows import FlowOfFlows
 
 
-# use prefect config, want config applied
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
-def project_name(prefect_client):
+def project_name(prefect_client, lume_services_settings):
+    lume_services_settings.prefect.apply()
     project_name = "test"
     prefect_client.create_project(project_name=project_name)
     return project_name
