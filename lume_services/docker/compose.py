@@ -4,7 +4,6 @@ import subprocess
 import time
 import timeit
 from contextlib import contextmanager
-from prefect import Client
 
 import attr
 
@@ -15,13 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 _BASE_SETUP_COMMAND = "up -d"
-_UI_SETUP_COMMAND = "up -d --profile with_ui"
+_UI_SETUP_COMMAND = "--profile with_ui up -d"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
 
 
 def execute(command, success_codes=(0,)):
     """Run a shell command."""
-    print(os.environ)
     try:
         output = subprocess.check_output(
             command, stderr=subprocess.STDOUT, shell=True, env=os.environ
@@ -132,9 +130,6 @@ class DockerComposeExecutor:
         command += ' -p "{}" {}'.format(self._compose_project_name, subcommand)
         return execute(command)
 
-    def wait_until_all_responsive(self):
-        ...
-
 
 def get_cleanup_commands():
     return _CLEANUP_COMMANDS
@@ -176,22 +171,3 @@ def run_docker_services(project_name="lume-services", ui=False):
         # Clean up.
         for cmd in _CLEANUP_COMMANDS:
             docker_compose.execute(cmd)
-
-
-def prefect_check():
-    try:
-        client = Client()
-        client.graphql("query{hello}", retry_on_api_error=False)
-        return True
-    except Exception as e:
-        logger.error(e)
-        return False
-
-
-def prefect_services(docker_services):
-    docker_services.wait_until_responsive(
-        timeout=60.0,
-        pause=1,
-        check=lambda: prefect_check(),
-    )
-    return
