@@ -28,5 +28,5 @@
 [tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge&label=Tests
 [docs-workflow]: https://img.shields.io/github/workflow/status/:user/lume-services/Docs?style=for-the-badge&label=Docs
 [release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
-[release-url]: https://github.com/jacquelinegarrahan/lume-services/releases
+[release-url]: https://github.com/slaclab/lume-services/releases
 [coverage]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jacquelinegarrahan/61dce43449fc0509f34520fd7efc41b1/raw/slaclab-lume-services-coverage.json&style=for-the-badge
