@@ -9,8 +9,8 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]][issues-closed-url]
-[![Tests][tests-workflow]]
-[![Coverage][coverage]]
+![Tests][tests-workflow]
+![Coverage][coverage]
 [![Docs][docs-workflow]</div>][docs-workflow]
 <br />
 
