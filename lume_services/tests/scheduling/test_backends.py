@@ -1,6 +1,5 @@
 import os
 import pytest
-from prefect import Client
 from prefect.run_configs import LocalRun, DockerRun, KubernetesRun
 from lume_services.services.scheduling.backends.kubernetes import (
     KubernetesRunConfig,
@@ -24,8 +23,6 @@ from lume_services.errors import (
 from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
-
-from lume_services import config
 
 import logging
 
@@ -117,7 +114,6 @@ class TestRunConfigs:
         assert all([label in prefect_run_config.labels for label in run_config.labels])
         assert prefect_run_config.env == run_config.env
 
-    @pytest.mark.skip()
     def test_kubernetes_run_config(self, lume_env):
 
         # test construction w/o job template
@@ -204,10 +200,6 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture(autouse=True, scope="class")
-    def _prepare(self, lume_services_settings):
-        config.configure(lume_services_settings)
-
     @pytest.fixture(scope="class")
     def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem):
         mounts = [
@@ -228,23 +220,20 @@ class TestDockerBackend:
             host_config=host_config,
         )
 
-    @pytest.mark.usefixtures("_prepare", "scheduling_service")
+    @pytest.mark.usefixtures("scheduling_service")
     @pytest.fixture(scope="class")
     def backend(self, lume_services_settings):
         return DockerBackend(config=lume_services_settings.prefect)
 
-    @pytest.mark.usefixtures("backend")
     @pytest.fixture(scope="class")
-    def project_name(self):
-        prefect_client = Client()
+    def project_name(self, backend):
         project_name = "test_docker_backend"
-        prefect_client.create_project(project_name=project_name)
+        backend.create_project(project_name=project_name)
         return project_name
 
     # tests flow registration
     @pytest.fixture(scope="class")
     def flow_id(self, backend, project_name, prefect_docker_tag):
-
         return backend.register_flow(
             flow,
             project_name=project_name,

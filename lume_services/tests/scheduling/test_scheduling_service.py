@@ -7,11 +7,6 @@ from lume_services import config
 
 
 class TestPrefectConfig:
-    @pytest.fixture(autouse=True, scope="class")
-    def _prepare(self, lume_services_settings):
-        config.configure(lume_services_settings)
-
-    @pytest.mark.usefixtures("_prepare")
     def test_prefect_config(self, lume_services_settings):
         prefect_config = lume_services_settings.prefect
 
@@ -38,8 +33,9 @@ class TestPrefectConfig:
             attr = getattr(prefect.config.server.telemetry, key)
             assert attr == value
 
-    @pytest.mark.usefixtures("_prepare")
     def test_prefect_update_config(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
         prefect_config = lume_services_settings.prefect
 
         new_config = prefect_config.copy()

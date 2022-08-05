@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import yaml
 from prefect import Client
+import prefect
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
 
@@ -16,56 +17,59 @@ from lume_services.tests.files.flows.flow3 import flow as flow3
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
 
-from lume_services import config
-
 from lume_services.flows.flow_of_flows import FlowOfFlows
 
 
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="class", autouse=True)
 def project_name(lume_services_settings):
-    lume_services_settings.prefect.apply()
-    prefect_client = Client()
 
-    project_name = "test"
-    prefect_client.create_project(project_name=project_name)
+    prefect_config = lume_services_settings.prefect
+    with prefect.context(config=prefect_config.apply()):
+        client = Client()
+
+        project_name = "test"
+        client.create_project(project_name=project_name)
+
     return project_name
 
 
 @pytest.fixture(scope="class", autouse=True)
-def flow1_id(project_name):
-    return flow1.register(project_name=project_name, labels=["lume-services"])
+def flow1_id(project_name, lume_services_settings):
+
+    prefect_config = lume_services_settings.prefect
+    with prefect.context(config=prefect_config.apply()):
+        return flow1.register(project_name=project_name, labels=["lume-services"])
 
 
 @pytest.fixture(scope="class", autouse=True)
-def flow2_id(project_name):
-    return flow2.register(project_name=project_name, labels=["lume-services"])
+def flow2_id(project_name, lume_services_settings):
+
+    prefect_config = lume_services_settings.prefect
+    with prefect.context(config=prefect_config.apply()):
+        return flow2.register(project_name=project_name, labels=["lume-services"])
 
 
 @pytest.fixture(scope="class", autouse=True)
-def flow3_id(project_name):
-    return flow3.register(project_name=project_name, labels=["lume-services"])
+def flow3_id(project_name, lume_services_settings):
+
+    prefect_config = lume_services_settings.prefect
+    with prefect.context(config=prefect_config.apply()):
+        return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
 class TestFlows:
     text1 = "hey"
     text2 = " you"
 
-    @pytest.fixture(autouse=True, scope="class")
-    def _prepare(self, lume_services_settings):
-        config.configure(lume_services_settings)
-
-    @pytest.mark.usefixtures("_prepare")
     @pytest.fixture(scope="class")
     def flow1_filename(self, mounted_filesystem):
         return f"{mounted_filesystem.mount_alias}/flow1_res.txt"
 
-    @pytest.mark.usefixtures("_prepare")
     @pytest.fixture(scope="class")
     def flow1_filename_local(self, mounted_filesystem):
         return f"{mounted_filesystem.mount_path}/flow1_res.txt"
 
-    @pytest.mark.usefixtures("_prepare")
     @pytest.fixture()
     def test_flow1_run(
         self,
@@ -73,58 +77,61 @@ class TestFlows:
         docker_run_config,
         flow1_filename,
         mounted_filesystem,
+        lume_services_settings,
     ):
-        prefect_client = Client()
 
-        flow_run_id = prefect_client.create_flow_run(
-            flow_id=flow1_id,
-            parameters={
-                "text1": self.text1,
-                "text2": self.text2,
-                "filename": flow1_filename,
-                "filesystem_identifier": mounted_filesystem.identifier,
-            },
-            run_config=docker_run_config.build(),  # convert to prefect RunConfig
-        )
+        prefect_config = lume_services_settings.prefect
+        with prefect.context(config=prefect_config.apply()):
+            client = Client()
 
-        # watch and block
-        stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
+            flow_run_id = client.create_flow_run(
+                flow_id=flow1_id,
+                parameters={
+                    "text1": self.text1,
+                    "text2": self.text2,
+                    "filename": flow1_filename,
+                    "filesystem_identifier": mounted_filesystem.identifier,
+                },
+                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+            )
 
-        configure_task = flow1.get_tasks(name="configure_services")[0]
+            # watch and block
+            stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
-        # check config task run
-        config_task_run = TaskRunView.from_task_slug(
-            configure_task.slug,
-            flow_run_id,
-        )
-        assert config_task_run.state.is_successful()
+            configure_task = flow1.get_tasks(name="configure_services")[0]
 
-        file_task = flow1.get_tasks(name="save_text_file")[0]
+            # check config task run
+            config_task_run = TaskRunView.from_task_slug(
+                configure_task.slug,
+                flow_run_id,
+            )
+            assert config_task_run.state.is_successful()
 
-        task_run = TaskRunView.from_task_slug(
-            file_task.slug,
-            flow_run_id,
-        )
+            file_task = flow1.get_tasks(name="save_text_file")[0]
 
-        # check task result
-        assert task_run.state.is_successful()
+            task_run = TaskRunView.from_task_slug(
+                file_task.slug,
+                flow_run_id,
+            )
 
-        result = task_run.get_result()
+            # check task result
+            assert task_run.state.is_successful()
 
-        text = append_text.run(self.text1, self.text2)
+            result = task_run.get_result()
 
-        # create text file object
-        text_file = TextFile(
-            obj=text,
-            filename=flow1_filename,
-            filesystem_identifier=mounted_filesystem.identifier,
-        )
-        text_file_rep = text_file.jsonable_dict()
+            text = append_text.run(self.text1, self.text2)
 
-        assert result == text_file_rep
-        return text_file_rep
+            # create text file object
+            text_file = TextFile(
+                obj=text,
+                filename=flow1_filename,
+                filesystem_identifier=mounted_filesystem.identifier,
+            )
+            text_file_rep = text_file.jsonable_dict()
 
-    @pytest.mark.usefixtures("_prepare")
+            assert result == text_file_rep
+            return text_file_rep
+
     @pytest.fixture()
     def test_flow2_run(
         self,
@@ -132,93 +139,95 @@ class TestFlows:
         docker_run_config,
         test_flow1_run,
         results_db_service,
+        lume_services_settings,
     ):
-        prefect_client = Client()
+        prefect_config = lume_services_settings.prefect
+        with prefect.context(config=prefect_config.apply()):
 
-        flow_run_id = prefect_client.create_flow_run(
-            flow_id=flow2_id,
-            parameters={"file_rep": test_flow1_run},
-            run_config=docker_run_config.build(),  # convert to prefect RunConfig
-        )
+            client = Client()
 
-        # watch and block
-        stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
+            flow_run_id = client.create_flow_run(
+                flow_id=flow2_id,
+                parameters={"file_rep": test_flow1_run},
+                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+            )
 
-        # check config task run
-        configure_task = flow2.get_tasks(name="configure_services")[0]
-        config_task_run = TaskRunView.from_task_slug(
-            configure_task.slug,
-            flow_run_id,
-        )
-        assert config_task_run.state.is_successful()
+            # watch and block
+            stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
-        # check db result
-        save_db_result = flow2.get_tasks(name="save_db_result")[0]
-        task_run = TaskRunView.from_task_slug(
-            save_db_result.slug,
-            flow_run_id,
-        )
-        result_rep = task_run.get_result()
+            # check config task run
+            configure_task = flow2.get_tasks(name="configure_services")[0]
+            config_task_run = TaskRunView.from_task_slug(
+                configure_task.slug,
+                flow_run_id,
+            )
+            assert config_task_run.state.is_successful()
 
-        # now load result as result object...
-        result_type = get_result_from_string(result_rep["result_type_string"])
-        result = result_type.load_from_query(
-            result_rep["query"], results_db_service=results_db_service
-        )
+            # check db result
+            save_db_result = flow2.get_tasks(name="save_db_result")[0]
+            task_run = TaskRunView.from_task_slug(
+                save_db_result.slug,
+                flow_run_id,
+            )
+            result_rep = task_run.get_result()
 
-        assert task_run.state.is_successful()
-        assert result.flow_id == flow2_id
-        assert result.outputs["output1"] == f"{self.text1}{self.text2}"
-        return result_rep
+            # now load result as result object...
+            result_type = get_result_from_string(result_rep["result_type_string"])
+            result = result_type.load_from_query(
+                result_rep["query"], results_db_service=results_db_service
+            )
 
-    @pytest.mark.usefixtures("_prepare")
+            assert task_run.state.is_successful()
+            assert result.flow_id == flow2_id
+            assert result.outputs["output1"] == f"{self.text1}{self.text2}"
+            return result_rep
+
     def test_flow3_run(
         self,
         flow3_id,
         docker_run_config,
         test_flow2_run,
         results_db_service,
+        lume_services_settings,
     ):
-        prefect_client = Client()
+        prefect_config = lume_services_settings.prefect
+        with prefect.context(config=prefect_config.apply()):
 
-        # want to bind our task kwargs to flow2 outputs
-        db_result = LoadDBResult().run(
-            test_flow2_run,
-            attribute="outputs",
-            attribute_index=["output1"],
-            results_db_service=results_db_service,
-        )
+            client = Client()
 
-        flow_run_id = prefect_client.create_flow_run(
-            flow_id=flow3_id,
-            parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
-            run_config=docker_run_config.build(),  # convert to prefect RunConfig
-        )
+            # want to bind our task kwargs to flow2 outputs
+            db_result = LoadDBResult().run(
+                test_flow2_run,
+                attribute="outputs",
+                attribute_index=["output1"],
+                results_db_service=results_db_service,
+            )
 
-        # watch and block
-        stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
+            flow_run_id = client.create_flow_run(
+                flow_id=flow3_id,
+                parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
+                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+            )
 
-        # check equivalence result
-        check_text_equivalence = flow3.get_tasks(name="check_text_equivalence")[0]
-        task_run = TaskRunView.from_task_slug(
-            check_text_equivalence.slug,
-            flow_run_id,
-        )
-        result = task_run.get_result()
-        assert result
+            # watch and block
+            stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
+
+            # check equivalence result
+            check_text_equivalence = flow3.get_tasks(name="check_text_equivalence")[0]
+            task_run = TaskRunView.from_task_slug(
+                check_text_equivalence.slug,
+                flow_run_id,
+            )
+            result = task_run.get_result()
+            assert result
 
 
 class TestFlowOfFlows:
-    @pytest.fixture(autouse=True, scope="class")
-    def _prepare(self, lume_services_settings):
-        config.configure(lume_services_settings)
-
-    @pytest.mark.usefixtures("_prepare")
     def test_load_yaml(self):
         with open(FLOW_OF_FLOWS_YAML, "r") as file:
             _ = yaml.safe_load(file)
 
-    @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id", "_prepare")
+    @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
     def test_validate_yaml(self):
         # using injection here...
         _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
