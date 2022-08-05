@@ -84,7 +84,7 @@ jobs:
           echo "Not Success Test Info - ${{ steps.coverageComment.outputs.notSuccessTestInfo }}"
 
       - name: Create the Badge
-        uses: schneegans/dynamic-badges-action@v1.0.0
+        uses: schneegans/dynamic-badges-action@v1.4.0
         with:
           auth: ${{ secrets.PYTEST_COVERAGE_COMMENT }}
           gistID: 61dce43449fc0509f34520fd7efc41b1
