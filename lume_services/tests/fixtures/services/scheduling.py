@@ -47,20 +47,25 @@ def prefect_job_docker(rootdir, prefect_docker_tag):
     docker_client.images.remove(image.id, noprune=False)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def api_server_str(lume_services_settings):
+    host = lume_services_settings.prefect.server.host
+    port = lume_services_settings.prefect.server.host_port
+
+    return f"{host}:{port}"
+
+
 # allows us to wait until we get a response from the Prefect services
 # and allow startup time
 @pytest.fixture(scope="session", autouse=True)
-def prefect_services(docker_services, lume_services_settings):
+def prefect_services(docker_services, api_server_str):
 
     # set backend
     save_backend("server")
 
     def is_prefect_ready():
         try:
-            client = prefect.Client(
-                api_server=f"http://{lume_services_settings.prefect.server.host}:\
-                    {lume_services_settings.prefect.server.host_port}"
-            )
+            client = prefect.Client(api_server=api_server_str)
             client.graphql("query{hello}", raise_on_error=True)
             return True
         except Exception as e:
