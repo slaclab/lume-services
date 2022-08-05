@@ -2,7 +2,6 @@
 ## Repo setup
 - TODO:
     - [ ] Docs for injection and container
-    - [ ] Move any services in __init__ files to a service.py
     - [ ] Remove tests in pip installation, move to directory base
     - [ ] Docs!
     - [ ] Set up all loggers
@@ -17,6 +16,8 @@
     - [x] Basics of injection and container 4/15
     - [x] Action for building docs
     - [x] Automatically generate diagram from .sql schema? 5/6s
+    - [x] Move any services in __init__ files to a service.py
+    - [x] Fix prefect context bug during pytest
 
 ## Template
 TODO:
@@ -62,8 +63,10 @@ TODO:
     - [ ] Test flow of flows composition
     - [ ] Add mapped parameters to database?
     - [ ] Kubernetes backend tests
+    - [ ] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
-    - [ ] Drop all but apollo from config
+    - [ ] Environment solving for containerized jobs
+    - [ ] Improve service wait_until_responsive checks and move into docker
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26
@@ -75,11 +78,13 @@ TODO:
     - [x] Tesing infrastructure for prefect w/ docker compose 6/27
     - [x] Result tasks
     - [x] Add scheduler to context
+    - [x] Drop all but apollo from config 8/3
 
 ## Misc
 - TODO:
     - [ ] Separate template into own repo and use git submodule
     - [ ] Could abstract docker compose versions
+    - [ ] Use environment variable fixture in tests instead of modifying env
 - Done:
     - [x] Rename file.systems to file.filesystems and all files names service.py
     - [x] Move fixtures from conftest to designated files under tests/fixtures
@@ -96,13 +101,5 @@ TODO:
 - TODO:
     - [ ] Create model interface with injected services
     - [ ] Add utility for loading flow objects
-    - [ ] Preprocessing tasks?
-
-- Done:
-
-
-
-## Modeling
-- TODO:
     - [ ] Preprocessing structure
     - [ ] Registration of preprocessing flows

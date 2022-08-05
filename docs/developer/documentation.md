@@ -1,6 +1,5 @@
 
 
-
 ## MkDocs
 For documentation, we use [mkdocs](https://www.mkdocs.org/) to automatically generate our [GitHub documentation](https://jacquelinegarrahan.github.io/lume-services/) using the mkdocs.yml packaged in the root of the project directory.
 

@@ -20,3 +20,8 @@ Env variables....
 ### Notes
 
 Using docker-compose every time you execute tests is extremely costly. These could be refactored to optionally use persistent resources.
+
+
+## GitHub action
+
+The GitHub action packaged with this repository creates automatic coverage reports and generates the badge on the README

@@ -4,6 +4,22 @@ Motivation...
 
 Templating allows us to ...
 
+
+
+Because we've chosen the approach of having a single docker image representing our body of models,
+
+
+
+
+
+## Requirements
+- Must include lume-services
+
+
+
+
+
+
 # steps
 ## 1. Create package repository
 
@@ -90,12 +106,6 @@ Because the repository is heavily templated, there are several things that may b
 1. Clearly defined entrypoints
 2. Properly formatted and registerable flows
 4.
-
-## 6. Using the Docker image
-All releases create a docker image
-Docker image uploaded to release artifacts
-
-
 
 
 JSON FILE WITH THE FOLLOWING:

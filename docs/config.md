@@ -4,10 +4,13 @@ LUME-services uses [injection](https://python-dependency-injector.ets-labs.org/)
 
 Programs using the standard services packaged with LUME-services (the MongoDB implementation of Results Database, MySQL implementation of Model Registry), can use the configuration tools packaged with LUME-services directly by calling the configure script during code execution:
 ```
-from lume_services.config import configure
+from lume_services.config import configure, LUMEServicesSettings
 
 # run configure by parsing LUME environment variables
 configure()
+
+# run configure with manual configuration
+...
 
 ```
 
@@ -20,8 +23,6 @@ LUME_MODEL_DB__CONNECTION__POOL_SIZE=1
 export LUME_PREFECT__SERVER__TAG=core-1.2.4
 export LUME_PREFECT__SERVER__HOST_PORT=4200
 export LUME_PREFECT__SERVER__HOST=127.0.0.1
-export LUME_PREFECT__HASURA__HOST_PORT=3000
-export LUME_PREFECT__HASURA__HOST=127.0.0.1
 export LUME_RESULTS_DB__HOST=127.0.0.1
 export LUME_RESULTS_DB__PORT=27017
 export LUME_RESULTS_DB__USERNAME=root
@@ -29,6 +30,10 @@ export LUME_RESULTS_DB__PASSWORD=password
 export LUME_RESULTS_DB__DATABASE=test
 
 
+
+## Submitting workflows with the appropriate configuration
+you may elect to change env vars on your submitted jobs
+Configuration of the job environment must respect hostnames available to their own networks
 
 
 

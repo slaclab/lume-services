@@ -38,10 +38,6 @@ Variable names inside the flow context are used to compose the workflow
 
 configure_services task uses environment variable names to configure the lume-services api endpoints
 
-
-
-
-
 must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
 
 
