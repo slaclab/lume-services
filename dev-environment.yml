@@ -14,7 +14,6 @@ dependencies:
   - click
   - blinker
   - dependency_injector
-  - lume-base
   - h5py
   - sqlalchemy_schemadisplay
   - graphviz
