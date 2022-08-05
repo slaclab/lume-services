@@ -1,7 +1,16 @@
 import pytest
 import os
-import docker
 import logging
+
+from lume_services import config
+
+from lume_services.services.models.db.mysql import MySQLModelDBConfig
+from lume_services.services.results.mongodb import MongodbResultsDBConfig
+from lume_services.services.scheduling.backends.server import (
+    PrefectAgentConfig,
+    PrefectConfig,
+    PrefectServerConfig,
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,21 +33,12 @@ def pytest_addoption(parser):
     parser.addini("mysql_poolsize", default=1, help="MySQL client poolsize")
 
     parser.addini("mongodb_host", default="127.0.0.1", help="MySQL host")
-    parser.addini("mongodb_port", default=3306, help="MySQL port")
+    parser.addini("mongodb_port", default=27017, help="MySQL port")
     parser.addini("mongodb_user", default="root", help="MySQL user")
     parser.addini("mongodb_password", default="password", help="MySQL password")
     parser.addini(name="mongodb_database", help="Mysql database name", default="test")
 
     # prefect
-    parser.addini(name="postgres_db", help="Prefect postgres db", default="prefect_db")
-    parser.addini(
-        name="postgres_user", help="Prefect postgres user", default="prefect_user"
-    )
-    parser.addini(
-        name="postgres_password",
-        help="Prefect postgres password",
-        default="prefect_password",
-    )
     parser.addini(name="server_tag", help="Prefect server image tag", default="latest")
     parser.addini(
         name="server_host_port", help="Prefect server apollo api port", default=4200
@@ -46,21 +46,9 @@ def pytest_addoption(parser):
     parser.addini(
         name="server_host", help="Prefect server apollo host IP", default="127.0.0.1"
     )
+    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
     parser.addini(
-        name="hasura_host_port", help="Prefect hasura host port", default=3000
-    )
-    parser.addini(name="hasura_host", help="Hasura host IP", default="127.0.0.1")
-    parser.addini(
-        name="postgres_host_port", help="Prefect postgres host port", default=5432
-    )
-    parser.addini(
-        name="postgres_host", help="Prefect postgres host IP", default="127.0.0.1"
-    )
-    parser.addini(
-        name="graphql_host_port", help="Prefect graphql host port", default=4201
-    )
-    parser.addini(
-        name="graphql_host", help="Prefect graphql host IP", default="127.0.0.1"
+        name="agent_host_port", help="Prefect agent port for comms", default=5000
     )
 
 
@@ -154,83 +142,17 @@ def server_host(request):
 
 
 @pytest.fixture(scope="session")
-def hasura_host_port(request):
-    port = request.config.getini("hasura_host_port")
-    os.environ["LUME_PREFECT__HASURA__HOST_PORT"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def hasura_host(request):
-    port = request.config.getini("hasura_host")
-    os.environ["LUME_PREFECT__HASURA__HOST"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def graphql_host_port(request):
-    port = request.config.getini("graphql_host_port")
-    os.environ["LUME_PREFECT__GRAPHQL__HOST_PORT"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def graphql_host(request):
-    port = request.config.getini("graphql_host")
-    os.environ["LUME_PREFECT__GRAPHQL__HOST"] = port
-    return port
-
-
-@pytest.fixture(scope="session")
-def postgres_db(request):
-    db = request.config.getini("postgres_db")
-    os.environ["LUME_PREFECT__POSTGRES__DB"] = db
-    return db
-
-
-@pytest.fixture(scope="session")
-def postgres_user(request):
-    user = request.config.getini("postgres_user")
-    os.environ["LUME_PREFECT__POSTGRES__USER"] = user
-    return user
-
-
-@pytest.fixture(scope="session")
-def postgres_password(request):
-    password = request.config.getini("postgres_password")
-    os.environ["LUME_PREFECT__POSTGRES__PASSWORD"] = password
-    return password
-
-
-@pytest.fixture(scope="session")
-def postgres_data_path(tmp_path_factory):
-    temp_path = tmp_path_factory.mktemp("postgres_data_path")
-    os.environ["LUME_PREFECT__POSTGRES__DATA_PATH"] = str(temp_path)
-    return str(temp_path)
-
-
-@pytest.fixture(scope="session")
-def postgres_host(request):
-    host = request.config.getini("postgres_host")
-    os.environ["LUME_PREFECT__POSTGRES__HOST"] = host
+def agent_host(request):
+    host = request.config.getini("agent_host")
+    os.environ["LUME_PREFECT__AGENT__HOST"] = host
     return host
 
 
 @pytest.fixture(scope="session")
-def postgres_host_port(request):
-    port = request.config.getini("postgres_host_port")
-    os.environ["LUME_PREFECT__POSTGRES__HOST_PORT"] = port
+def agent_host_port(request):
+    port = request.config.getini("agent_host_port")
+    os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
     return port
-
-
-@pytest.fixture(scope="session")
-def prefect_api_str(server_host_port):
-    return f"http://localhost:{server_host_port}"
-
-
-@pytest.fixture(scope="session")
-def graphql_api_str(server_host_port):
-    return f"http://localhost:{server_host_port}/graphql"
 
 
 ## mongodb
@@ -273,7 +195,6 @@ def mongodb_database(request):
 
 ## Scheduling
 
-
 ## Filesystem
 @pytest.fixture(scope="session")
 def mount_path(tmp_path_factory):
@@ -300,6 +221,65 @@ def mounted_filesystem(mount_path):
 # def mock_settings_env_vars():
 #    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
 #        yield
+
+# Full configuration
+
+
+@pytest.fixture(scope="session", autouse=True)
+def lume_services_settings(
+    mysql_host,
+    mysql_port,
+    mysql_user,
+    mysql_password,
+    mysql_database,
+    mongodb_host,
+    mongodb_port,
+    mongodb_user,
+    mongodb_password,
+    mongodb_database,
+    server_host_port,
+    server_host,
+    server_tag,
+    agent_host,
+    agent_host_port,
+    prefect_backend,
+    lume_backend,
+    mounted_filesystem,
+):
+    model_db_config = MySQLModelDBConfig(
+        host=mysql_host,
+        port=mysql_port,
+        user=mysql_user,
+        password=mysql_password,
+        database=mysql_database,
+    )
+
+    results_db_config = MongodbResultsDBConfig(
+        port=mongodb_port,
+        host=mongodb_host,
+        username=mongodb_user,
+        database=mongodb_database,
+        password=mongodb_password,
+    )
+
+    prefect_config = PrefectConfig(
+        server=PrefectServerConfig(
+            host=server_host, host_port=server_host_port, tag=server_tag
+        ),
+        agent=PrefectAgentConfig(host=agent_host, host_port=agent_host_port),
+        backend=prefect_backend,
+    )
+
+    settings = config.LUMEServicesSettings(
+        model_db=model_db_config,
+        results_db=results_db_config,
+        prefect=prefect_config,
+        backend=lume_backend,
+        mounted_filesystem=mounted_filesystem,
+    )
+
+    return settings
+
 
 # Now setup all fixtures
 pytest_plugins = [

@@ -3,12 +3,19 @@ import re
 import subprocess
 import time
 import timeit
+from contextlib import contextmanager
 
 import attr
 
 import logging
+from lume_services.docker.files import DOCKER_COMPOSE
 
 logger = logging.getLogger(__name__)
+
+
+_BASE_SETUP_COMMAND = "up -d"
+_UI_SETUP_COMMAND = "--profile with_ui up -d"
+_CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
 
 
 def execute(command, success_codes=(0,)):
@@ -26,6 +33,7 @@ def execute(command, success_codes=(0,)):
 
     if status not in success_codes:
         logger.info(dict(os.environ))
+        logger.error(f"Subrocess {command} failed with output: {output}")
         raise Exception(
             'Command {} returned {}: """{}""".'.format(
                 command, status, output.decode("utf-8")
@@ -124,10 +132,42 @@ class DockerComposeExecutor:
 
 
 def get_cleanup_commands():
-
-    return ["down -v", "rm --stop --force"]
+    return _CLEANUP_COMMANDS
 
 
 def get_setup_command():
+    return _BASE_SETUP_COMMAND
 
-    return "up -d"
+
+@contextmanager
+def run_docker_services(project_name="lume-services", ui=False):
+    logger.info(f"Running services in environment: {dict(os.environ)}")
+    docker_compose = DockerComposeExecutor(DOCKER_COMPOSE, project_name)
+
+    if ui:
+        cmd = _UI_SETUP_COMMAND
+    else:
+        cmd = _BASE_SETUP_COMMAND
+
+    # setup containers.
+    try:
+        docker_compose.execute(cmd)
+    except Exception as e:
+        for cmd in _CLEANUP_COMMANDS:
+            try:
+                docker_compose.execute(cmd)
+            except Exception as cleanup_exception:
+                logger.warning(
+                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                )
+                pass
+        raise e
+
+    try:
+        # Let tests run.
+        yield Services(docker_compose)
+    # yield services
+    finally:
+        # Clean up.
+        for cmd in _CLEANUP_COMMANDS:
+            docker_compose.execute(cmd)

@@ -1,4 +1,4 @@
-name: Build docs
+name: Docs
 
 on:
   push:
@@ -35,6 +35,7 @@ jobs:
           python scripts/build_schema_diagrams.py generate-schema-docs \
             --uml_output_filename=docs/files/model_db_uml.png \
             --schema_output_filename=docs/files/model_db_schema.png
+          python scripts/diagrams/docker.py build-compose-docs --output_filename docs/files/docker_architecture.png
 
      # - name: Push schema docs
      #   uses: actions-x/commit@v6
@@ -42,7 +43,7 @@ jobs:
      #     branch: main
      #     files: docs/files/model_db_uml.png docs/files/model_db_schema.png
 
-      - name: Build docs
+      - name: Build and deploy
         shell: bash -l {0}
         run: |
           mkdocs build

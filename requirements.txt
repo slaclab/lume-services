@@ -6,7 +6,7 @@ pandas
 pymongo
 click
 blinker
-prefect
+prefect<2.0
 dependency_injector
 lume-base>=0.2.2
 h5py

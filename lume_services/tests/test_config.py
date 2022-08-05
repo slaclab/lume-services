@@ -13,13 +13,6 @@ from lume_services.services.files.filesystems.mounted import MountedFilesystem
 from prefect.utilities.backend import load_backend, save_backend
 
 
-@pytest.fixture(scope="class", autouse=True)
-def lume_service_settings(
-    file_service, model_db_service, results_db_service, scheduling_service
-):
-    return config.LUMEServicesSettings()
-
-
 class TestLumeSettings:
     @classmethod
     def setup_class(cls):
@@ -30,7 +23,7 @@ class TestLumeSettings:
         assert isinstance(env_vars, (dict,))
 
     def test_configure_from_env(
-        self, file_service, model_db_service, results_db_service, scheduling_service
+        self, model_db_service, results_db_service, scheduling_service
     ):
         save_backend("cloud")
         assert config.context is None
@@ -95,81 +88,46 @@ class TestLumeSettings:
             == scheduling_service.backend.config.server.tag
         )
 
-        assert (
-            config._settings.prefect.graphql.host
-            == scheduling_service.backend.config.graphql.host
-        )
-        assert (
-            config._settings.prefect.graphql.host_port
-            == scheduling_service.backend.config.graphql.host_port
-        )
-
-        assert (
-            config._settings.prefect.hasura.host
-            == scheduling_service.backend.config.hasura.host
-        )
-        assert (
-            config._settings.prefect.hasura.host_port
-            == scheduling_service.backend.config.hasura.host_port
-        )
-
-        assert (
-            config._settings.prefect.postgres.host
-            == scheduling_service.backend.config.postgres.host
-        )
-        assert (
-            config._settings.prefect.postgres.host_port
-            == scheduling_service.backend.config.postgres.host_port
-        )
-        assert (
-            config._settings.prefect.postgres.password
-            == scheduling_service.backend.config.postgres.password
-        )
-        assert (
-            config._settings.prefect.postgres.user
-            == scheduling_service.backend.config.postgres.user
-        )
-        assert (
-            config._settings.prefect.postgres.db
-            == scheduling_service.backend.config.postgres.db
-        )
-
-    def test_configure_from_settings(self, lume_service_settings):
+    def test_configure_from_settings(self, lume_services_settings):
         config.context = None
         assert config.context is None
-        config.configure(lume_service_settings)
+        config.configure(lume_services_settings)
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
 
-        assert config._settings.model_db.user == lume_service_settings.model_db.user
+        assert config._settings.model_db.user == lume_services_settings.model_db.user
         assert (
             config._settings.model_db.password
-            == lume_service_settings.model_db.password
+            == lume_services_settings.model_db.password
         )
-        assert config._settings.model_db.host == lume_service_settings.model_db.host
-        assert config._settings.model_db.port == lume_service_settings.model_db.port
+        assert config._settings.model_db.host == lume_services_settings.model_db.host
+        assert config._settings.model_db.port == lume_services_settings.model_db.port
         assert (
             config._settings.model_db.database
-            == lume_service_settings.model_db.database
+            == lume_services_settings.model_db.database
         )
         assert (
             config._settings.model_db.connection.pool_size
-            == lume_service_settings.model_db.connection.pool_size
+            == lume_services_settings.model_db.connection.pool_size
         )
 
-        assert config._settings.results_db.host == lume_service_settings.results_db.host
-        assert config._settings.results_db.port == lume_service_settings.results_db.port
+        assert (
+            config._settings.results_db.host == lume_services_settings.results_db.host
+        )
+        assert (
+            config._settings.results_db.port == lume_services_settings.results_db.port
+        )
         assert (
             config._settings.results_db.username
-            == lume_service_settings.results_db.username
+            == lume_services_settings.results_db.username
         )
         assert (
             config._settings.results_db.password
-            == lume_service_settings.results_db.password
+            == lume_services_settings.results_db.password
         )
         assert (
             config._settings.results_db.database
-            == lume_service_settings.results_db.database
+            == lume_services_settings.results_db.database
         )
 
         assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
@@ -177,54 +135,15 @@ class TestLumeSettings:
         # prefect configuration
         assert (
             config._settings.prefect.server.host
-            == lume_service_settings.prefect.server.host
+            == lume_services_settings.prefect.server.host
         )
         assert (
             config._settings.prefect.server.host_port
-            == lume_service_settings.prefect.server.host_port
+            == lume_services_settings.prefect.server.host_port
         )
         assert (
             config._settings.prefect.server.tag
-            == lume_service_settings.prefect.server.tag
-        )
-
-        assert (
-            config._settings.prefect.graphql.host
-            == lume_service_settings.prefect.graphql.host
-        )
-        assert (
-            config._settings.prefect.graphql.host_port
-            == lume_service_settings.prefect.graphql.host_port
-        )
-
-        assert (
-            config._settings.prefect.hasura.host
-            == lume_service_settings.prefect.hasura.host
-        )
-        assert (
-            config._settings.prefect.hasura.host_port
-            == lume_service_settings.prefect.hasura.host_port
-        )
-
-        assert (
-            config._settings.prefect.postgres.host
-            == lume_service_settings.prefect.postgres.host
-        )
-        assert (
-            config._settings.prefect.postgres.host_port
-            == lume_service_settings.prefect.postgres.host_port
-        )
-        assert (
-            config._settings.prefect.postgres.password
-            == lume_service_settings.prefect.postgres.password
-        )
-        assert (
-            config._settings.prefect.postgres.user
-            == lume_service_settings.prefect.postgres.user
-        )
-        assert (
-            config._settings.prefect.postgres.db
-            == lume_service_settings.prefect.postgres.db
+            == lume_services_settings.prefect.server.tag
         )
 
     def test_configure_from_env_failure(self):
@@ -235,17 +154,14 @@ class TestLumeSettings:
 
         os.environ["LUME_RESULTS_DB__HOST"] = mongodb_host
 
-    @classmethod
-    def teardown_class(cls):
-        save_backend("server")
-
 
 class TestFileServiceInjection:
-    @pytest.fixture
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
+    @pytest.fixture(autouse=True, scope="class")
+    def _prepare(self, lume_services_settings):
+        config.configure(lume_services_settings)
 
-    def test_file_service_injection_local(self, tmp_path, local_filesystem, configure):
+    @pytest.mark.usefixtures("_prepare")
+    def test_file_service_injection_local(self, tmp_path, local_filesystem):
         filepath = f"{tmp_path}/tmp_file.txt"
         text = "test text"
         text_file = TextFile(
@@ -258,7 +174,8 @@ class TestFileServiceInjection:
         new_text = text_file.read()
         assert new_text == text
 
-    def test_file_service_injection_mounted(self, mounted_filesystem, configure, fs):
+    @pytest.mark.usefixtures("_prepare")
+    def test_file_service_injection_mounted(self, mounted_filesystem, fs):
 
         filepath = f"{mounted_filesystem.mount_alias}/tmp_file.txt"
         text = "test text"
@@ -281,6 +198,10 @@ class TestFileServiceInjection:
 
 
 class TestResultServiceInjection:
+    @pytest.fixture(autouse=True, scope="class")
+    def _prepare(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
     @pytest.fixture()
     def generic_result(self):
         return Result(
@@ -292,14 +213,12 @@ class TestResultServiceInjection:
             },
         )
 
-    @pytest.fixture
-    def configure(self, lume_service_settings):
-        config.configure(lume_service_settings)
-
-    def test_result_insert_by_method(self, generic_result, configure):
+    @pytest.mark.usefixtures("_prepare")
+    def test_result_insert_by_method(self, generic_result):
         generic_result.insert()
 
-    def test_result_load_from_query(self, generic_result, configure):
+    @pytest.mark.usefixtures("_prepare")
+    def test_result_load_from_query(self, generic_result):
         new_generic_result = Result.load_from_query(
             {
                 "flow_id": generic_result.flow_id,
@@ -311,7 +230,3 @@ class TestResultServiceInjection:
         assert generic_result.flow_id == new_generic_result.flow_id
         assert generic_result.inputs == new_generic_result.inputs
         assert generic_result.outputs == new_generic_result.outputs
-
-    @classmethod
-    def setup_class(cls):
-        config.context = None

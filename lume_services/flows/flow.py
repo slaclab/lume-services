@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from numpy import deprecate
 from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.run_configs import RunConfig
@@ -10,8 +9,6 @@ from lume_services.config import Context
 
 
 from lume_services.services.scheduling import SchedulingService
-
-# Pydantic schema describing flow of flows composition
 
 
 class MappedParameter(BaseModel):
@@ -25,6 +22,12 @@ class MappedParameter(BaseModel):
 
     raw: Raw values are passed from task output to parameter input.
 
+    Attr:
+        parent_flow_name (str): Parent flow holding origin of mapped parameter.
+        parent_task_name (str): Task whose result is mapped to the parameter.
+        map_type (Literal["file", "db", "raw"]): Type of mapping describing the
+            parameters.
+
     """
 
     parent_flow_name: str
@@ -33,10 +36,33 @@ class MappedParameter(BaseModel):
 
 
 class RawMappedParameter(MappedParameter):
+    """RawMappedParameters describe parameter mappings where the result of a task is
+    used as the input to a parameter.
+
+    Attr:
+        parent_flow_name (str): Parent flow holding origin of mapped parameter.
+        parent_task_name (str): Task whose result is mapped to the parameter.
+        map_type (Literal["file", "db", "raw"] = "raw"): The "raw" map type describes
+            the one-to-one result to parameter map.
+
+    """
+
     map_type: str = Field("raw", const=True)
 
 
 class FileMappedParameter(MappedParameter):
+    """FileMappedParameters describe files passed between different flows. Files are
+    saved as json representations describing file type (and serialization) and
+    filesystem information.
+
+    Attr:
+        parent_flow_name (str): Parent flow holding origin of mapped parameter.
+        parent_task_name (str): Task whose result is mapped to the parameter.
+        map_type (Literal["file", "db", "raw"] = "file"): The "file" map type describes
+            the
+
+    """
+
     map_type: str = Field("file", const=True)
 
 
@@ -156,30 +182,3 @@ class FlowRunConfig(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-
-
-@deprecate
-def build_parameters(task, prefix: str = None):
-    """Utility for building parameters
-
-    Args:
-        task: Task for which to build params
-        prefix (str): Prefix to add to parameter names
-
-    """
-
-    params = {}
-
-    for input_name, input in task.inputs.items():
-        if not prefix:
-            params[input_name] = Parameter(
-                name=input_name, default=input["default"], required=input["required"]
-            )
-        else:
-            params[f"{prefix}{input_name}"] = Parameter(
-                name=f"{prefix}{input_name}",
-                default=input["default"],
-                required=input["required"],
-            )
-
-    return params

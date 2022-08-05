@@ -1,5 +1,5 @@
 # conda env create -f environment.yml
-name: lume-services-2
+name: lume-services
 channels:
   - conda-forge
 dependencies:
@@ -8,13 +8,12 @@ dependencies:
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
-  - prefect
+  - prefect<2.0
   - pandas
   - pymongo
   - click
   - blinker
   - dependency_injector
-  - lume-base
  # - lume-model>=1.4
   - h5py
   - pyyaml

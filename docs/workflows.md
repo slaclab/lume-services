@@ -1,6 +1,6 @@
 # Workflows
 
-LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be thought of as scoped units of work.
+LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be conceptualized of as scoped units of work.
 
 A flow looks like:
 ```
@@ -37,10 +37,6 @@ Flow Parameters have some constraints. To see why those constraints exist, see d
 Variable names inside the flow context are used to compose the workflow
 
 configure_services task uses environment variable names to configure the lume-services api endpoints
-
-
-
-
 
 must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
 
