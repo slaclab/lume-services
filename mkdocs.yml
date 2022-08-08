@@ -8,11 +8,11 @@ nav:
   -   Model Packaging: model_packaging.md
   -   Workflows: workflows.md
   - Services:
-    - File Service: services/file_service.md
-    - Results DB Service: services/results_db_service.md
-    - HPC Service: services/hpc_service.md
-    - Modeling Service: services/modeling_service.md
-    - Scheduling Service: services/scheduling_service.md
+    - File Service: services/files.md
+    - Results DB Service: services/results.md
+    - HPC Service: services/hpc.md
+    - Modeling Service: services/models.md
+    - Scheduling Service: services/scheduling.md
   - API:
     - Files:
       - File: api/files/files.md
