@@ -10,8 +10,22 @@ A flow looks like:
 
 Parameters are data objects passed into the flow at runtime.
 
+Variable names inside the flow context are used to compose the workflow
 
 
+## Configuring flows for use with LUME-services
+
+
+configure_services task uses environment variable names to configure the lume-services api endpoints
+
+must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
+
+
+
+
+
+
+## Flow parameters
 
 Flow Parameters have some constraints. To see why those constraints exist, see developer docs [here](developer/prefect.md#serialization).
 1. Flow-level parameters must be serializable, meaning they must be of types:
@@ -26,19 +40,10 @@ Flow Parameters have some constraints. To see why those constraints exist, see d
 | False            | false   |
 | None             |         |
 
-2. In order to access the results of tasks inside a flow, the task-level parameters must be JSON serializable. LUME-services packages some utilities for interacting with custom result types using JSON representations of the result that can be used to load at runtime.
-
-# CAN I PUT THIS IN NOTEBOOK?
-```python
+2. In order to access the results of tasks outside a flow, the task-level results must be JSON serializable. LUME-services packages some utilities for interacting with custom result types using JSON representations of the result that can be used to load at runtime.
 
 
-```
-
-Variable names inside the flow context are used to compose the workflow
-
-configure_services task uses environment variable names to configure the lume-services api endpoints
-
-must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
+## Common tasks
 
 
 
