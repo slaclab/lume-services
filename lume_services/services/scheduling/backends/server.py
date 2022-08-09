@@ -91,13 +91,11 @@ class ServerBackend(Backend):
         config (PrefectConfig): Instantiated PrefectConfig object describing connection
             to Prefect server.
         default_image (str): Default image used for registering flow storage.
-        _client (Client): Prefect client connection created on instantiation.
 
     """
 
     config: PrefectConfig
     default_image: str = Field(None, alias="image")
-    _client: Client = Field(None, exclude=True)
 
     class Config:
         underscore_attrs_are_private = True
