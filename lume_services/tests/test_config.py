@@ -37,8 +37,8 @@ class TestLumeSettings:
 
         assert config._settings.model_db.user == model_db_service._model_db.config.user
         assert (
-            config._settings.model_db.password
-            == model_db_service._model_db.config.password
+            config._settings.model_db.password.get_secret_value()
+            == model_db_service._model_db.config.password.get_secret_value()
         )
         assert config._settings.model_db.host == model_db_service._model_db.config.host
         assert config._settings.model_db.port == model_db_service._model_db.config.port
@@ -64,8 +64,8 @@ class TestLumeSettings:
             == results_db_service._results_db.config.username
         )
         assert (
-            config._settings.results_db.password
-            == results_db_service._results_db.config.password
+            config._settings.results_db.password.get_secret_value()
+            == results_db_service._results_db.config.password.get_secret_value()
         )
         assert (
             config._settings.results_db.database
@@ -97,8 +97,8 @@ class TestLumeSettings:
 
         assert config._settings.model_db.user == lume_services_settings.model_db.user
         assert (
-            config._settings.model_db.password
-            == lume_services_settings.model_db.password
+            config._settings.model_db.password.get_secret_value()
+            == lume_services_settings.model_db.password.get_secret_value()
         )
         assert config._settings.model_db.host == lume_services_settings.model_db.host
         assert config._settings.model_db.port == lume_services_settings.model_db.port
@@ -122,8 +122,8 @@ class TestLumeSettings:
             == lume_services_settings.results_db.username
         )
         assert (
-            config._settings.results_db.password
-            == lume_services_settings.results_db.password
+            config._settings.results_db.password.get_secret_value()
+            == lume_services_settings.results_db.password.get_secret_value()
         )
         assert (
             config._settings.results_db.database
