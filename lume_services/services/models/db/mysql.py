@@ -48,7 +48,7 @@ class MySQLModelDBConfig(ModelDBConfig):
     """
 
     host: str
-    port: str
+    port: int
     user: str
     password: SecretStr = Field(exclude=True)
     database: str
