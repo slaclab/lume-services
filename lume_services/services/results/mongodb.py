@@ -20,13 +20,29 @@ logger = logging.getLogger(__name__)
 
 
 class MongodbResultsDBConfig(ResultsDBConfig):
+    """Configuration for connecting to Mongodb using the PyMongo driver.
+
+    Attr:
+        database (Optional[str]): Database name used for storing results.
+        host (str): Host name of mongodb service.
+        username (str): Username string.
+        password (SecretStr): Password stored as a Pydantic secret string. https://pydantic-docs.helpmanual.io/usage/types/#secret-types
+        port (int): Host port of mongodb service endpoint.
+        authMechanism (): Auth mechanism supported by PyMongo driver. See https://pymongo.readthedocs.io/en/stable/api/pymongo/database.html#pymongo.auth.MECHANISMS.
+        options (dict): Dictionary of additional connection options for MongoClient. https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
+
+    """  # noqa
+
     # excluded in serialization bc not used to initialize cxn
     database: Optional[str] = Field(exclude=True)
     username: str
     host: str
     password: SecretStr = Field(exclude=True)
     port: int
-    authMechanism: str = "SCRAM-SHA-256"
+    authMechanism: str = "DEFAULT"
+    # Pydantic literal parsing from env has issue with literals...
+    # Literal["DEFAULT", 'GSSAPI', 'MONGODB-AWS', 'MONGODB-CR', 'MONGODB-X509',
+    # 'PLAIN', 'SCRAM-SHA-1', 'SCRAM-SHA-256'] = "DEFAULT"
     options: dict = Field({}, exclude=True)
 
     class Config:
