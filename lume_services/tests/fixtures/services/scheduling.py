@@ -22,7 +22,6 @@ def lume_env():
 
 
 @pytest.mark.usefixtures("prefect_job_docker")
-@pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="session", autouse=True)
 def docker_run_config(prefect_docker_tag, file_service, lume_env):
 
@@ -51,7 +50,6 @@ def docker_backend(lume_services_settings):
 
 
 @pytest.mark.usefixtures("docker_services")
-@pytest.mark.usefixtures("docker_backend")
 @pytest.fixture(scope="class", autouse=True)
 def scheduling_service(docker_backend):
     return SchedulingService(backend=docker_backend)

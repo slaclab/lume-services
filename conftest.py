@@ -217,9 +217,6 @@ def mounted_filesystem(mount_path):
 
 
 # Docker
-@pytest.fixture(scope="session")
-def docker_compose_file():
-    return DOCKER_COMPOSE
 
 
 @pytest.fixture(scope="session", autouse=True)
