@@ -6,4 +6,3 @@ docker-compose
 pyfakefs
 pytest-cov
 black
-mkdocs-jupyter
