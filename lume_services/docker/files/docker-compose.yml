@@ -1,5 +1,6 @@
 version: "3.7"
 services:
+  # MySQL
   mysql:
     image: mysql/mysql-server:8.0
     ports:
@@ -22,7 +23,6 @@ services:
       - ${LUME_RESULTS_DB__PORT:-27017}:27017
     networks:
       - service-net
-    #  - default
 
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
