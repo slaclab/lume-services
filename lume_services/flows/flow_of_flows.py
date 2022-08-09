@@ -1,7 +1,7 @@
 import os
 import yaml
-from pydantic import validator
-from typing import List, get_args
+from pydantic import root_validator
+from typing import get_args
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -16,6 +16,12 @@ from lume_services.errors import (
     TaskNotInFlowError,
 )
 
+from dependency_injector.wiring import Provide, inject
+from lume_services.config import Context
+
+
+from lume_services.services.scheduling import SchedulingService
+
 
 class FlowOfFlows(Flow):
     composing_flows: dict
@@ -23,13 +29,17 @@ class FlowOfFlows(Flow):
     class Config:
         arbitrary_types_allowed = True
 
-    @validator("composing_flows", pre=True)
-    def validate(cls, v: List[dict]):
+    @root_validator(pre=True)
+    def validate(cls, values: dict):
         """Validate composing flow data against Prefect server."""
         flows = {}
 
+        scheduling_service = None
+        if "scheduling_service" in values:
+            scheduling_service = values.pop("scheduling_service")
+
         # validate composing flow existence
-        for flow in v:
+        for flow in values["composing_flows"]:
 
             # compose flow objects
             flow_obj = Flow(
@@ -39,7 +49,11 @@ class FlowOfFlows(Flow):
             )
 
             # load Prefect parameters
-            flow_obj.load()
+            if scheduling_service is not None:
+                flow_obj.load(scheduling_service=scheduling_service)
+            else:
+                flow_obj.load()
+
             flows[flow["name"]] = flow_obj
 
         # validate flow parameters
@@ -67,7 +81,9 @@ class FlowOfFlows(Flow):
                             parameter.parent_flow_name, parameter.parent_task_name
                         )
 
-        return flows
+        values["composing_flows"] = flows
+
+        return values
 
     def compose(self) -> PrefectFlow:
         """Compose Prefect flow from FlowOfFlows object.
@@ -131,6 +147,7 @@ class FlowOfFlows(Flow):
                             )
 
                             if mapped_param.map_type in ["raw", "file"]:
+                                print(flow_params)
                                 flow.prefect_flow.replace(
                                     flow_params[param_name], task_run_result
                                 )
@@ -196,14 +213,16 @@ class FlowOfFlows(Flow):
         """
 
         flow = self.compose()
-        flow_id = self.register(self.project_name)
-        self.flow = flow
-        self.flow_id = flow_id
-        self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
-        self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
+        self.prefect_flow = flow
+        return self.register(self.project_name)
 
     @classmethod
-    def from_yaml(cls, yaml_obj):
+    @inject
+    def from_yaml(
+        cls,
+        yaml_obj,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
         if os.path.exists(yaml_obj):
             flow_of_flow_config = yaml.safe_load(open(yaml_obj))
 
@@ -211,7 +230,7 @@ class FlowOfFlows(Flow):
             flow_of_flow_config = yaml_obj
 
         # now validate
-        return cls(**flow_of_flow_config)
+        return cls(**flow_of_flow_config, scheduling_service=scheduling_service)
 
     def _compose_local(self):
         """

@@ -236,10 +236,12 @@ def run_docker_services(
         cmd = _BASE_SETUP_COMMAND
 
     # setup containers.
+    logger.info("Setting up docker-compose containers.")
     try:
         docker_compose.execute(cmd)
     except Exception as e:
         for cmd in _CLEANUP_COMMANDS:
+            logger.debug("Executing cmd %s", cmd)
             try:
                 docker_compose.execute(cmd)
             except Exception as cleanup_exception:
@@ -251,13 +253,38 @@ def run_docker_services(
 
     # now we perform startup checks
     try:
-        # Let tests run.
-        services = Services(docker_compose)
-        services.wait_until_responsive(lume_services_settings, timeout, pause)
-        yield Services(docker_compose)
+        try:
+            services = Services(docker_compose)
+            services.wait_until_responsive(lume_services_settings, timeout, pause)
+            yield Services(docker_compose)
+
+        except Exception as e:
+            logger.exception("Exception when composing services: %s", e)
+
+            # Clean up.
+            for cmd in _CLEANUP_COMMANDS:
+                logger.debug("Executing cmd %s", cmd)
+                try:
+                    docker_compose.execute(cmd)
+                except Exception as cleanup_exception:
+                    logger.warning(
+                        f"Cleanup command exception for {cmd}: \
+                            {cleanup_exception.message}"
+                    )
+                    pass
+            raise e
 
     # yield services
     finally:
         # Clean up.
         for cmd in _CLEANUP_COMMANDS:
-            docker_compose.execute(cmd)
+            logger.debug("Executing cmd %s", cmd)
+            try:
+                docker_compose.execute(cmd)
+            except Exception as cleanup_exception:
+                logger.warning(
+                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                )
+                pass
+
+        logger.info("Finished executing docker-compose shutdown commands.")

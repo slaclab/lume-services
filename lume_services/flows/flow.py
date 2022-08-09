@@ -164,6 +164,13 @@ class Flow(BaseModel):
             self.prefect_flow, self.name, self.project_name
         )
 
+        self.parameters = {
+            parameter.name: parameter for parameter in self.prefect_flow.parameters()
+        }
+        self.task_slugs = {
+            task.name: task.slug for task in self.prefect_flow.get_tasks()
+        }
+
 
 # unused...
 class FlowConfig(BaseModel):
