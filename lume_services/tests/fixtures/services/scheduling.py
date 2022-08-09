@@ -1,83 +1,15 @@
 import pytest
 import os
 
-import prefect
-
-import docker
-
 from lume_services.services.scheduling.backends import (
     DockerBackend,
     DockerRunConfig,
 )
 from lume_services.services.scheduling.service import SchedulingService
 
-from prefect.utilities.backend import save_backend
-
-
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_docker_tag():
-    return "lume_services:pytest"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def prefect_job_docker(rootdir, prefect_docker_tag):
-    docker_client = docker.from_env()
-    image, build_logs = docker_client.images.build(
-        path=str(rootdir),
-        dockerfile=f"{rootdir}/Dockerfile",
-        nocache=True,
-        tag=prefect_docker_tag,
-        quiet=False,
-        buildargs={"LUME_SERVICES_VERSION": "pytest"},
-        rm=True,
-        forcerm=True,
-    )
-    for chunk in build_logs:
-        if "stream" in chunk:
-            for line in chunk["stream"].splitlines():
-                logger.info(line)
-
-    yield image
-
-    docker_client.images.remove(image.id, noprune=False)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def api_server_str(lume_services_settings):
-    host = lume_services_settings.prefect.server.host
-    port = lume_services_settings.prefect.server.host_port
-
-    return f"{host}:{port}"
-
-
-# allows us to wait until we get a response from the Prefect services
-# and allow startup time
-@pytest.fixture(scope="session", autouse=True)
-def prefect_services(docker_services, api_server_str):
-
-    # set backend
-    save_backend("server")
-
-    def is_prefect_ready():
-        try:
-            client = prefect.Client(api_server=api_server_str)
-            client.graphql("query{hello}", raise_on_error=True)
-            return True
-        except Exception as e:
-            logger.error(e)
-            return False
-
-    docker_services.wait_until_responsive(
-        timeout=60.0,
-        pause=1,
-        check=lambda: is_prefect_ready(),
-    )
-    return
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -90,7 +22,7 @@ def lume_env():
 
 
 @pytest.mark.usefixtures("prefect_job_docker")
-@pytest.mark.usefixtures("prefect_services")
+@pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="session", autouse=True)
 def docker_run_config(prefect_docker_tag, file_service, lume_env):
 
@@ -112,13 +44,13 @@ def docker_run_config(prefect_docker_tag, file_service, lume_env):
     )
 
 
-@pytest.mark.usefixtures("prefect_services")
+@pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="class", autouse=True)
 def docker_backend(lume_services_settings):
     return DockerBackend(config=lume_services_settings.prefect)
 
 
-@pytest.mark.usefixtures("prefect_services")
+@pytest.mark.usefixtures("docker_services")
 @pytest.mark.usefixtures("docker_backend")
 @pytest.fixture(scope="class", autouse=True)
 def scheduling_service(docker_backend):

@@ -3,7 +3,7 @@ import os
 import logging
 
 from lume_services import config
-
+from lume_services.docker.files import DOCKER_COMPOSE
 from lume_services.services.models.db.mysql import MySQLModelDBConfig
 from lume_services.services.results.mongodb import MongodbResultsDBConfig
 from lume_services.services.scheduling.backends.server import (
@@ -193,9 +193,9 @@ def mongodb_database(request):
     return database
 
 
-## Scheduling
+# Scheduling
 
-## Filesystem
+# Filesystem
 @pytest.fixture(scope="session")
 def mount_path(tmp_path_factory):
     return str(tmp_path_factory.mktemp("mounted_dir"))
@@ -214,6 +214,22 @@ def mounted_filesystem(mount_path):
     return MountedFilesystem(
         mount_path=mount_path, mount_alias="/User/my_user/data", identifier="mounted"
     )
+
+
+# Docker
+@pytest.fixture(scope="session")
+def docker_compose_file():
+    return DOCKER_COMPOSE
+
+
+@pytest.fixture(scope="session", autouse=True)
+def prefect_docker_tag():
+    return "lume_services:pytest"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def dockerfile(rootdir):
+    return f"{rootdir}/Dockerfile"
 
 
 ## ENVIRONMENT VARIABLES:
