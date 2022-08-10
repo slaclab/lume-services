@@ -264,7 +264,7 @@ class TestPrefectConfig:
 
         prefect_config = lume_services_settings.prefect
 
-        new_config = prefect_config.copy()
+        new_config = prefect_config.copy(deep=True)
         new_config.server.host = "0.0.0.0"
         new_config.server.host_port = 4000
 
