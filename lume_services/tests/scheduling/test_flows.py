@@ -251,7 +251,7 @@ class TestFlowOfFlows:
         )
         flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
 
-        with prefect.context(config=lume_services_settings.prefect_config.apply()):
+        with prefect.context(config=lume_services_settings.prefect.apply()):
             flow_of_flows.prefect_flow.register(
                 project_name=project_name, labels=["lume-services"]
             )
