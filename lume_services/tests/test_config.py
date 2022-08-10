@@ -268,19 +268,41 @@ class TestPrefectConfig:
         new_config.server.host = "0.0.0.0"
         new_config.server.host_port = 4000
 
-        new_config.apply()
+        with prefect.context(config=new_config.apply()):
 
-        # check server values
-        for key, value in prefect_config.server.dict().items():
-            attr = getattr(prefect.config.server, key)
-            assert attr == value
+            # check server values
+            for key, value in new_config.server.dict().items():
+                attr = getattr(prefect.config.server, key)
+                assert attr == value
 
-        # check ui values
-        for key, value in prefect_config.ui.dict().items():
-            attr = getattr(prefect.config.server.ui, key)
-            assert attr == value
+            # check ui values
+            for key, value in new_config.ui.dict().items():
+                attr = getattr(prefect.config.server.ui, key)
+                assert attr == value
 
-        # check graphql values
-        for key, value in prefect_config.telemetry.dict().items():
-            attr = getattr(prefect.config.server.telemetry, key)
-            assert attr == value
+            # check graphql values
+            for key, value in new_config.telemetry.dict().items():
+                attr = getattr(prefect.config.server.telemetry, key)
+                assert attr == value
+
+    def test_prefect_reset_config(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
+        prefect_config = lume_services_settings.prefect
+
+        with prefect.context(config=prefect_config.apply()):
+
+            # check server values
+            for key, value in prefect_config.server.dict().items():
+                attr = getattr(prefect.config.server, key)
+                assert attr == value
+
+            # check ui values
+            for key, value in prefect_config.ui.dict().items():
+                attr = getattr(prefect.config.server.ui, key)
+                assert attr == value
+
+            # check graphql values
+            for key, value in prefect_config.telemetry.dict().items():
+                attr = getattr(prefect.config.server.telemetry, key)
+                assert attr == value
