@@ -228,6 +228,7 @@ class FlowOfFlows(Flow):
 
         # assign to obj
         self.prefect_flow = composed_flow
+        self.image = f"{image_name}:{image_tag}"
 
         return composed_flow
 
