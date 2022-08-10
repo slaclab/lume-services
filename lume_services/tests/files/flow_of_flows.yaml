@@ -1,5 +1,7 @@
 name: flow_of_flows
 project_name: test
+labels:
+  - lume-services
 composing_flows:
   - name: flow1
     project_name: test
