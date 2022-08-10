@@ -23,6 +23,7 @@ from lume_services.errors import (
 from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+from lume_services import config
 
 import logging
 
@@ -223,6 +224,8 @@ class TestDockerBackend:
     @pytest.mark.usefixtures("scheduling_service")
     @pytest.fixture(scope="class")
     def backend(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
         return DockerBackend(config=lume_services_settings.prefect)
 
     @pytest.fixture(scope="class")

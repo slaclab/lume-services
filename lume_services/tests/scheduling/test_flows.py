@@ -17,11 +17,14 @@ from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
 from lume_services.tests.files import FLOW_OF_FLOWS_YAML
 from lume_services.flows.flow_of_flows import FlowOfFlows
+from lume_services import config
 
 
 @pytest.mark.usefixtures("scheduling_service")
 @pytest.fixture(scope="module", autouse=True)
 def project_name(lume_services_settings):
+
+    config.configure(lume_services_settings)
 
     project_name = "test"
 
