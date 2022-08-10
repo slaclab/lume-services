@@ -2,6 +2,7 @@ import os
 import yaml
 from pydantic import root_validator
 from typing import get_args
+from prefect.storage.docker import Docker
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -92,8 +93,23 @@ class FlowOfFlows(Flow):
 
         return values
 
-    def compose(self) -> PrefectFlow:
-        """Compose Prefect flow from FlowOfFlows object.
+    def compose(
+        self,
+        image_name: str,
+        image_tag: str = "latest",
+        local: bool = False,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ) -> PrefectFlow:
+        """Compose Prefect flow from FlowOfFlows object. Uses base image assigned to
+        the FlowOfFlows Object and builds a new Docker image containing the composite
+        flow.
+
+
+        Args:
+            image_name (str): Name of generated image.
+            image_tag (str): Tag of generated image.
+            local (bool=False): Whether to use local images for the base image.
+
 
         Returns:
             PrefectFlow
@@ -101,7 +117,15 @@ class FlowOfFlows(Flow):
         """
 
         # compose flow of flows
-        with PrefectFlow(self.name) as composed_flow:
+        with PrefectFlow(
+            self.name,
+            storage=Docker(
+                base_image=self.image,
+                image_name=image_name,
+                image_tag=image_tag,
+                local_image=local,
+            ),
+        ) as composed_flow:
 
             flow_runs = {}
             flow_waits = {}
@@ -234,18 +258,6 @@ class FlowOfFlows(Flow):
 
         # now validate
         return cls(**flow_of_flow_config, scheduling_service=scheduling_service)
-
-    def run(
-        self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
-    ):
-        ...
-
-    def run_and_return(
-        self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
-    ):
-        ...
 
     def _compose_local(self):
         """

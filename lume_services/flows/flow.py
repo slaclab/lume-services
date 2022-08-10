@@ -143,7 +143,13 @@ class Flow(BaseModel):
     def load(
         self,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
-    ):
+    ) -> None:
+        """Loads Prefect flow artifact from the backend.
+
+        Args:
+            scheduling_service (SchedulingService): Scheduling service. If not
+                provided, uses injected service.
+        """
         flow = scheduling_service.load_flow(self.name, self.project_name)
 
         # assign attributes
@@ -155,7 +161,17 @@ class Flow(BaseModel):
     def register(
         self,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
-    ):
+    ) -> str:
+        """Register flow with SchedulingService backend.
+
+        Args:
+            scheduling_service (SchedulingService): Scheduling service. If not
+                provided, uses injected service.
+
+        Returns:
+            flow_id (str): ID of registered flow.
+
+        """
 
         if self.prefect_flow is None:
             # attempt loading
@@ -173,6 +189,24 @@ class Flow(BaseModel):
         }
 
         return self.flow_id
+
+    def run(
+        self,
+        parameters,
+        run_config,
+        task_name,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+        ...
+
+    def run_and_return(
+        self,
+        parameters,
+        run_config,
+        task_name,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+        ...
 
 
 # unused...
