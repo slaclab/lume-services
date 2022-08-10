@@ -90,19 +90,33 @@ def _get_mapped_parameter_type(map_type: str):
 
 
 class Flow(BaseModel):
-    """
+    """Interface to a workflow object.
 
-    mapped_parameters (Optional[Dict[str, MappedParameter]]): Parameters to be
-        collected from other flows
+    Attributes:
+        name: Name of flow
+        flow_id (Optional[str]): ID of flow as registered with Prefect. If running
+            locally, this will be null.
+        project_name (Optional[str]): Name of Prefect project with which the flow is
+            registered. If running locally this will be null.
+        parameters (Optional[Dict[str, Parameter]]): Dictionary of Prefect parameters
+            associated with the flow.
+        mapped_parameters (Optional[Dict[str, MappedParameter]]): Parameters to be
+            collected from results of other flows.
+        task_slugs (Optional[Dict[str, str]]): Slug of tasks associated with the
+            Prefect flow.
+        labels (List[str] = ["lume-services"]): List of labels to assign to flow when
+            registering with Prefect backend. This label is used to assign agents that
+            will manage deployment.
+        image (str): Image inside which to run flow if deploying to remote backend.
 
     """
 
     name: str
     flow_id: Optional[str]
-    project_name: str
+    project_name: Optional[str]
+    prefect_flow: Optional[PrefectFlow]
     parameters: Optional[Dict[str, Parameter]]
     mapped_parameters: Optional[Dict[str, MappedParameter]]
-    prefect_flow: Optional[PrefectFlow]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
     image: str = "build-test:latest"
@@ -152,12 +166,15 @@ class Flow(BaseModel):
             scheduling_service (SchedulingService): Scheduling service. If not
                 provided, uses injected service.
         """
-        flow = scheduling_service.load_flow(self.name, self.project_name)
+        flow_dict = scheduling_service.load_flow(self.name, self.project_name)
+
+        flow = flow_dict["flow"]
 
         # assign attributes
         self.prefect_flow = flow
         self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
         self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
+        self.flow_id = flow_dict["flow_id"]
 
     @inject
     def register(

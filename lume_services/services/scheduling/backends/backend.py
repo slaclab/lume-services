@@ -72,7 +72,7 @@ class Backend(BaseModel, ABC):
         ...
 
     @abstractmethod
-    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object. Backend implementations without server connecton
         should raise errors when this method is called.
 
@@ -81,7 +81,7 @@ class Backend(BaseModel, ABC):
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         """
         ...

@@ -66,7 +66,7 @@ class SchedulingService:
         """
         return self.backend.register_flow(flow, project_name, image, labels=labels)
 
-    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object. Backend implementations without server connecton
         should raise errors when this method is called.
 
@@ -75,7 +75,7 @@ class SchedulingService:
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         Raises:
             prefect.errors.ClientError: if the GraphQL query is bad for any reason

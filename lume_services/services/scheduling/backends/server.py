@@ -137,7 +137,8 @@ class ServerBackend(Backend):
         Args:
             flow (Flow): Prefect flow to register
             project_name (str): Name of project to register flow to
-            image (str): Name of Docker image to run flow inside
+            image (str): Name of Docker image to run flow inside. If not specified,
+                this will use the default image packaged with this repository.
             build (bool): Whether the flows storage should be built prior to
                 serialization. By default lume-services flows use the same
                 image for execution with additional packages passed for installation
@@ -168,18 +169,17 @@ class ServerBackend(Backend):
         if not image:
             image = self.default_image
 
-        # clear run config labels
-        if flow.run_config is not None and labels is None:
-            flow.run_config.labels = set()
-
-        elif flow.run_config is not None and labels is not None:
+        # configure run config for backend
+        run_config = self.run_config_type(image=image)
+        flow.run_config = run_config.build()
+        if labels is not None:
             logger.info(
                 "Flow run config is not empty. Clearing existing labels and assigning \
                     new."
             )
             flow.run_config.labels = set(labels)
 
-        # flow.storage.image_tag = image
+        flow.run_config.image_tag = image
 
         with prefect.context(config=self.config.apply()):
             flow_id = flow.register(
@@ -193,7 +193,7 @@ class ServerBackend(Backend):
 
         return flow_id
 
-    def load_flow(self, flow_name: str, project_name: str):
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object.
 
         Args:
@@ -201,16 +201,21 @@ class ServerBackend(Backend):
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         Raises:
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
 
         """
+
+        flow_view = FlowView.from_flow_name(
+            flow_name, project_name=project_name, last_updated=True
+        )
         with prefect.context(config=self.config.apply()):
-            return FlowView.from_flow_name(
+            flow_view = FlowView.from_flow_name(
                 flow_name, project_name=project_name, last_updated=True
-            ).flow
+            )
+            return {"flow_id": flow_view.flow_id, "flow": flow_view.flow}
 
     def run(
         self,
@@ -315,9 +320,6 @@ class ServerBackend(Backend):
         with prefect.context(config=self.config.apply()):
             client = Client()
 
-            print(flow_id)
-            print(parameters)
-            print(run_config)
             flow_run_id = client.create_flow_run(
                 flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
