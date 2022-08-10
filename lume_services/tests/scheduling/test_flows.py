@@ -240,7 +240,7 @@ class TestFlowOfFlows:
         flow_of_flows = FlowOfFlows.from_yaml(
             FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
         )
-        flow_of_flows.compose()
+        flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
 
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
     def test_flow_of_flows_id(
