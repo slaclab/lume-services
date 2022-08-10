@@ -103,6 +103,7 @@ class Flow(BaseModel):
     prefect_flow: Optional[PrefectFlow]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
+    image: str = "build-test:latest"
 
     class Config:
         arbitrary_types_allowed = True
@@ -161,7 +162,7 @@ class Flow(BaseModel):
             self.load()
 
         self.flow_id = scheduling_service.register_flow(
-            self.prefect_flow, self.name, self.project_name
+            self.prefect_flow, self.project_name, labels=self.labels, image=self.image
         )
 
         self.parameters = {
@@ -170,6 +171,8 @@ class Flow(BaseModel):
         self.task_slugs = {
             task.name: task.slug for task in self.prefect_flow.get_tasks()
         }
+
+        return self.flow_id
 
 
 # unused...
