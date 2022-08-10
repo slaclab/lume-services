@@ -249,7 +249,7 @@ class TestFlowOfFlows:
         flow_of_flows = FlowOfFlows.from_yaml(
             FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
         )
-        flow_of_flows.compose()
+        flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
 
         with prefect.context(config=lume_services_settings.prefect_config.apply()):
             flow_of_flows.prefect_flow.register(

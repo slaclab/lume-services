@@ -9,6 +9,8 @@ from lume_services.config import Context
 
 
 from lume_services.services.scheduling import SchedulingService
+from lume_services.services.scheduling.backends.local import LocalBackend
+from lume_services.services.scheduling.backends.server import ServerBackend
 
 
 class MappedParameter(BaseModel):
@@ -140,7 +142,7 @@ class Flow(BaseModel):
         return mapped_parameters
 
     @inject
-    def load(
+    def load_flow(
         self,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
     ) -> None:
@@ -175,7 +177,7 @@ class Flow(BaseModel):
 
         if self.prefect_flow is None:
             # attempt loading
-            self.load()
+            self.load_flow()
 
         self.flow_id = scheduling_service.register_flow(
             self.prefect_flow, self.project_name, labels=self.labels, image=self.image
@@ -194,19 +196,51 @@ class Flow(BaseModel):
         self,
         parameters,
         run_config,
-        task_name,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
     ):
-        ...
+        """Run the flow."""
+        if isinstance(scheduling_service.backend, (LocalBackend,)):
+            if self.prefect_flow is None:
+                self.load_flow()
+
+            scheduling_service.run(
+                parameters=parameters, run_config=run_config, flow=self.prefect_flow
+            )
+
+        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+            scheduling_service.run(
+                parameters=parameters, run_config=run_config, flow_id=self.flow_id
+            )
 
     def run_and_return(
         self,
         parameters,
         run_config,
-        task_name,
+        task_name: Optional[str],
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
     ):
-        ...
+        """Run flow and return result. Result will reference either passed task name or
+        the result of all tasks.
+
+        """
+        if isinstance(scheduling_service.backend, (LocalBackend,)):
+            if self.prefect_flow is None:
+                self.load_flow()
+
+            scheduling_service.run_and_return(
+                parameters=parameters,
+                run_config=run_config,
+                flow=self.prefect_flow,
+                task_name=task_name,
+            )
+
+        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+            scheduling_service.run_and_return(
+                parameters=parameters,
+                run_config=run_config,
+                flow_id=self.flow_id,
+                task_name=task_name,
+            )
 
 
 # unused...
@@ -216,7 +250,6 @@ class FlowConfig(BaseModel):
 
 
 class FlowRunConfig(BaseModel):
-    flow_id: str
     poll_interval: timedelta = timedelta(seconds=10)
     scheduled_start_time: Optional[datetime]
     parameters: Optional[Dict[str, Any]]

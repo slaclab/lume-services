@@ -58,9 +58,9 @@ class FlowOfFlows(Flow):
 
                 # load Prefect parameters
                 if scheduling_service is not None:
-                    flow_obj.load(scheduling_service=scheduling_service)
+                    flow_obj.load_flow(scheduling_service=scheduling_service)
                 else:
-                    flow_obj.load()
+                    flow_obj.load_flow()
 
                 flows[flow["name"]] = flow_obj
 
