@@ -62,15 +62,13 @@ class PrefectConfig(BaseModel):
         prefect_config.update(
             home_dir=self.home_dir, debug=self.debug, backend=self.backend
         )
-        prefect_config.server.update(**self.server.dict())
         # must set endpoint because referenced by client
         prefect_config.server.update(
-            {"endpoint": f"{self.server.host}:{self.server.host_port}"}
+            endpoint=f"{self.server.host}:{self.server.host_port}", **self.server.dict()
         )
         prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.server.telemetry.update(**self.telemetry.dict())
         # client requires api set
-        prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.cloud.update(api=f"{self.server.host}:{self.server.host_port}")
         save_backend(self.backend)
         return prefect_config
@@ -140,9 +138,10 @@ class ServerBackend(Backend):
             flow (Flow): Prefect flow to register
             project_name (str): Name of project to register flow to
             image (str): Name of Docker image to run flow inside
-            build (bool): Whether the flows storage should be build prior to
+            build (bool): Whether the flows storage should be built prior to
                 serialization. By default lume-services flows use the same
-                image for execution with additional environment configured at runtime.
+                image for execution with additional packages passed for installation
+                configured at runtime.
             labels (Optional[List[str]]): A list of labels to add to this Flow.
             idempotency_key (Optional[str]): a key that, if matching the most recent
                 registration call for this flow group, will prevent the creation of
@@ -315,6 +314,10 @@ class ServerBackend(Backend):
 
         with prefect.context(config=self.config.apply()):
             client = Client()
+
+            print(flow_id)
+            print(parameters)
+            print(run_config)
             flow_run_id = client.create_flow_run(
                 flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
