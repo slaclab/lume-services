@@ -230,28 +230,31 @@ class TestFlowOfFlows:
             _ = yaml.safe_load(file)
 
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
-    def test_validate_yaml(self, scheduling_service):
-        _ = FlowOfFlows.from_yaml(
-            FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
-        )
+    def test_validate_yaml(self, scheduling_service, lume_services_settings):
+
+        with prefect.context(config=lume_services_settings.prefect.apply()):
+            _ = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
 
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
-    def test_compose(self, scheduling_service):
-        flow_of_flows = FlowOfFlows.from_yaml(
-            FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
-        )
-        flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+    def test_compose(self, scheduling_service, lume_services_settings):
+        with prefect.context(config=lume_services_settings.prefect.apply()):
+            flow_of_flows = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
+            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
 
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
     def test_flow_of_flows_id(
         self, project_name, lume_services_settings, scheduling_service
     ):
-        flow_of_flows = FlowOfFlows.from_yaml(
-            FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
-        )
-        flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
-
         with prefect.context(config=lume_services_settings.prefect.apply()):
+            flow_of_flows = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
+            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+
             flow_of_flows.prefect_flow.register(
                 project_name=project_name, labels=["lume-services"]
             )
