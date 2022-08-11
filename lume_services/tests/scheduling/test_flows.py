@@ -245,6 +245,7 @@ class TestFlowOfFlows:
             )
             flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
 
+    @pytest.mark.skip()
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
     def test_flow_of_flows_id(
         self, project_name, lume_services_settings, scheduling_service
