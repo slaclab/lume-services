@@ -9,18 +9,25 @@ def docker():
     pass
 
 
-@docker.command()
-@click.option("--project_name", default="lume-services")
-@click.option("--timeout", default=60.0)
-@click.option("--pause", default=1.0)
+@docker.command(help="Start cluster of docker services.")
+@click.option(
+    "--project_name",
+    default="lume-services",
+    help="Name of docker project for labeling docker-compose.",
+)
+@click.option(
+    "--timeout",
+    default=60.0,
+    help="Time allotted for successful docker-compose startup.",
+)
+@click.option(
+    "--pause",
+    default=1.0,
+    help="Pause between successive polls of docker-compose services.",
+)
 def start_docker_services(project_name, timeout, pause):
     """CLI utility for spinning up LUME-services with docker-compose. Services will
     exit on KeyboardInterrupt (Ctrl+C).
-
-    Args:
-        project_name
-        timeout
-        pause
 
     """
     lume_services_settings = LUMEServicesSettings()
