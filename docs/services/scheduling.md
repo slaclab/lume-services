@@ -8,7 +8,7 @@ https://docs.prefect.io/core/concepts/configuration.html#user-configuration
 * Configurable backends
 * Backend returns a Prefect Run Config
 
-![Screenshot](files/services/scheduling_service.drawio.png)
+![Screenshot](../files/services/scheduling_service.drawio.png)
 
 ## Prefect
 Core functionality
@@ -31,7 +31,7 @@ The Scheduling Service is set up to interface with different backends.
 
 
 ### Kubernetes
-![kubernetes](files/services/kubernetes_architecture.png)
+![kubernetes](../files/kubernetes_architecture.png)
 
 
 ### Docker

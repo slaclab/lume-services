@@ -6,6 +6,13 @@ Programs using the standard services packaged with LUME-services (the MongoDB im
 ```
 from lume_services.config import configure, LUMEServicesSettings
 
+lume_services_settings = LUMEServicesSettings(
+
+
+)
+
+
+
 # run configure by parsing LUME environment variables
 configure()
 

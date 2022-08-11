@@ -44,9 +44,9 @@ The intent of these tools are to streamline the packaging of modeling/simulation
 <br>
 
 The service interfaces developed for `LUME-services` are isolated, which allows for abstraction and modularized update points, and consistent with a microservice-based application architecture, prioritizing scalability, maintainability, and parallelized development and maintenance. Services can be deployed in clusters of containers or on remote resources subject to user constraints. Example configurations of Docker and Kubernetes clusters shown below.
-- Docker
+* Docker:
 ![docker](./files/docker_architecture.png)
-- Kubernetes
+* Kubernetes:
 ![kubernetes](./files/kubernetes_architecture.png)
 
 <br>
@@ -62,8 +62,14 @@ Features:
 * Configurable result persistence
 * Visualization tools for model results
 
+## Requirements
+
+Use of the LUME-services requires Docker Engine
+https://docs.docker.com/engine/install/
+
 
 ## Installation
+
 
 This package can be installed from GitHub using:
 ```

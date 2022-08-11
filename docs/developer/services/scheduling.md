@@ -94,3 +94,6 @@ At runtime, the container accepts two additional environment variables: `EXTRA_C
 ENV EXTRA_CONDA_PACKAGES
 ENV EXTRA_PIP_PACKAGES=""
 ```
+
+
+## Serialization

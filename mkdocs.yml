@@ -4,9 +4,10 @@ repo_url: https://github.com/jacquelinegarrahan/lume-services
 nav:
   - Overview:
     - LUME-Services: index.md
-  -   Configuration: config.md
-  -   Model Packaging: model_packaging.md
-  -   Workflows: workflows.md
+    - Configuration: config.md
+    - Model Packaging: model_packaging.md
+    - Workflows: workflows.md
+    - CLI: cli.md
   - Services:
     - File Service: services/files.md
     - Results DB Service: services/results.md
@@ -86,6 +87,7 @@ theme:
 
 markdown_extensions:
   - pymdownx.tasklist
+  - mkdocs-click
 #  - attr_list
 
 extra_css:

@@ -3,6 +3,7 @@ mkdocs
 mkdocstrings
 mkdocstrings-python
 mkdocs-material
+mkdocs-click
 pymdown-extensions>9.4
 Pygments>=2.12
 diagrams

@@ -4,7 +4,7 @@ The file service is intented to provide an abstraction to filesystem read/writes
 
 LUME-serices is packaged with `LocalFilesystem` and `MountedFilesystem` implementations, however, the `Filesystem` interface defined in `lume_services.services.files.filesystems.filesystem` can be used to implement any number of custom interfaces including remote cloud services.
 
-![Screenshot](files/services/filesystem.drawio.png)
+![Screenshot](../files/services/filesystem.drawio.png)
 
 
 ## Filesystems
