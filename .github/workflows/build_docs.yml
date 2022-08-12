@@ -29,19 +29,25 @@ jobs:
         run: |
           pip install -e .
 
-      - name: Build file artifacts
+      - name: Build Schema Diagrams
         shell: bash -l {0}
         run: |
           python scripts/build_schema_diagrams.py generate-schema-docs \
             --uml_output_filename=docs/files/model_db_uml.png \
             --schema_output_filename=docs/files/model_db_schema.png
+
+      - name: Build Docker Architecture
+        shell: bash -l {0}
+        run: |
           python scripts/diagrams/docker.py build-compose-docs --output_filename docs/files/docker_architecture.png
 
-     # - name: Push schema docs
-     #   uses: actions-x/commit@v6
-     #   with:
-     #     branch: main
-     #     files: docs/files/model_db_uml.png docs/files/model_db_schema.png
+      - name: Build Env Vars
+        shell: bash -l {0}
+        run: |
+          python scripts/build_configuration_table.py  build-configuration-table --output_filename docs/files/env_vars.md
+
+
+
 
       - name: Build and deploy
         shell: bash -l {0}
