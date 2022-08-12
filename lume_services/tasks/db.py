@@ -20,7 +20,7 @@ def _unique_db_location(result_rep):
 
 class SaveDBResult(Task):
     """Save a result from the results database. All database results generate a
-    [minimally representative identifier][lume_model.results.generic.Result] that can
+    [minimally representative identifier][lume_services.results.generic.Result] that can
     be used to query the database and load the result. This idenifier is jsonable and
     therefore accessable outside of the workflow's scope. This task uses either a
     passed or injected results database service to save the unique representation
@@ -213,7 +213,7 @@ class SaveDBResult(Task):
 
 class LoadDBResult(Task):
     """Load a result from the results database. All database results generate a
-    [minimally representative identifier][lume_model.results.generic.Result] that can
+    [minimally representative identifier][lume_services.results.generic.Result] that can
     be used to query the database and load the result. This idenifier is jsonable and
     therefore accessable outside of the workflow's scope. This task uses the identifier
     to load the database query and performs data selection via the `attribute_index`
@@ -250,7 +250,7 @@ class LoadDBResult(Task):
             # assume some other flow has saved a Result object to the database with the
             # resulting unique representation (Result.unique_rep):
             unique_rep = {
-                "result_type_string": "lume_model.results.generic:Result",
+                "result_type_string": "lume_services.results.generic:Result",
                 "query": {
                        "inputs": {
                            "input1": 1.0,
