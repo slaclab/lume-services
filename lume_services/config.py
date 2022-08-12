@@ -163,8 +163,8 @@ def list_env_vars(
 ) -> dict:
     env_vars = {"base": []}
 
-    schema = (settings.schema(),)
-    prefix = (settings.Config.env_prefix,)
+    schema = settings.schema()
+    prefix = settings.Config.env_prefix
     delimiter = settings.Config.env_nested_delimiter
 
     def unpack_props(
