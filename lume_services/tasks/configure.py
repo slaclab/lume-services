@@ -11,8 +11,8 @@ import copy
 logger = logging.getLogger(__name__)
 
 
-@task(name="configure_services")
-def configure_services():
+@task(name="configure_lume_services")
+def configure_lume_services():
     """Configure LUME-services using environment variables. This task must be included
     in any workflow using common database services.
 
