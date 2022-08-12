@@ -57,6 +57,7 @@ nav:
       - Models: developer/services/models.md
 
 plugins:
+  - macros
   - search:
       separator: '[\s\-\.]'
   - mkdocstrings:
@@ -75,8 +76,8 @@ plugins:
             show_root_full_path: true
             show_root_heading: true
             show_if_no_docstring: true
-            show_signature_annotations: true
-            separate_signature: true
+           # show_signature_annotations: true
+            #separate_signature: true
             merge_init_into_class: true
             show_submodules: true
             heading_level: 2

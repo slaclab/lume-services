@@ -41,3 +41,5 @@ dependencies:
   - diagrams
   - mkdocs-jupyter
   - mkdocs-click
+  - pytablewriter
+  - mkdocs-macros-plugin
