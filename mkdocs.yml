@@ -8,6 +8,7 @@ nav:
     - Model Packaging: model_packaging.md
     - Workflows: workflows.md
     - CLI: cli.md
+    - Demo: demo.md
   - Services:
     - File Service: services/files.md
     - Results DB Service: services/results.md
@@ -15,15 +16,19 @@ nav:
     - Modeling Service: services/models.md
     - Scheduling Service: services/scheduling.md
   - API:
+    - Tasks:
+      - api/tasks.md
     - Files:
       - File: api/files/files.md
       - Serializers: api/files/serializers.md
-      - Utils: /api/files/utils.md
+      - Utils: api/files/utils.md
+    - Models: api/models.md
     - Results: api/results.md
     - Config: api/config.md
     - Errors: api/errors.md
     - Utils: api/utils.md
     - Flows: api/flows.md
+    - Utils: api/utils.md
     - Services:
       - Results:
         - Results Database Service: api/services/results/results.md
@@ -44,10 +49,12 @@ nav:
     - TODO: developer/todo.md
     - Cluster Architecture: developer/cluster.md
     - Configuration: developer/configuration.md
+    - Docker Image: developer/docker_image.md
     - Services:
       - File: developer/services/file.md
       - Scheduling: developer/services/scheduling.md
       - Results: developer/services/results.md
+      - Models: developer/services/models.md
 
 plugins:
   - search:
@@ -75,7 +82,6 @@ plugins:
             heading_level: 2
             members_order: source
             show_category_heading: true
-
 
 theme:
   name: material
