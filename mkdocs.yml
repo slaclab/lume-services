@@ -1,6 +1,6 @@
 site_name: lume-services
-site_url: https://jacquelinegarrahan.github.io/lume-services
-repo_url: https://github.com/jacquelinegarrahan/lume-services
+site_url: https://slaclab.github.io/lume-services
+repo_url: https://github.com/slaclab/lume-services
 nav:
   - Overview:
     - LUME-Services: index.md
