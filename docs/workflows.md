@@ -16,7 +16,7 @@ Variable names inside the flow context are used to compose the workflow
 ## Configuring flows for use with LUME-services
 
 
-configure_services task uses environment variable names to configure the lume-services api endpoints
+configure_lume_services task uses environment variable names to configure the lume-services api endpoints
 
 must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
 
@@ -50,7 +50,7 @@ Flow Parameters have some constraints. To see why those constraints exist, see d
 ```python
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
-from lume_services.tasks import configure_services, SaveFile
+from lume_services.tasks import configure_lume_services, SaveFile
 from lume_services.files import TextFile
 import logging
 
@@ -70,7 +70,7 @@ with Flow("flow1", storage=Module(__name__)) as flow1:
     text2 = Parameter("text2")
     filename = Parameter("filename")
     filesystem_identifier = Parameter("filesystem_identifier")
-    configure = configure_services()
+    configure = configure_lume_services()
     new_text = append_text(text1, text2)
     file = save_file(
         obj=new_text,

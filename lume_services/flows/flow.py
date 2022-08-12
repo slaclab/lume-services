@@ -70,8 +70,7 @@ class FileMappedParameter(MappedParameter):
 
 class DBMappedParameter(MappedParameter):
     map_type: str = Field("db", const=True)
-    attribute: str
-    attribute_index: Optional[List[str]]
+    attribute_index: Optional[List[str, int]]
 
 
 _string_to_mapped_parameter_type = {

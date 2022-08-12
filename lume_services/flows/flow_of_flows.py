@@ -181,7 +181,6 @@ class FlowOfFlows(Flow):
                                 load_db_result = LoadDBResult()
                                 db_result = load_db_result(
                                     task_run_result,
-                                    mapped_param.attribute,
                                     attribute_index=mapped_param.attribute_index,
                                 )
                                 flow.prefect_flow.replace(
@@ -232,7 +231,7 @@ class FlowOfFlows(Flow):
 
         return composed_flow
 
-    def compose_and_register(self):
+    def compose_and_register(self) -> str:
         """Compose flow and register with project.
 
         Returns:
