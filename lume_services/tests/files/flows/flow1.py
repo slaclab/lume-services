@@ -1,6 +1,6 @@
 from prefect import task, Flow, Parameter
 from prefect.storage import Module
-from lume_services.tasks import configure_services, SaveFile
+from lume_services.tasks import configure_lume_services, SaveFile
 from lume_services.files import TextFile
 import logging
 
@@ -21,7 +21,7 @@ with Flow("flow1", storage=Module(__name__)) as flow:
     text2 = Parameter("text2")
     filename = Parameter("filename")
     filesystem_identifier = Parameter("filesystem_identifier")
-    configure = configure_services()
+    configure = configure_lume_services()
     new_text = append_text(text1, text2)
     file = save_file(
         obj=new_text,
