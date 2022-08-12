@@ -100,7 +100,7 @@ class TestFlows:
             # watch and block
             stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
-            configure_task = flow1.get_tasks(name="configure_services")[0]
+            configure_task = flow1.get_tasks(name="configure_lume_services")[0]
 
             # check config task run
             config_task_run = TaskRunView.from_task_slug(
@@ -158,7 +158,7 @@ class TestFlows:
             stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
             # check config task run
-            configure_task = flow2.get_tasks(name="configure_services")[0]
+            configure_task = flow2.get_tasks(name="configure_lume_services")[0]
             config_task_run = TaskRunView.from_task_slug(
                 configure_task.slug,
                 flow_run_id,
@@ -200,8 +200,7 @@ class TestFlows:
             # want to bind our task kwargs to flow2 outputs
             db_result = LoadDBResult().run(
                 test_flow2_run,
-                attribute="outputs",
-                attribute_index=["output1"],
+                attribute_index=["outputs", "output1"],
                 results_db_service=results_db_service,
             )
 

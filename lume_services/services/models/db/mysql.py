@@ -37,11 +37,11 @@ class MySQLModelDBConfig(ModelDBConfig):
     """Configuration for MySQL connection.
 
     Args:
-        host (str):
-        port (str):
-        user (str):
-        password (SecretStr):
-        database (str):
+        host (str): Host of MySQL server.
+        port (str): Port of MySQL server on host.
+        user (str): User for connecting to MySQL server.
+        password (SecretStr): Password for auth.
+        database (str): Name of database.
         connection (ConnectionConfig): Configuration options for creating sqlalchemy
             engine.
 
@@ -160,7 +160,7 @@ class MySQLModelDB(ModelDB):
         """Execute sql inside a managed session.
 
         Args:
-            sql: Execute a query
+            sql (sqlalchemy.sql.base.Executable): SQL query to execute.
 
         Results:
             list: Results of query operation
@@ -180,7 +180,7 @@ class MySQLModelDB(ModelDB):
         """Execute sql query inside a managed session.
 
         Args:
-            sql: Execute a selection query
+            sql (Select): Selection query to execute.
 
         Results:
             list: Results of selection operation
@@ -242,7 +242,7 @@ class MySQLModelDB(ModelDB):
         return [res.inserted_primary_key for res in results]
 
     @classmethod
-    def from_config_init(cls, **kwargs):
+    def from_config_init(cls, **kwargs) -> "MySQLModelDB":
         """Initialize database handler from MySQLModelDBConfig kwargs."""
         config = MySQLModelDBConfig(**kwargs)
         return cls(config=config)
