@@ -21,6 +21,6 @@ composing_flows:
         parent_project_name: test
         parent_task_name: save_db_result
         map_type: db
-        attribute: outputs
         attribute_index:
+          - outputs
           - output1
