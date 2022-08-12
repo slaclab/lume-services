@@ -14,7 +14,7 @@ from lume_services.tasks import (
     SaveDBResult,
     LoadFile,
     SaveFile,
-    configure_services,
+    configure_lume_services,
 )
 from lume_services.tests.files import SAMPLE_TEXT_FILE
 from lume_services.files import TextFile
@@ -76,8 +76,7 @@ class TestDBTaskResults:
         with Flow("load_db_result_task_flow") as flow:
             my_task = load_db_result(
                 result_rep,
-                "inputs",
-                attribute_index=["input1"],
+                attribute_index=["inputs", "input1"],
                 results_db_service=results_db_service,
             )
 
@@ -100,8 +99,7 @@ class TestDBTaskResults:
         with Flow("load_db_result_task_flow") as flow:
             my_task = load_db_result(
                 result_rep,
-                "inputs",
-                attribute_index=["input1"],
+                attribute_index=["inputs", "input1"],
                 results_db_service=results_db_service,
             )
             downstream_task = return_result(my_task)
@@ -190,7 +188,7 @@ class TestServiceConfiguration:
         assert config.context is None
 
         with Flow("configure") as flow:
-            my_task = configure_services()
+            my_task = configure_lume_services()
 
         flow_run = flow.run()
         assert flow_run.is_successful()

@@ -192,7 +192,7 @@ class TestLocalBackend:
     def test_empty_result_error(self, backend, data, run_config):
         with pytest.raises(EmptyResultError):
             backend.run_and_return(
-                data, run_config, flow=flow, task_name="configure_services"
+                data, run_config, flow=flow, task_name="configure_lume_services"
             )
 
     def test_failure_check(self, backend, run_config):
@@ -288,7 +288,10 @@ class TestDockerBackend:
     def test_empty_result_error(self, backend, parameters, flow_id, run_config):
         with pytest.raises(EmptyResultError):
             backend.run_and_return(
-                parameters, run_config, flow_id=flow_id, task_name="configure_services"
+                parameters,
+                run_config,
+                flow_id=flow_id,
+                task_name="configure_lume_services",
             )
 
     def test_failure_check(self, backend, run_config, failure_flow_id):
