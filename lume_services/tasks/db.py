@@ -93,8 +93,7 @@ class LoadDBResult(Task):
 
 
         with Flow(
-            "{{ cookiecutter.repo_name }}",
-            storage=Module(__name__)
+            "my_flow"
         ) as flow:
             # must first configure services because using injected results
             # database service
@@ -137,40 +136,40 @@ class LoadDBResult(Task):
         object and accepts all Task arguments during initialization.
 
         Args:
-            name (Optional[str]): The name of this task.
-            slug (Optional[str]):  The slug for this task. Slugs provide a stable ID
+            name (Optional[str]=None): The name of this task.
+            slug (Optional[str]=None):  The slug for this task. Slugs provide a stable ID
                 for tasks so that the Prefect API can identify task run states. If a
                 slug is not provided, one will be generated automatically once the
                 task is added to a Flow.
-            tags (Optional[List[str]]): A list of tags for this task.
-            max_retries (Optional[int]): The maximum amount of times this task can be
+            tags (Optional[List[str]]=None): A list of tags for this task.
+            max_retries (Optional[int]=None): The maximum amount of times this task can be
                 retried
-            retry_delay (Optional[datetime.timedelta]): The amount of time to wait
+            retry_delay (Optional[datetime.timedelta]=None): The amount of time to wait
                 until task is retried
-            retry_on (Optional[Union[Exception, Iterable[Type[Exception]]]]): Exception
+            retry_on (Optional[Union[Exception, Iterable[Type[Exception]]]]=None): Exception
                 types that will allow retry behavior to occur. If not set, all
                 exceptions will allow retries. If set, retries will only occur if the
                 exception is a subtype of the exception types provided.
-            timeout (Optional[Union[int, timedelta]]): The amount of time (in seconds)
+            timeout (Optional[Union[int, timedelta]]=None): The amount of time (in seconds)
                 to wait while running this task before a timeout occurs; note that
                 sub-second resolution is not supported, even when passing in a
                 timedelta.
-            trigger (Optional[callable]):  a function that determines whether the task
+            trigger (Optional[callable]=None):  a function that determines whether the task
                 should run, based on the states of any upstream tasks.
-            skip_on_upstream_skip (Optional[bool]): if True, if any immediately upstream
+            skip_on_upstream_skip (Optional[bool]=None): if True, if any immediately upstream
                 tasks are skipped, this task will automatically be skipped as well,
                 regardless of trigger. By default, this prevents tasks from attempting
                 to use either state or data from tasks that didn't run. If False, the
                 task's trigger will be called as normal, with skips considered
                 successes. Defaults to True.
-            cache_for (Optional[timedelta]): The amount of time to maintain a cache
+            cache_for (Optional[timedelta]=None): The amount of time to maintain a cache
             of the outputs of this task.  Useful for situations where the containing
             Flow will be rerun multiple times, but this task doesn't need to be.
             cache_validator (Optional[Callable]): Validator that will determine
                 whether the cache for this task is still valid (only required if
                 `cache_for` is provided; defaults to
                 `prefect.engine.cache_validators.duration_only`)
-            cache_key (Optional[str]): if provided, a `cache_key`
+            cache_key (Optional[str]=None): if provided, a `cache_key`
                 serves as a unique identifier for this Task's cache, and can be shared
                 across both Tasks _and_ Flows; if not provided, the Task's _name_ will
                 be used if running locally, or the Task's database ID if running in
@@ -190,7 +189,7 @@ class LoadDBResult(Task):
                 will be passed and a fully formatted location is expected as the return
                 value. The callable can be used for string formatting logic that
                 `.format(**kwargs)` doesn't support.
-            state_handlers (Optional[Iterable[Callable]]): A list of state change handlers
+            state_handlers (Optional[Iterable[Callable]]=None): A list of state change handlers
                 that will be called whenever the task changes state, providing an
                 opportunity to inspect or modify the new state. The handler
                 will be passed the task instance, the old (prior) state, and the new
@@ -198,12 +197,12 @@ class LoadDBResult(Task):
                     `state_handler(task: Task, old_state: State, new_state: State) -> Optional[State]`
                 If multiple functions are passed, then the `new_state` argument will be the
                 result of the previous handler.
-            on_failure (Optional[Callable]): A function with signature
+            on_failure (Optional[Callable]=None): A function with signature
                 `fn(task: Task, state: State) -> None` that will be called anytime this
                 Task enters a failure state
-            log_stdout (Optional[bool]): Toggle whether or not to send stdout messages to
+            log_stdout (Optional[bool]=None): Toggle whether or not to send stdout messages to
                 the Prefect logger. Defaults to `False`.
-            task_run_name (Optional[Union[str, Callable]]): a name to set for this task at runtime.
+            task_run_name (Optional[Union[str, Callable]]=None): a name to set for this task at runtime.
                 `task_run_name` strings can be templated formatting strings which will be
                 formatted at runtime with values from task arguments, `prefect.context`, and flow
                 parameters (in the case of a name conflict between these, earlier values take precedence).
@@ -212,7 +211,7 @@ class LoadDBResult(Task):
                 expected as the return value. The callable can be used for string formatting logic that
                 `.format(**kwargs)` doesn't support. **Note**: this only works for tasks running against a
                 backend API.
-            nout (Optional[int]): for tasks that return multiple results, the number of outputs
+            nout (Optional[int]=None): for tasks that return multiple results, the number of outputs
                 to expect. If not provided, will be inferred from the task return annotation, if
                 possible.  Note that `nout=1` implies the task returns a tuple of
                 one value (leave as `None` for non-tuple return types).
