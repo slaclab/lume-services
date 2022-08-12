@@ -1,64 +1,36 @@
 import pytest
 from lume_services.services.results import (
-    ResultsDBService,
     MongodbResultsDB,
     MongodbResultsDBConfig,
+    ResultsDBService,
 )
-from pymongo import MongoClient
 
-from lume_services.results import get_collections
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
+from lume_services.results import get_collections
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="session", autouse=True)
-def mongodb_config(
-    mongodb_host, mongodb_port, mongodb_database, mongodb_user, mongodb_password
+def mongodb_results_db(
+    mongodb_host, mongodb_port, mongodb_user, mongodb_password, mongodb_database
 ):
-    return MongodbResultsDBConfig(
+    mongodb_config = MongodbResultsDBConfig(
         host=mongodb_host,
         port=mongodb_port,
         username=mongodb_user,
         password=mongodb_password,
         database=mongodb_database,
     )
-
-
-def is_database_ready(docker_ip, mongodb_config):
-    try:
-        MongoClient(
-            **mongodb_config.dict(by_alias=True, exclude_none=True),
-            password=mongodb_config.password.get_secret_value(),
-            connectTimeoutMS=20000,
-            connect=True
-        )
-        return True
-
-    except Exception as e:
-        logger.error(e)
-        return False
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_server(docker_ip, docker_services, mongodb_config):
-    docker_services.wait_until_responsive(
-        timeout=40.0,
-        pause=0.1,
-        check=lambda: is_database_ready(docker_ip, mongodb_config),
-    )
-    return True
-
-
-@pytest.fixture(scope="session", autouse=True)
-def mongodb_results_db(mongodb_config, mongodb_server):
     return MongodbResultsDB(mongodb_config)
 
 
+@pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="class", autouse=True)
-def results_db_service(mongodb_results_db, mongodb_database, mongodb_server):
+def results_db_service(mongodb_results_db, mongodb_database):
 
     collections = get_collections()
     mongodb_results_db.configure(collections=collections)

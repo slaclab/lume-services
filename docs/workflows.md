@@ -27,7 +27,7 @@ must be set as upstream taks to any tasks using those services using `my_task.se
 
 ## Flow parameters
 
-Flow Parameters have some constraints. To see why those constraints exist, see developer docs [here](developer/prefect.md#serialization).
+Flow Parameters have some constraints. To see why those constraints exist, see developer docs [here](developer/services/scheduling.md#serialization).
 1. Flow-level parameters must be serializable, meaning they must be of types:
 
 |  Python          | JSON    |

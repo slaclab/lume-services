@@ -1,4 +1,4 @@
-from pydantic import validator, Field
+from pydantic import validator
 from typing import Optional, List, Dict, Any
 import logging
 
@@ -73,7 +73,7 @@ class DockerBackend(ServerBackend):
 
     """
 
-    _run_config_type: type = Field(DockerRunConfig, exclude=True)
+    _run_config_type: type = DockerRunConfig
 
     @property
     def run_config_type(self):

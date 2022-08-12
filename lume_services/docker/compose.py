@@ -1,21 +1,77 @@
 import os
 import re
 import subprocess
+from pymongo import MongoClient
+import pymysql
 import time
 import timeit
 from contextlib import contextmanager
-
+from prefect import Client
 import attr
 
 import logging
 from lume_services.docker.files import DOCKER_COMPOSE
 
+# from lume_services.config import LUMEServicesSettings
 logger = logging.getLogger(__name__)
 
 
 _BASE_SETUP_COMMAND = "up -d"
 _UI_SETUP_COMMAND = "--profile with_ui up -d"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
+
+
+def check_mongodb_ready(lume_services_settings):
+    mongodb_config = lume_services_settings.results_db
+
+    try:
+        MongoClient(
+            **mongodb_config.dict(by_alias=True, exclude_none=True),
+            password=mongodb_config.password.get_secret_value(),
+            connectTimeoutMS=20000,
+            connect=True,
+        )
+        return True
+
+    except Exception as e:
+        logger.error("Error in mongodb check: %s", e)
+        return False
+
+
+def check_mysql_ready(lume_services_settings):
+    mysql_config = lume_services_settings.model_db
+
+    try:
+        pymysql.connect(
+            host=mysql_config.host,
+            port=mysql_config.port,
+            user=mysql_config.user,
+            password=mysql_config.password.get_secret_value(),
+        )
+        return True
+    except Exception as e:
+        logger.error("Error in mysql check: %s", e)
+        return False
+
+
+def check_prefect_ready(lume_services_settings):
+    host = lume_services_settings.prefect.server.host
+    port = lume_services_settings.prefect.server.host_port
+
+    try:
+        client = Client(api_server=f"{host}:{port}")
+        client.graphql("query{hello}", raise_on_error=True)
+        return True
+    except Exception as e:
+        logger.error("Error in prefect check: %s", e)
+        return False
+
+
+_HEALTHCHECKS = {
+    "mongodb": check_mongodb_ready,
+    "mysql": check_mysql_ready,
+    "prefect": check_prefect_ready,
+}
 
 
 def execute(command, success_codes=(0,)):
@@ -97,18 +153,29 @@ class Services:
 
         return match
 
-    def wait_until_responsive(self, check, timeout, pause, clock=timeit.default_timer):
-        """Wait until a service is responsive."""
+    def wait_until_responsive(
+        self, lume_services_settings, timeout, pause, clock=timeit.default_timer
+    ):
+        """Wait until services are responsive."""
 
         ref = clock()
         now = ref
+        status = {key: False for key in _HEALTHCHECKS.keys()}
         while (now - ref) < timeout:
-            if check():
+            status = {
+                key: check(lume_services_settings)
+                for key, check in _HEALTHCHECKS.items()
+            }
+
+            if all(status.values()):
                 return
+
             time.sleep(pause)
             now = clock()
 
-        raise Exception("Timeout reached while waiting on service!")
+        failed = [service for service, status_ in status.items() if not status_]
+
+        raise Exception("Timeout reached while waiting for: %s", ",".join(failed))
 
 
 def str_to_list(arg):
@@ -140,7 +207,26 @@ def get_setup_command():
 
 
 @contextmanager
-def run_docker_services(project_name="lume-services", ui=False):
+def run_docker_services(
+    lume_services_settings,
+    timeout: float,
+    pause: float,
+    project_name="lume-services",
+    ui=False,
+):
+    """Context manager for executing dockerized services.
+
+    Args:
+        lume_services_settings (): LUME-services settings used to configure ports,
+            passwords etc. for services.
+        timeout (float): Total time for executing checks against services.
+            Docker-compose will exit all services if checks do not succeed within this
+            time window.
+        pause (float): Pause between checks.
+        project_name (str="lume-services"): Name of docker project
+        ui (bool=False): Whether to run UI service.
+
+    """
     logger.info(f"Running services in environment: {dict(os.environ)}")
     docker_compose = DockerComposeExecutor(DOCKER_COMPOSE, project_name)
 
@@ -150,10 +236,12 @@ def run_docker_services(project_name="lume-services", ui=False):
         cmd = _BASE_SETUP_COMMAND
 
     # setup containers.
+    logger.info("Setting up docker-compose containers.")
     try:
         docker_compose.execute(cmd)
     except Exception as e:
         for cmd in _CLEANUP_COMMANDS:
+            logger.debug("Executing cmd %s", cmd)
             try:
                 docker_compose.execute(cmd)
             except Exception as cleanup_exception:
@@ -163,11 +251,40 @@ def run_docker_services(project_name="lume-services", ui=False):
                 pass
         raise e
 
+    # now we perform startup checks
     try:
-        # Let tests run.
-        yield Services(docker_compose)
+        try:
+            services = Services(docker_compose)
+            services.wait_until_responsive(lume_services_settings, timeout, pause)
+            yield Services(docker_compose)
+
+        except Exception as e:
+            logger.exception("Exception when composing services: %s", e)
+
+            # Clean up.
+            for cmd in _CLEANUP_COMMANDS:
+                logger.debug("Executing cmd %s", cmd)
+                try:
+                    docker_compose.execute(cmd)
+                except Exception as cleanup_exception:
+                    logger.warning(
+                        f"Cleanup command exception for {cmd}: \
+                            {cleanup_exception.message}"
+                    )
+                    pass
+            raise e
+
     # yield services
     finally:
         # Clean up.
         for cmd in _CLEANUP_COMMANDS:
-            docker_compose.execute(cmd)
+            logger.debug("Executing cmd %s", cmd)
+            try:
+                docker_compose.execute(cmd)
+            except Exception as cleanup_exception:
+                logger.warning(
+                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                )
+                pass
+
+        logger.info("Finished executing docker-compose shutdown commands.")

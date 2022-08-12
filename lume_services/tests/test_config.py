@@ -1,16 +1,16 @@
 import pytest
 import os
 
-from lume_services.files import TextFile
+import prefect
+from prefect.utilities.backend import load_backend, save_backend
 
 from dependency_injector.containers import DynamicContainer
 
 from lume_services import config
 from lume_services.results import Result
+from lume_services.files import TextFile
 from lume_services.errors import EnvironmentNotConfiguredError
 from lume_services.services.files.filesystems.mounted import MountedFilesystem
-
-from prefect.utilities.backend import load_backend, save_backend
 
 
 class TestLumeSettings:
@@ -37,8 +37,8 @@ class TestLumeSettings:
 
         assert config._settings.model_db.user == model_db_service._model_db.config.user
         assert (
-            config._settings.model_db.password
-            == model_db_service._model_db.config.password
+            config._settings.model_db.password.get_secret_value()
+            == model_db_service._model_db.config.password.get_secret_value()
         )
         assert config._settings.model_db.host == model_db_service._model_db.config.host
         assert config._settings.model_db.port == model_db_service._model_db.config.port
@@ -64,8 +64,8 @@ class TestLumeSettings:
             == results_db_service._results_db.config.username
         )
         assert (
-            config._settings.results_db.password
-            == results_db_service._results_db.config.password
+            config._settings.results_db.password.get_secret_value()
+            == results_db_service._results_db.config.password.get_secret_value()
         )
         assert (
             config._settings.results_db.database
@@ -97,8 +97,8 @@ class TestLumeSettings:
 
         assert config._settings.model_db.user == lume_services_settings.model_db.user
         assert (
-            config._settings.model_db.password
-            == lume_services_settings.model_db.password
+            config._settings.model_db.password.get_secret_value()
+            == lume_services_settings.model_db.password.get_secret_value()
         )
         assert config._settings.model_db.host == lume_services_settings.model_db.host
         assert config._settings.model_db.port == lume_services_settings.model_db.port
@@ -122,8 +122,8 @@ class TestLumeSettings:
             == lume_services_settings.results_db.username
         )
         assert (
-            config._settings.results_db.password
-            == lume_services_settings.results_db.password
+            config._settings.results_db.password.get_secret_value()
+            == lume_services_settings.results_db.password.get_secret_value()
         )
         assert (
             config._settings.results_db.database
@@ -230,3 +230,79 @@ class TestResultServiceInjection:
         assert generic_result.flow_id == new_generic_result.flow_id
         assert generic_result.inputs == new_generic_result.inputs
         assert generic_result.outputs == new_generic_result.outputs
+
+
+class TestPrefectConfig:
+    def test_prefect_config(self, lume_services_settings):
+        prefect_config = lume_services_settings.prefect
+
+        # check that server has been applied
+        backend_spec = load_backend()
+        assert backend_spec["backend"] == "server"
+
+        # check assignment, has already been applied
+        assert prefect.config.debug == prefect_config.debug
+        assert prefect.config.home_dir == prefect_config.home_dir
+
+        # check server values
+        for key, value in prefect_config.server.dict().items():
+            attr = getattr(prefect.config.server, key)
+            assert attr == value
+
+        # check ui values
+        for key, value in prefect_config.ui.dict().items():
+            attr = getattr(prefect.config.server.ui, key)
+            assert attr == value
+
+        # check graphql values
+        for key, value in prefect_config.telemetry.dict().items():
+            attr = getattr(prefect.config.server.telemetry, key)
+            assert attr == value
+
+    def test_prefect_update_config(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
+        prefect_config = lume_services_settings.prefect
+
+        new_config = prefect_config.copy(deep=True)
+        new_config.server.host = "0.0.0.0"
+        new_config.server.host_port = 4000
+
+        with prefect.context(config=new_config.apply()):
+
+            # check server values
+            for key, value in new_config.server.dict().items():
+                attr = getattr(prefect.config.server, key)
+                assert attr == value
+
+            # check ui values
+            for key, value in new_config.ui.dict().items():
+                attr = getattr(prefect.config.server.ui, key)
+                assert attr == value
+
+            # check graphql values
+            for key, value in new_config.telemetry.dict().items():
+                attr = getattr(prefect.config.server.telemetry, key)
+                assert attr == value
+
+    def test_prefect_reset_config(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
+        prefect_config = lume_services_settings.prefect
+
+        with prefect.context(config=prefect_config.apply()):
+
+            # check server values
+            for key, value in prefect_config.server.dict().items():
+                attr = getattr(prefect.config.server, key)
+                assert attr == value
+
+            # check ui values
+            for key, value in prefect_config.ui.dict().items():
+                attr = getattr(prefect.config.server.ui, key)
+                assert attr == value
+
+            # check graphql values
+            for key, value in prefect_config.telemetry.dict().items():
+                attr = getattr(prefect.config.server.telemetry, key)
+                assert attr == value

@@ -55,7 +55,7 @@ class Backend(BaseModel, ABC):
         self,
         flow: Flow,
         project_name: str,
-        image_tag: Optional[str],
+        image: Optional[str],
     ) -> str:
         """Register a flow with Prefect. Backend implementations without server connecton
         should raise errors when this method is called.
@@ -63,7 +63,7 @@ class Backend(BaseModel, ABC):
         Args:
             flow (Flow): Prefect flow to register.
             project_name (str): Name of project to register flow to.
-            image_tag (str): Name of Docker image to run flow inside.
+            image (str): Name of Docker image to run flow inside.
 
         Returns:
             str: ID of registered flow.
@@ -72,7 +72,7 @@ class Backend(BaseModel, ABC):
         ...
 
     @abstractmethod
-    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object. Backend implementations without server connecton
         should raise errors when this method is called.
 
@@ -81,21 +81,24 @@ class Backend(BaseModel, ABC):
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         """
         ...
 
     @abstractmethod
     def run(
-        self, data: Optional[Dict[str, Any]], run_config: Optional[RunConfig], **kwargs
+        self,
+        parameters: Optional[Dict[str, Any]],
+        run_config: Optional[RunConfig],
+        **kwargs
     ) -> Union[str, None]:
         """Run a flow. Does not return result. Implementations should cover instantiation
         of run_config from kwargs as well as backend-specific kwargs.
 
         Args:
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
@@ -113,7 +116,7 @@ class Backend(BaseModel, ABC):
     @abstractmethod
     def run_and_return(
         self,
-        data: Optional[Dict[str, Any]],
+        parameters: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
         task_name: Optional[str],
         **kwargs
@@ -122,8 +125,8 @@ class Backend(BaseModel, ABC):
         run_config from kwargs as well as backend-specific kwargs.
 
         Args:
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.

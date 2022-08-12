@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, List
 from prefect import Flow
 
 from lume_services.services.scheduling.backends.backend import Backend, RunConfig
@@ -44,7 +44,8 @@ class SchedulingService:
         self,
         flow: Flow,
         project_name: str,
-        image_tag: Optional[str],
+        image: Optional[str],
+        labels: Optional[List[str]],
     ) -> str:
         """Register a flow with Prefect. Backend implementations without server connecton
         should raise errors when this method is called.
@@ -52,7 +53,7 @@ class SchedulingService:
         Args:
             flow (Flow): Prefect flow to register.
             project_name (str): Name of project to register flow to.
-            image_tag (str): Name of Docker image to run flow inside.
+            image (str): Name of Docker image to run flow inside.
 
         Returns:
             str: ID of registered flow.
@@ -63,9 +64,9 @@ class SchedulingService:
                 server backend methods permitted.
 
         """
-        return self.backend.register_flow(flow, project_name, image_tag)
+        return self.backend.register_flow(flow, project_name, image, labels=labels)
 
-    def load_flow(self, flow_name: str, project_name: str) -> Flow:
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object. Backend implementations without server connecton
         should raise errors when this method is called.
 
@@ -74,7 +75,7 @@ class SchedulingService:
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         Raises:
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
@@ -85,14 +86,17 @@ class SchedulingService:
         return self.backend.load_flow(flow_name, project_name)
 
     def run(
-        self, data: Optional[Dict[str, Any]], run_config: Optional[RunConfig], **kwargs
+        self,
+        parameters: Optional[Dict[str, Any]],
+        run_config: Optional[RunConfig],
+        **kwargs
     ) -> Union[str, None]:
         """Run a flow. Does not return result. Implementations should cover instantiation
         of run_config from kwargs as well as backend-specific kwargs.
 
         Args:
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
@@ -108,11 +112,11 @@ class SchedulingService:
             ValueError: Value error on flow run
 
         """
-        return self.backend.run(data, run_config, **kwargs)
+        return self.backend.run(parameters, run_config, **kwargs)
 
     def run_and_return(
         self,
-        data: Optional[Dict[str, Any]],
+        parameters: Optional[Dict[str, Any]],
         run_config: Optional[RunConfig],
         task_name: Optional[str],
         **kwargs
@@ -121,8 +125,8 @@ class SchedulingService:
         run_config from kwargs as well as backend-specific kwargs.
 
         Args:
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.
@@ -145,4 +149,4 @@ class SchedulingService:
             ValueError: Value error on flow run
 
         """
-        return self.backend.run_and_return(data, run_config, task_name, **kwargs)
+        return self.backend.run_and_return(parameters, run_config, task_name, **kwargs)

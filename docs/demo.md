@@ -31,3 +31,9 @@ Use utility packaged with lume-services to start dockerized services:
 ```
 python lume_services/cli/docker.py start-docker-services
 ```
+
+
+
+
+Navigate to:
+http://localhost:8080/?flows

@@ -1,4 +1,4 @@
-from pydantic import validator, Field
+from pydantic import validator
 from typing import List, Optional, Union, Literal
 import logging
 
@@ -138,7 +138,7 @@ class KubernetesBackend(ServerBackend):
 
     """
 
-    _run_config_type: type = Field(KubernetesRunConfig, exclude=True)
+    _run_config_type: type = KubernetesRunConfig
 
     @property
     def run_config_type(self):

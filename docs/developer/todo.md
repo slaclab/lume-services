@@ -62,11 +62,11 @@ TODO:
 - TODO:
     - [ ] Test flow of flows composition
     - [ ] Add mapped parameters to database?
+    - [ ] Add requirements table
     - [ ] Kubernetes backend tests
     - [ ] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
     - [ ] Environment solving for containerized jobs
-    - [ ] Improve service wait_until_responsive checks and move into docker
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26
@@ -79,6 +79,7 @@ TODO:
     - [x] Result tasks
     - [x] Add scheduler to context
     - [x] Drop all but apollo from config 8/3
+    - [x] Improve service wait_until_responsive checks and move into docker 8/9
 
 ## Misc
 - TODO:

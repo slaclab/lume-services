@@ -1,5 +1,6 @@
 version: "3.7"
 services:
+  # MySQL
   mysql:
     image: mysql/mysql-server:8.0
     ports:
@@ -22,7 +23,6 @@ services:
       - ${LUME_RESULTS_DB__PORT:-27017}:27017
     networks:
       - service-net
-    #  - default
 
   # PostgreSQL: the backing database which stores flow metadata
   postgres:
@@ -177,7 +177,7 @@ services:
       apollo:
         condition: service_started
     environment:
-      PREFECT_SERVER__APOLLO_URL: http://apollo:4200/graphql
+      PREFECT_SERVER__APOLLO_URL: http://localhost:${LUME_PREFECT__SERVER__HOST_PORT:-4200}/graphql
     healthcheck:
       interval: 30s
       retries: 3

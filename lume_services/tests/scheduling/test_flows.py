@@ -2,39 +2,41 @@ import pytest
 
 from datetime import timedelta
 
-import yaml
 from prefect import Client
 import prefect
+import yaml
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
 
 from lume_services.tasks.db import LoadDBResult
-from lume_services.tests.files import FLOW_OF_FLOWS_YAML
 from lume_services.tests.files.flows.flow1 import flow as flow1, append_text
 from lume_services.tests.files.flows.flow2 import flow as flow2
 from lume_services.tests.files.flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
-
+from lume_services.tests.files import FLOW_OF_FLOWS_YAML
 from lume_services.flows.flow_of_flows import FlowOfFlows
+from lume_services import config
 
 
 @pytest.mark.usefixtures("scheduling_service")
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def project_name(lume_services_settings):
+
+    config.configure(lume_services_settings)
+
+    project_name = "test"
 
     prefect_config = lume_services_settings.prefect
     with prefect.context(config=prefect_config.apply()):
         client = Client()
-
-        project_name = "test"
         client.create_project(project_name=project_name)
 
     return project_name
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def flow1_id(project_name, lume_services_settings):
 
     prefect_config = lume_services_settings.prefect
@@ -42,7 +44,7 @@ def flow1_id(project_name, lume_services_settings):
         return flow1.register(project_name=project_name, labels=["lume-services"])
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def flow2_id(project_name, lume_services_settings):
 
     prefect_config = lume_services_settings.prefect
@@ -50,7 +52,7 @@ def flow2_id(project_name, lume_services_settings):
         return flow2.register(project_name=project_name, labels=["lume-services"])
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def flow3_id(project_name, lume_services_settings):
 
     prefect_config = lume_services_settings.prefect
@@ -228,6 +230,32 @@ class TestFlowOfFlows:
             _ = yaml.safe_load(file)
 
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
-    def test_validate_yaml(self):
-        # using injection here...
-        _ = FlowOfFlows.from_yaml(FLOW_OF_FLOWS_YAML)
+    def test_validate_yaml(self, scheduling_service, lume_services_settings):
+
+        with prefect.context(config=lume_services_settings.prefect.apply()):
+            _ = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
+
+    @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
+    def test_compose(self, scheduling_service, lume_services_settings):
+        with prefect.context(config=lume_services_settings.prefect.apply()):
+            flow_of_flows = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
+            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+
+    @pytest.mark.skip()
+    @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
+    def test_flow_of_flows_id(
+        self, project_name, lume_services_settings, scheduling_service
+    ):
+        with prefect.context(config=lume_services_settings.prefect.apply()):
+            flow_of_flows = FlowOfFlows.from_yaml(
+                FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
+            )
+            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+
+            flow_of_flows.prefect_flow.register(
+                project_name=project_name, labels=["lume-services"]
+            )

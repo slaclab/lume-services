@@ -62,15 +62,13 @@ class PrefectConfig(BaseModel):
         prefect_config.update(
             home_dir=self.home_dir, debug=self.debug, backend=self.backend
         )
-        prefect_config.server.update(**self.server.dict())
         # must set endpoint because referenced by client
         prefect_config.server.update(
-            {"endpoint": f"{self.server.host}:{self.server.host_port}"}
+            endpoint=f"{self.server.host}:{self.server.host_port}", **self.server.dict()
         )
         prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.server.telemetry.update(**self.telemetry.dict())
         # client requires api set
-        prefect_config.server.ui.update(**self.ui.dict())
         prefect_config.cloud.update(api=f"{self.server.host}:{self.server.host_port}")
         save_backend(self.backend)
         return prefect_config
@@ -91,13 +89,11 @@ class ServerBackend(Backend):
         config (PrefectConfig): Instantiated PrefectConfig object describing connection
             to Prefect server.
         default_image (str): Default image used for registering flow storage.
-        _client (Client): Prefect client connection created on instantiation.
 
     """
 
     config: PrefectConfig
     default_image: str = Field(None, alias="image")
-    _client: Client = Field(None, exclude=True)
 
     class Config:
         underscore_attrs_are_private = True
@@ -128,7 +124,7 @@ class ServerBackend(Backend):
         self,
         flow: Flow,
         project_name: str,
-        image_tag: str = None,
+        image: str = None,
         labels: List[str] = None,
         idempotency_key: str = None,
         version_group_id: str = None,
@@ -141,10 +137,12 @@ class ServerBackend(Backend):
         Args:
             flow (Flow): Prefect flow to register
             project_name (str): Name of project to register flow to
-            image_tag (str): Name of Docker image to run flow inside
-            build (bool): Whether the flows storage should be build prior to
+            image (str): Name of Docker image to run flow inside. If not specified,
+                this will use the default image packaged with this repository.
+            build (bool): Whether the flows storage should be built prior to
                 serialization. By default lume-services flows use the same
-                image for execution with additional environment configured at runtime.
+                image for execution with additional packages passed for installation
+                configured at runtime.
             labels (Optional[List[str]]): A list of labels to add to this Flow.
             idempotency_key (Optional[str]): a key that, if matching the most recent
                 registration call for this flow group, will prevent the creation of
@@ -168,23 +166,23 @@ class ServerBackend(Backend):
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
 
         """
-        if not image_tag:
-            image_tag = self.default_image_tag
+        if not image:
+            image = self.default_image
 
-        # clear run config labels
-        if flow.run_config is not None and labels is not None:
+        # configure run config for backend
+        run_config = self.run_config_type(image=image)
+        flow.run_config = run_config.build()
+        if labels is not None:
             logger.info(
                 "Flow run config is not empty. Clearing existing labels and assigning \
                     new."
             )
             flow.run_config.labels = set(labels)
 
-        # flow.storage.image_tag = image_tag
+        flow.run_config.image_tag = image
 
         with prefect.context(config=self.config.apply()):
-            client = Client()
-            flow_id = client.register(
-                flow=flow,
+            flow_id = flow.register(
                 project_name=project_name,
                 build=build,
                 set_schedule_active=set_schedule_active,
@@ -195,7 +193,7 @@ class ServerBackend(Backend):
 
         return flow_id
 
-    def load_flow(self, flow_name: str, project_name: str):
+    def load_flow(self, flow_name: str, project_name: str) -> dict:
         """Load a Prefect flow object.
 
         Args:
@@ -203,20 +201,25 @@ class ServerBackend(Backend):
             project_name (str): Name of project flow is registered with.
 
         Returns:
-            Flow: Prefect Flow object.
+            dict: Dictionary with keys "flow_id" and "flow"
 
         Raises:
             prefect.errors.ClientError: if the GraphQL query is bad for any reason
 
         """
+
+        flow_view = FlowView.from_flow_name(
+            flow_name, project_name=project_name, last_updated=True
+        )
         with prefect.context(config=self.config.apply()):
-            return FlowView.from_flow_name(
+            flow_view = FlowView.from_flow_name(
                 flow_name, project_name=project_name, last_updated=True
-            ).flow
+            )
+            return {"flow_id": flow_view.flow_id, "flow": flow_view.flow}
 
     def run(
         self,
-        data: Dict[str, Any] = None,
+        parameters: Dict[str, Any] = None,
         run_config: RunConfig = None,
         *,
         flow_id: str,
@@ -226,8 +229,8 @@ class ServerBackend(Backend):
 
         Args:
             flow_id (str): Flow identifier
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             **kwargs: Keyword arguments to intantiate the RunConfig.
 
@@ -255,14 +258,14 @@ class ServerBackend(Backend):
         with prefect.context(config=self.config.apply()):
             client = Client()
             flow_run_id = client.create_flow_run(
-                flow_id=flow_id, parameters=data, run_config=prefect_run_config
+                flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
 
         return flow_run_id
 
     def run_and_return(
         self,
-        data: Dict[str, Any] = None,
+        parameters: Dict[str, Any] = None,
         run_config: RunConfig = None,
         task_name: str = None,
         *,
@@ -274,8 +277,8 @@ class ServerBackend(Backend):
         """Create a flow run for a flow and return the result.
 
         Args:
-            data (Optional[Dict[str, Any]]): Dictionary mapping flow parameter name to
-                value
+            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+                name to value
             run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             task_name (Optional[str]): Name of task to return result. If no task slug
                 is passed, will return the flow result.
@@ -310,14 +313,15 @@ class ServerBackend(Backend):
         logger.info(
             "Creating Prefect flow run for %s with parameters %s and run_config %s",
             flow_id,
-            data,
+            parameters,
             run_config.json(),
         )
 
         with prefect.context(config=self.config.apply()):
             client = Client()
+
             flow_run_id = client.create_flow_run(
-                flow_id=flow_id, parameters=data, run_config=prefect_run_config
+                flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
             flow_view = FlowView.from_flow_id(flow_id)
 

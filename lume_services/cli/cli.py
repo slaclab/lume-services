@@ -1,13 +1,14 @@
 import click
-from .docker import start_docker_services
+from .docker_compose import docker
 
 
 @click.group()
-def main():
+def lume_services():
     pass
 
 
-main.add_command(start_docker_services)
+lume_services.add_command(docker)
+
 
 """
 import click

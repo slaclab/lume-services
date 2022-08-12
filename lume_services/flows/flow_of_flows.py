@@ -1,7 +1,8 @@
 import os
 import yaml
-from pydantic import validator
-from typing import List, get_args
+from pydantic import root_validator
+from typing import get_args
+from prefect.storage.docker import Docker
 from prefect.tasks.prefect import (
     create_flow_run,
     wait_for_flow_run,
@@ -16,6 +17,12 @@ from lume_services.errors import (
     TaskNotInFlowError,
 )
 
+from dependency_injector.wiring import Provide, inject
+from lume_services.config import Context
+
+
+from lume_services.services.scheduling import SchedulingService
+
 
 class FlowOfFlows(Flow):
     composing_flows: dict
@@ -23,24 +30,39 @@ class FlowOfFlows(Flow):
     class Config:
         arbitrary_types_allowed = True
 
-    @validator("composing_flows", pre=True)
-    def validate(cls, v: List[dict]):
+    @root_validator(pre=True)
+    def validate(cls, values: dict):
         """Validate composing flow data against Prefect server."""
         flows = {}
 
+        scheduling_service = None
+        if "scheduling_service" in values:
+            scheduling_service = values.pop("scheduling_service")
+
         # validate composing flow existence
-        for flow in v:
+        composing_flows = values.get("composing_flows")
 
-            # compose flow objects
-            flow_obj = Flow(
-                name=flow["name"],
-                project_name=flow["project_name"],
-                mapped_parameters=flow.get("mapped_parameters"),
-            )
+        if isinstance(composing_flows, (dict,)):
+            pass
 
-            # load Prefect parameters
-            flow_obj.load()
-            flows[flow["name"]] = flow_obj
+        # iterate to create dict
+        elif isinstance(composing_flows, (list,)):
+            for flow in values["composing_flows"]:
+
+                # compose flow objects
+                flow_obj = Flow(
+                    name=flow["name"],
+                    project_name=flow["project_name"],
+                    mapped_parameters=flow.get("mapped_parameters"),
+                )
+
+                # load Prefect parameters
+                if scheduling_service is not None:
+                    flow_obj.load_flow(scheduling_service=scheduling_service)
+                else:
+                    flow_obj.load_flow()
+
+                flows[flow["name"]] = flow_obj
 
         # validate flow parameters
         for flow_name, flow in flows.items():
@@ -67,10 +89,27 @@ class FlowOfFlows(Flow):
                             parameter.parent_flow_name, parameter.parent_task_name
                         )
 
-        return flows
+        values["composing_flows"] = flows
 
-    def compose(self) -> PrefectFlow:
-        """Compose Prefect flow from FlowOfFlows object.
+        return values
+
+    def compose(
+        self,
+        image_name: str,
+        image_tag: str = "latest",
+        local: bool = False,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ) -> PrefectFlow:
+        """Compose Prefect flow from FlowOfFlows object. Uses base image assigned to
+        the FlowOfFlows Object and builds a new Docker image containing the composite
+        flow.
+
+
+        Args:
+            image_name (str): Name of generated image.
+            image_tag (str): Tag of generated image.
+            local (bool=False): Whether to use local images for the base image.
+
 
         Returns:
             PrefectFlow
@@ -78,7 +117,15 @@ class FlowOfFlows(Flow):
         """
 
         # compose flow of flows
-        with PrefectFlow(self.name) as flow_of_flows:
+        with PrefectFlow(
+            self.name,
+            storage=Docker(
+                base_image=self.image,
+                image_name=image_name,
+                image_tag=image_tag,
+                local_image=local,
+            ),
+        ) as composed_flow:
 
             flow_runs = {}
             flow_waits = {}
@@ -89,12 +136,6 @@ class FlowOfFlows(Flow):
                 # begin by creating parameters for all flow parameters
                 flow_params = {}
                 for param_name, param in flow.parameters.items():
-                    # do not register mapped parameters as flow parameters
-                    if (
-                        flow.mapped_parameters is not None
-                        and param_name in flow.mapped_parameters
-                    ):
-                        continue
 
                     # update name and slug
                     param.name = f"{flow_name}-{param_name}"
@@ -107,8 +148,7 @@ class FlowOfFlows(Flow):
                 # set up entry task
                 if i == 0:
                     flow_run = create_flow_run(
-                        flow_name=flow_name,
-                        project_name=flow.project_name,
+                        flow_id=flow.flow_id,
                         parameters=flow_params,
                         labels=flow.labels,
                     )
@@ -130,11 +170,13 @@ class FlowOfFlows(Flow):
                                 flow_runs[mapped_param.parent_flow_name], task_slug
                             )
 
+                            # raw results and file results use their values directly
                             if mapped_param.map_type in ["raw", "file"]:
                                 flow.prefect_flow.replace(
-                                    flow_params[param_name], task_run_result
+                                    flow_params.pop(param_name), task_run_result
                                 )
 
+                            # handle database results
                             elif mapped_param.map_type == "db":
                                 load_db_result = LoadDBResult()
                                 db_result = load_db_result(
@@ -143,12 +185,15 @@ class FlowOfFlows(Flow):
                                     attribute_index=mapped_param.attribute_index,
                                 )
                                 flow.prefect_flow.replace(
-                                    flow_params[param_name], db_result
+                                    flow_params.pop(param_name), db_result
                                 )
 
-                                for param in load_db_result:
-                                    flow.add_task(param)
-                                    flow.add_edge(param, load_db_result, mapped=True)
+                                # add db result parameters to the task and create edge
+                                for param in load_db_result.parameters:
+                                    flow.prefect_flow.add_task(param)
+                                    flow.prefect_flow.add_edge(
+                                        param, load_db_result, mapped=True
+                                    )
 
                             else:
                                 # should never reach if instantiating MappedParameter
@@ -163,12 +208,11 @@ class FlowOfFlows(Flow):
                             # add flow to upstream
                             upstream_flows.add(mapped_param.parent_flow_name)
 
+                        # add creation of flow run to flow
                         flow_run = create_flow_run(
-                            flow_name=flow_name,
-                            project_name=flow.project_name,
+                            flow_id=flow.flow_id,
                             parameters=flow_params,
                             labels=flow.labels,
-                            raise_final_state=True,
                         )
 
                     # configure upstreams if any
@@ -180,12 +224,13 @@ class FlowOfFlows(Flow):
                 flow_waits[flow_name] = flow_wait
 
         # validate flow of flows
-        flow_of_flows.validate()
+        composed_flow.validate()
 
         # assign to obj
-        self.prefect_flow = flow_of_flows
+        self.prefect_flow = composed_flow
+        self.image = f"{image_name}:{image_tag}"
 
-        return flow_of_flows
+        return composed_flow
 
     def compose_and_register(self):
         """Compose flow and register with project.
@@ -196,14 +241,16 @@ class FlowOfFlows(Flow):
         """
 
         flow = self.compose()
-        flow_id = self.register(self.project_name)
-        self.flow = flow
-        self.flow_id = flow_id
-        self.parameters = {parameter.name: parameter for parameter in flow.parameters()}
-        self.task_slugs = {task.name: task.slug for task in flow.get_tasks()}
+        self.prefect_flow = flow
+        return self.register(self.project_name)
 
     @classmethod
-    def from_yaml(cls, yaml_obj):
+    @inject
+    def from_yaml(
+        cls,
+        yaml_obj,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
         if os.path.exists(yaml_obj):
             flow_of_flow_config = yaml.safe_load(open(yaml_obj))
 
@@ -211,7 +258,7 @@ class FlowOfFlows(Flow):
             flow_of_flow_config = yaml_obj
 
         # now validate
-        return cls(**flow_of_flow_config)
+        return cls(**flow_of_flow_config, scheduling_service=scheduling_service)
 
     def _compose_local(self):
         """

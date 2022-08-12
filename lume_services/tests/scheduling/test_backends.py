@@ -23,6 +23,7 @@ from lume_services.errors import (
 from lume_services.utils import docker_api_version as docker_api_version_util
 from lume_services.tests.files.flows.flow1 import flow
 from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+from lume_services import config
 
 import logging
 
@@ -223,6 +224,8 @@ class TestDockerBackend:
     @pytest.mark.usefixtures("scheduling_service")
     @pytest.fixture(scope="class")
     def backend(self, lume_services_settings):
+        config.configure(lume_services_settings)
+
         return DockerBackend(config=lume_services_settings.prefect)
 
     @pytest.fixture(scope="class")
@@ -237,7 +240,7 @@ class TestDockerBackend:
         return backend.register_flow(
             flow,
             project_name=project_name,
-            image_tag=prefect_docker_tag,
+            image=prefect_docker_tag,
             labels=["lume-services"],
         )
 
@@ -246,12 +249,12 @@ class TestDockerBackend:
         return backend.register_flow(
             failure_flow,
             project_name=project_name,
-            image_tag=prefect_docker_tag,
+            image=prefect_docker_tag,
             labels=["lume-services"],
         )
 
     @pytest.fixture(scope="class")
-    def data(self, mounted_filesystem):
+    def parameters(self, mounted_filesystem):
         return {
             "text1": "hey",
             "text2": " you",
@@ -259,33 +262,33 @@ class TestDockerBackend:
             "filesystem_identifier": mounted_filesystem.identifier,
         }
 
-    def test_run_flow_type_error(self, backend, data, run_config):
+    def test_run_flow_type_error(self, backend, parameters, run_config):
         with pytest.raises(TypeError):
-            backend.run(data, run_config, flow_id=flow)
+            backend.run(parameters, run_config, flow_id=flow)
 
-    def test_run_flow(self, backend, data, run_config, flow_id):
-        backend.run(data, run_config, flow_id=flow_id)
+    def test_run_flow(self, backend, parameters, run_config, flow_id):
+        backend.run(parameters, run_config, flow_id=flow_id)
 
-    def test_run_flow_and_return(self, backend, data, run_config, flow_id):
+    def test_run_flow_and_return(self, backend, parameters, run_config, flow_id):
         # get all results
-        res = backend.run_and_return(data, run_config, flow_id=flow_id)
+        res = backend.run_and_return(parameters, run_config, flow_id=flow_id)
         assert isinstance(res, (dict,))
 
         res = backend.run_and_return(
-            data, run_config, flow_id=flow_id, task_name="save_text_file"
+            parameters, run_config, flow_id=flow_id, task_name="save_text_file"
         )
         assert isinstance(res, (dict,))
 
-    def test_task_not_in_flow_error(self, backend, data, flow_id, run_config):
+    def test_task_not_in_flow_error(self, backend, parameters, flow_id, run_config):
         with pytest.raises(TaskNotInFlowError):
             backend.run_and_return(
-                data, run_config, flow_id=flow_id, task_name="missing_task"
+                parameters, run_config, flow_id=flow_id, task_name="missing_task"
             )
 
-    def test_empty_result_error(self, backend, data, flow_id, run_config):
+    def test_empty_result_error(self, backend, parameters, flow_id, run_config):
         with pytest.raises(EmptyResultError):
             backend.run_and_return(
-                data, run_config, flow_id=flow_id, task_name="configure_services"
+                parameters, run_config, flow_id=flow_id, task_name="configure_services"
             )
 
     def test_failure_check(self, backend, run_config, failure_flow_id):
