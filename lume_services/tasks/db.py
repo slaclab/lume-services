@@ -222,7 +222,7 @@ class LoadDBResult(Task):
     The `attribute_index` parameter provides selection instructions from query. For
     example, selecting the first `toyota` from a dictionary of form: `{"outputs":
     {"vehicle": {"car":  ["toyota", "mini"], "boat": ["sail", "motor"]}}}`would be
-    accomplished by passing `attribute_index=["outputs", "vehicle", "car", 0].
+    accomplished by passing `attribute_index=["outputs", "vehicle", "car", 0]`.
 
     This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
     object and accepts all Task arguments during initialization.
