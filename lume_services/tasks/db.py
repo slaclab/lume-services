@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Any
+from typing import Optional, Any
 from dependency_injector.wiring import Provide, inject
 
 from lume_services.config import Context
@@ -388,7 +388,7 @@ class LoadDBResult(Task):
     def run(
         self,
         result_rep: dict,
-        attribute_index: Optional[List[str, int]],
+        attribute_index: Optional[list],
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ) -> Any:
         """Load a result from the database using a lume_services.Result represention.
@@ -396,7 +396,7 @@ class LoadDBResult(Task):
         Args:
             result_rep (dict): Result representation containing result_type_string and
                 query for selection.
-            attribute_index (List[str, int]]): Selection instructions from query.
+            attribute_index (Optional[list]): Selection instructions from query.
                 For example, selecting the first `toyota` from a dictionary of form:
                 `{"vehicle": {"car":  ["toyota", "mini"], "boat": ["sail", "motor"]}}`
                 would be accomplished by passing `attribute_index=["car", 0].
