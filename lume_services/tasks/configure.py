@@ -17,7 +17,7 @@ def configure_lume_services():
     in any workflow using common database services.
 
     """
-    logger.debug(json.dumps(dict(os.environ)))
+    logger.debug("Configuring environment using %s", json.dumps(dict(os.environ)))
     config.configure()
 
 
