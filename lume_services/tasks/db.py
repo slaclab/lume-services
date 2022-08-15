@@ -274,10 +274,10 @@ class LoadDBResult(Task):
 
     """  # noqa
 
-    parameters = [
-        Parameter("attribute_index"),
-        Parameter("result_rep"),
-    ]
+    parameters = {
+        "attribute_index": Parameter("attribute_index"),
+        "result_rep": Parameter("result_rep"),
+    }
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)

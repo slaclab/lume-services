@@ -72,10 +72,10 @@ class SaveFile(Task):
 
     """
 
-    parameters = [
-        Parameter("filename"),
-        Parameter("filesystem_identifier"),
-    ]
+    parameters = {
+        "filename": Parameter("filename"),
+        "filesystem_identifier": Parameter("filesystem_identifier"),
+    }
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
@@ -221,9 +221,9 @@ class SaveFile(Task):
 
 
 class LoadFile(Task):
-    parameters = [
-        Parameter("file_rep"),
-    ]
+    parameters = {
+        "file_rep": Parameter("file_rep"),
+    }
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
