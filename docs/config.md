@@ -9,8 +9,8 @@ from lume_services.config import configure, LUMEServicesSettings
 lume_services_settings = LUMEServicesSettings(
 
 
-)
 
+)
 
 
 # run configure by parsing LUME environment variables
@@ -21,21 +21,9 @@ configure()
 
 ```
 
-LUME_MODEL_DB__HOST=127.0.0.1
-LUME_MODEL_DB__USER=root
-LUME_MODEL_DB__PASSWORD=test
-LUME_MODEL_DB__PORT=3306
-LUME_MODEL_DB__DATABASE=model_db
-LUME_MODEL_DB__CONNECTION__POOL_SIZE=1
-export LUME_PREFECT__SERVER__TAG=core-1.2.4
-export LUME_PREFECT__SERVER__HOST_PORT=4200
-export LUME_PREFECT__SERVER__HOST=127.0.0.1
-export LUME_RESULTS_DB__HOST=127.0.0.1
-export LUME_RESULTS_DB__PORT=27017
-export LUME_RESULTS_DB__USERNAME=root
-export LUME_RESULTS_DB__PASSWORD=password
-export LUME_RESULTS_DB__DATABASE=test
+The user may also configure their environment by taking advantage of the environment configuration feature.
 
+{% include 'files/env_vars.md' %}
 
 
 ## Submitting workflows with the appropriate configuration

@@ -1,5 +1,7 @@
 # LUME-services
 
+<div id="top"></div>
+
 <!-- SHIELDS -->
 [<div align="center"> ![release][release]][release-url]
 [![Contributors][contributors-shield]][contributors-url]
@@ -7,9 +9,10 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]][issues-closed-url]
-![Tests][tests-workflow]
+[![Tests][tests-workflow]][tests-workflow-url]
 ![Coverage][coverage]
-![Docs][docs-workflow]</div>
+[![Docs][docs-workflow]][docs-workflow-url]
+</div>
 <br />
 
 [contributors-shield]: https://img.shields.io/github/contributors/slaclab/lume-services.svg?style=for-the-badge
@@ -24,14 +27,16 @@
 [issues-closed-url]: https://github.com/slaclab/lume-services/issues?q=is%3Aissue+is%3Aclosed
 [license-url]: https://github.com/slaclab/lume-services/blob/main/LICENSE
 [tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge&label=Tests
+[tests-workflow-url]: https://github.com/slaclab/lume-services/actions/workflows/tests.yml
 [docs-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Docs?style=for-the-badge&label=Docs
+[docs-workflow-url]: https://github.com/slaclab/lume-services/actions/workflows/build_docs.yml
 [release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
 [release-url]: https://github.com/slaclab/lume-services/releases
 [coverage]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jacquelinegarrahan/61dce43449fc0509f34520fd7efc41b1/raw/slaclab-lume-services-coverage.json&style=for-the-badge
 
 
 
-LUME-services provides a set of common services for use in the orchestrations of models (here defined as a self-contained workflow) and simulations:
+LUME-services provides a set of common services for use in the orchestrations of models (here defined as a self-contained workflow):
 
 - Contextualized [file service](services/files.md) (local/mounted/remote)
 - [Model database service](services/models.md) for tracking model deployments
@@ -76,4 +81,4 @@ This package can be installed from GitHub using:
 pip install git+https://github.com/slaclab/lume-services.git
 ```
 
-or from conda using ... (once configured with conda-forge)
+or from conda using ... (*once configured with conda-forge)

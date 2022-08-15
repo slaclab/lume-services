@@ -3,7 +3,7 @@ from prefect.storage import Module
 from lume_services.tasks import (
     LoadFile,
     SaveDBResult,
-    configure_services,
+    configure_lume_services,
 )
 
 from lume_services.results import Result
@@ -30,7 +30,7 @@ save_db_result = SaveDBResult()
 with Flow("flow2", storage=Module(__name__)) as flow:
     file_rep = Parameter("file_rep")
     # load file
-    configure = configure_services()
+    configure = configure_lume_services()
     loaded_text = load_file(file_rep)
     result = format_result(loaded_text)
     db_result = save_db_result(result)

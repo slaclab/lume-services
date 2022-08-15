@@ -9,9 +9,10 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]][issues-closed-url]
-![Tests][tests-workflow]
+[![Tests][tests-workflow]][tests-workflow-url]
 ![Coverage][coverage]
-![Docs][docs-workflow]</div>
+[![Docs][docs-workflow]][docs-workflow-url]
+</div>
 <br />
 
 [contributors-shield]: https://img.shields.io/github/contributors/slaclab/lume-services.svg?style=for-the-badge
@@ -26,7 +27,9 @@
 [issues-closed-url]: https://github.com/slaclab/lume-services/issues?q=is%3Aissue+is%3Aclosed
 [license-url]: https://github.com/slaclab/lume-services/blob/main/LICENSE
 [tests-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Tests?style=for-the-badge&label=Tests
+[tests-workflow-url]: https://github.com/slaclab/lume-services/actions/workflows/tests.yml
 [docs-workflow]: https://img.shields.io/github/workflow/status/slaclab/lume-services/Docs?style=for-the-badge&label=Docs
+[docs-workflow-url]: https://github.com/slaclab/lume-services/actions/workflows/build_docs.yml
 [release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
 [release-url]: https://github.com/slaclab/lume-services/releases
 [coverage]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jacquelinegarrahan/61dce43449fc0509f34520fd7efc41b1/raw/slaclab-lume-services-coverage.json&style=for-the-badge

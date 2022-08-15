@@ -29,12 +29,12 @@ Because we've chosen the approach of having a single docker image representing o
 
 ```yaml
 
-"{{cookiecutter.repo_name}}"
+"cookiecutter.repo_name"
 ├─ .github/
 |  ├─ workflows/
 |  |  ├─ build_flow_docker.yaml
 │  │  ├─ tests.yaml
-├─ "{{cookiecutter.project_slug}}"
+├─ "cookiecutter.project_slug"
 |  ├─ files/
 |  |  ├─ __init__.py
 |  |  ├─ variables.yaml
@@ -109,7 +109,7 @@ Because the repository is heavily templated, there are several things that may b
 
 
 JSON FILE WITH THE FOLLOWING:
-
+{% raw %}
 ```
 {
   "author": "Jacqueline Garrahan",
@@ -133,7 +133,4 @@ JSON FILE WITH THE FOLLOWING:
 
 
 ```
-
-
-
- docker load --input /tmp/myimage.tar
+{% endraw %}

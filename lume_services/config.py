@@ -115,7 +115,7 @@ def configure(settings: LUMEServicesSettings = None):
 
         except ValidationError as e:
             raise EnvironmentNotConfiguredError(
-                list_env_vars(LUMEServicesSettings.schema()), validation_error=e
+                list_env_vars(LUMEServicesSettings), validation_error=e
             )
 
     # apply prefect config
@@ -159,11 +159,13 @@ def configure(settings: LUMEServicesSettings = None):
 
 
 def list_env_vars(
-    schema: dict = LUMEServicesSettings.schema(),
-    prefix: str = LUMEServicesSettings.Config.env_prefix,
-    delimiter: str = LUMEServicesSettings.Config.env_nested_delimiter,
-) -> list:
+    settings: type,
+) -> dict:
     env_vars = {"base": []}
+
+    schema = settings.schema()
+    prefix = settings.Config.env_prefix
+    delimiter = settings.Config.env_nested_delimiter
 
     def unpack_props(
         props,
@@ -227,7 +229,5 @@ def list_env_vars(
 
         else:
             env_vars["base"].append(env_name.upper())
-
-    # capitalize
 
     return env_vars
