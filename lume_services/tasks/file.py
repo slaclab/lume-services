@@ -1,6 +1,6 @@
 import logging
 from dependency_injector.wiring import Provide, inject
-from prefect import Task
+from prefect import Task, Parameter
 from typing import Any
 
 from lume_services.config import Context
@@ -59,14 +59,23 @@ class SaveFile(Task):
 
             my_file_obj = concatenate_text(text1, text2)
 
+            file_parameters = save_file_task.parameters
+
             my_result = save_file_task(
-                my_file_obj
+                my_file_obj,
+                filename = file_parameters["filename"],
+                filesystem_identifier = file_parameters["filesystem_identifier"],
+                file_type = TextFile # THIS MUST BE PASSED IN THE TASK CALL
             )
 
         ```
 
-
     """
+
+    parameters = [
+        Parameter("filename"),
+        Parameter("filesystem_identifier"),
+    ]
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
@@ -195,7 +204,9 @@ class SaveFile(Task):
             filename (str): File path to save
             filesystem_identifier (str): String identifier for filesystem configured
                 with File Service
-            file_type (type): Type of file to save as
+            file_type (type): Type of file to save as. This is not exposed as a
+                task parameter and should be passed explicitely during task run call.
+                See examples.
             file_service (FileService): File service for interacting w/ filesystems
 
         Returns:
@@ -210,6 +221,10 @@ class SaveFile(Task):
 
 
 class LoadFile(Task):
+    parameters = [
+        Parameter("file_rep"),
+    ]
+
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
         object and accepts all Task arguments during initialization.

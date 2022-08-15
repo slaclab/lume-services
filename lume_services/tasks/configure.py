@@ -11,6 +11,16 @@ import copy
 logger = logging.getLogger(__name__)
 
 
+@task(name="check_local_execution")
+def check_local_execution():
+    from lume_services.config import _settings
+
+    if _settings.backend == "local":
+        return True
+    else:
+        return False
+
+
 @task(name="configure_lume_services")
 def configure_lume_services():
     """Configure LUME-services using environment variables. This task must be included
@@ -21,7 +31,7 @@ def configure_lume_services():
     config.configure()
 
 
-@task(name="configure_lume_model_variables")
+@task(name="prepare_lume_model_variables")
 def prepare_lume_model_variables(
     value_map: Dict[str, Any], variables: Dict[str, Variable]
 ) -> Dict[str, Variable]:
