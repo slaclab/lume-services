@@ -142,10 +142,17 @@ def configure(settings: LUMEServicesSettings = None):
     else:
         backend = LocalBackend()
 
+    filesystems = [
+        LocalFilesystem(),
+    ]
+
+    if settings.mounted_filesystem is not None:
+        filesystems.append(settings.mounted_filesystem)
+
     context = Context(
         model_db=model_db,
         results_db=results_db,
-        filesystems=[LocalFilesystem(), settings.mounted_filesystem],
+        filesystems=filesystems,
         scheduling_backend=backend,
     )
     _settings = settings
