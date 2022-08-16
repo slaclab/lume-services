@@ -42,12 +42,7 @@ _settings: BaseSettings = None
 class Context(containers.DeclarativeContainer):
     config = providers.Configuration()
 
-    mounted_filesystem = providers.Dependency(
-        instance_of=MountedFilesystem, default=None
-    )
-    local_filesystem = providers.Singleton(
-        LocalFilesystem,
-    )
+    filesystems = providers.Dependency(instance_of=list)
 
     model_db = providers.Dependency(
         ModelDB,
@@ -58,9 +53,7 @@ class Context(containers.DeclarativeContainer):
     scheduling_backend = providers.Dependency(instance_of=Backend)
 
     # filter on the case that a filesystem is undefined
-    file_service = providers.Singleton(
-        FileService, filesystems=providers.List(local_filesystem, mounted_filesystem)
-    )
+    file_service = providers.Singleton(FileService, filesystems=filesystems)
 
     model_db_service = providers.Singleton(
         ModelDBService,
@@ -149,17 +142,24 @@ def configure(settings: LUMEServicesSettings = None):
     else:
         backend = LocalBackend()
 
+    filesystems = [
+        LocalFilesystem(),
+    ]
+
+    if settings.mounted_filesystem is not None:
+        filesystems.append(settings.mounted_filesystem)
+
     context = Context(
         model_db=model_db,
         results_db=results_db,
-        mounted_filesystem=settings.mounted_filesystem,
+        filesystems=filesystems,
         scheduling_backend=backend,
     )
     _settings = settings
 
 
 def list_env_vars(
-    settings: type,
+    settings: type = LUMEServicesSettings,
 ) -> dict:
     env_vars = {"base": []}
 

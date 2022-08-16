@@ -10,7 +10,6 @@ from lume_services import config
 from lume_services.results import Result
 from lume_services.files import TextFile
 from lume_services.errors import EnvironmentNotConfiguredError
-from lume_services.services.files.filesystems.mounted import MountedFilesystem
 
 
 class TestLumeSettings:
@@ -72,8 +71,6 @@ class TestLumeSettings:
             == results_db_service._results_db.config.database
         )
 
-        assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
-
         # prefect configuration
         assert (
             config._settings.prefect.server.host
@@ -129,8 +126,6 @@ class TestLumeSettings:
             config._settings.results_db.database
             == lume_services_settings.results_db.database
         )
-
-        assert isinstance(config.context.mounted_filesystem(), (MountedFilesystem,))
 
         # prefect configuration
         assert (

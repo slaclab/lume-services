@@ -65,10 +65,11 @@ def prepare_lume_model_variables(
     missing_values = [
         var_name for var_name in variables.keys() if var_name not in value_map
     ]
-    logger.warning(
-        "No value provided for: %s. Will assign variable default to value.",
-        ", ".join(missing_values),
-    )
+    if len(missing_values):
+        logger.warning(
+            "No value provided for: %s. Will assign variable default to value.",
+            ", ".join(missing_values),
+        )
     for var_name in missing_values:
         variables[var_name].value = variables[var_name].default
 
