@@ -92,7 +92,6 @@ def build_table(info: dict, output_file: TextIO) -> None:
     headers = ["Name", "Type", "Default"]
 
     def build_value_matrix(env_list):
-        print(env_list)
         return [[var["name"], var["type"], var["default"]] for var in env_list]
 
     # first base configuration
@@ -100,6 +99,17 @@ def build_table(info: dict, output_file: TextIO) -> None:
         table_name="Base Configuration",
         headers=headers,
         value_matrix=build_value_matrix(info["base"]),
+    )
+
+    base_writer.dump(output_file, close_after_write=False)
+
+    output_file.write("\n\n")
+
+    # files
+    base_writer = MarkdownTableWriter(
+        table_name="Filesystem Configuration",
+        headers=headers,
+        value_matrix=build_value_matrix(info["mounted_filesystem"]),
     )
 
     base_writer.dump(output_file, close_after_write=False)
