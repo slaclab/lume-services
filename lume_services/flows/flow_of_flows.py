@@ -188,7 +188,7 @@ class FlowOfFlows(Flow):
                                 )
 
                                 # add db result parameters to the task and create edge
-                                for param in load_db_result.parameters:
+                                for param in load_db_result.parameters.values():
                                     flow.prefect_flow.add_task(param)
                                     flow.prefect_flow.add_edge(
                                         param, load_db_result, mapped=True
