@@ -13,7 +13,6 @@ from sqlalchemy.engine.base import Connection
 from typing import List, Union, Optional
 
 from urllib.parse import quote_plus
-from lume_services.services.models.db.db import ModelDBConfig, ModelDB
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ class ConnectionConfig(BaseModel):
     pool_pre_ping: bool = True
 
 
-class ModelDBConfig(ModelDBConfig):
+class ModelDBConfig(BaseModel):
     """Configuration for SQL connection using sqlalchemy.
 
     Args:
@@ -57,7 +56,7 @@ class ModelDBConfig(ModelDBConfig):
     dialect_str: str = "mysql+pymysql"
 
 
-class ModelDB(ModelDB):
+class ModelDB(BaseModel):
     """DBService client responsible for handling connections to the model database."""
 
     def __init__(self, config: ModelDBConfig):
@@ -68,12 +67,11 @@ class ModelDB(ModelDB):
 
         """
         self.config = config
-
         self._create_engine()
 
     def _create_engine(self) -> None:
         """Create sqlalchemy engine using uri."""
-        self.pid = os.getpid()
+        self._pid = os.getpid()
 
         # since using a context manager, must have context-local managed vars
         self._connection = ContextVar("connection", default=None)
@@ -101,7 +99,7 @@ class ModelDB(ModelDB):
 
         """
 
-        if os.getpid() != self.pid:
+        if os.getpid() != self._pid:
             self._create_engine()
 
     @property
