@@ -2,7 +2,7 @@
 
 LUME-services uses [injection](https://python-dependency-injector.ets-labs.org/) for runtime configuration of services. This means that programs can use the same code in a number of different environments simply by changing environment variable definitions.
 
-Programs using the standard services packaged with LUME-services (the MongoDB implementation of Results Database, MySQL implementation of Model Registry), can use the configuration tools packaged with LUME-services directly by calling the configure script during code execution:
+Programs using the standard services packaged with LUME-services (the MongoDB implementation of Results Database, Model Database sqlalchemy), can use the configuration tools packaged with LUME-services directly by calling the configure script during code execution:
 ```
 from lume_services.config import configure, LUMEServicesSettings
 
