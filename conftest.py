@@ -4,7 +4,7 @@ import logging
 
 from lume_services import config
 from lume_services.docker.files import DOCKER_COMPOSE
-from lume_services.services.models.db.mysql import MySQLModelDBConfig
+from lume_services.services.models.db import ModelDBConfig
 from lume_services.services.results.mongodb import MongodbResultsDBConfig
 from lume_services.services.scheduling.backends.server import (
     PrefectAgentConfig,
@@ -259,7 +259,7 @@ def lume_services_settings(
     lume_backend,
     mounted_filesystem,
 ):
-    model_db_config = MySQLModelDBConfig(
+    model_db_config = ModelDBConfig(
         host=mysql_host,
         port=mysql_port,
         user=mysql_user,
