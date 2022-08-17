@@ -2,9 +2,8 @@ from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
 from typing import Optional
 
-from lume_services.services.models.db import ModelDB
+from lume_services.services.models.db import ModelDB, ModelDBConfig
 from lume_services.services.models import ModelDBService
-from lume_services.services.models.db.mysql import MySQLModelDBConfig, MySQLModelDB
 from lume_services.services.results import (
     ResultsDBService,
     ResultsDB,
@@ -81,7 +80,7 @@ class Context(containers.DeclarativeContainer):
 class LUMEServicesSettings(BaseSettings):
     """Settings describing configuration for default LUME-services provider objects."""
 
-    model_db: Optional[MySQLModelDBConfig]
+    model_db: Optional[ModelDBConfig]
     results_db: Optional[MongodbResultsDBConfig]
     prefect: Optional[PrefectConfig]
     mounted_filesystem: Optional[MountedFilesystem]
@@ -98,7 +97,7 @@ class LUMEServicesSettings(BaseSettings):
 
 
 def configure(settings: LUMEServicesSettings = None):
-    """Configure method with default methods for lume-services using MySQLModelDB
+    """Configure method with default methods for lume-services using ModelDB
     and MongodbResultsDB.
 
     """
@@ -118,7 +117,7 @@ def configure(settings: LUMEServicesSettings = None):
     global context, _settings
     model_db = None
     if settings.model_db is not None:
-        model_db = MySQLModelDB(settings.model_db)
+        model_db = ModelDB(settings.model_db)
 
     results_db = None
     if settings.results_db is not None:
