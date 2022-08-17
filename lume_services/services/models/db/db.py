@@ -56,7 +56,7 @@ class ModelDBConfig(BaseModel):
     dialect_str: str = "mysql+pymysql"
 
 
-class ModelDB(BaseModel):
+class ModelDB:
     """DBService client responsible for handling connections to the model database."""
 
     def __init__(self, config: ModelDBConfig):
