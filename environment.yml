@@ -12,10 +12,10 @@ dependencies:
   - pandas
   - pymongo
   - click
-  - blinker
   - dependency_injector
   - lume-model>=1.4
   - h5py
   - pyyaml
   - docker-py>=5.0
   - lume-base>=0.2.2
+  - conda-build
