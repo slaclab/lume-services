@@ -3,11 +3,24 @@ set -e
 
 prefect backend server
 
-if [ ! -z "$EXTRA_CONDA_PACKAGES" ]; then
-  echo "+conda install $EXTRA_PIP_PACKAGES"
-  conda install $EXTRA_CONDA_PACKAGES
+if [ ! -z "$EXTRA_CONDA_PACKAGES" ] && [ "$LOCAL_CHANNEL_ONLY"="true" ]; then
+
+  if [ ! -d "$LOCAL_CONDA_CHANNEL" ]; then
+    echo "Must mount conda channel to $LOCAL_CONDA_CHANNEL"
+    exit 1
+    fi
+
+  echo "+conda install --yes -c file://$LOCAL_CONDA_CHANNEL $EXTRA_CONDA_PACKAGES --offline"
+  conda install --yes -c "file://$LOCAL_CONDA_CHANNEL" $EXTRA_CONDA_PACKAGES --offline
+else
+  if [ ! -z "$EXTRA_CONDA_PACKAGES" ]; then
+    echo "+conda install --yes $EXTRA_CONDA_PACKAGES"
+    conda install --yes $EXTRA_CONDA_PACKAGES
+  fi
+
 fi
 
+# need to handle pip offline...
 if [ ! -z "$EXTRA_PIP_PACKAGES" ]; then
   echo "+pip install $EXTRA_PIP_PACKAGES"
   pip install $EXTRA_PIP_PACKAGES
