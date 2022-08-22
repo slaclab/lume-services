@@ -34,7 +34,14 @@ def get_result_from_string(result_type_string: str) -> Result:
         return _ResultTypes.get(result_type_string)
 
 
-def get_result_types():
+def get_result_types() -> Dict[str, Result]:
+    """Get mapping of result import strings to LUME-services results objects.
+
+    Returns:
+        Dict[str, Result]: Mapping of result import strings to LUME-services results
+            objects.
+
+    """
     return _ResultTypes
 
 
