@@ -25,7 +25,7 @@ def docker():
     default=1.0,
     help="Pause between successive polls of docker-compose services.",
 )
-def start_docker_services(project_name, timeout, pause):
+def start_services(project_name, timeout, pause):
     """CLI utility for spinning up LUME-services with docker-compose. Services will
     exit on KeyboardInterrupt (Ctrl+C).
 
@@ -40,7 +40,3 @@ def start_docker_services(project_name, timeout, pause):
                 time.sleep(2)
     except KeyboardInterrupt:
         print("Shutting down LUME-services ")
-
-
-if __name__ == "__main__":
-    docker()

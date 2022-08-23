@@ -3,11 +3,11 @@ from .docker_compose import docker
 
 
 @click.group()
-def lume_services():
+def main():
     pass
 
 
-lume_services.add_command(docker)
+main.add_command(docker)
 
 
 """
