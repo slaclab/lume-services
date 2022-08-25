@@ -130,7 +130,7 @@ def build_table(info: dict, output_file: TextIO) -> None:
     results_db_writer = MarkdownTableWriter(
         table_name="Results Database",
         headers=headers,
-        value_matrix=build_value_matrix(info["model_db"]),
+        value_matrix=build_value_matrix(info["results_db"]),
     )
 
     results_db_writer.dump(output_file, close_after_write=False)
