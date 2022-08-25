@@ -96,18 +96,23 @@ class LUMEServicesSettings(BaseSettings):
         env_nested_delimiter = "__"
 
 
-def configure(settings: LUMEServicesSettings = None):
+def configure(settings: Optional[LUMEServicesSettings] = None):
     """Configure method with default methods for lume-services using ModelDB
-    and MongodbResultsDB.
+    and MongodbResultsDB. Populates the global _settings object.
+
+    Args:
+        settings (Optional[LUMEServicesSettings]): LUMEServicesSettings object holding
+            the runtime configuration for services used by LUME-services.
 
     """
+    logger.info("Configuring LUME-services environment...")
     if settings is None:
         try:
             settings = LUMEServicesSettings()
 
         except ValidationError as e:
             raise EnvironmentNotConfiguredError(
-                list_env_vars(LUMEServicesSettings), validation_error=e
+                get_env_vars(LUMEServicesSettings), validation_error=e
             )
 
     # apply prefect config
@@ -155,9 +160,11 @@ def configure(settings: LUMEServicesSettings = None):
         scheduling_backend=backend,
     )
     _settings = settings
+    logger.info("Environment configured.")
+    logger.debug("Environment configured using %s", settings.dict())
 
 
-def list_env_vars(
+def get_env_vars(
     settings: type = LUMEServicesSettings,
 ) -> dict:
     env_vars = {"base": []}
