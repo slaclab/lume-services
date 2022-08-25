@@ -10,7 +10,7 @@ services:
       - service-net
     volumes:
       - type: bind
-        source: ${LUME_SERVICES_ROOTDIR}/lume_services/docker/files/model-db-init.sql
+        source: ./model-db-init.sql
         target: /docker-entrypoint-initdb.d/model-db-init.sql
         read_only: true
     environment:
@@ -150,7 +150,7 @@ services:
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net"
     volumes:
         - type: bind
-          source: ${LUME_SERVICES_ROOTDIR}/lume_services/docker/files/config.toml
+          source: ./config.toml
           target: /root/.prefect/config.toml
           read_only: true
         - type: bind

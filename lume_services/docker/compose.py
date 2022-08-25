@@ -11,6 +11,7 @@ import attr
 
 import logging
 from lume_services.docker.files import DOCKER_COMPOSE
+from lume_services.config import LUMEServicesSettings
 
 # from lume_services.config import LUMEServicesSettings
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ _UI_SETUP_COMMAND = "--profile with_ui up -d"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
 
 
-def check_mongodb_ready(lume_services_settings):
+def check_mongodb_ready(lume_services_settings: LUMEServicesSettings):
     mongodb_config = lume_services_settings.results_db
 
     try:
@@ -38,7 +39,7 @@ def check_mongodb_ready(lume_services_settings):
         return False
 
 
-def check_mysql_ready(lume_services_settings):
+def check_mysql_ready(lume_services_settings: LUMEServicesSettings):
     mysql_config = lume_services_settings.model_db
 
     try:
@@ -54,7 +55,7 @@ def check_mysql_ready(lume_services_settings):
         return False
 
 
-def check_prefect_ready(lume_services_settings):
+def check_prefect_ready(lume_services_settings: LUMEServicesSettings):
     host = lume_services_settings.prefect.server.host
     port = lume_services_settings.prefect.server.host_port
 
@@ -154,7 +155,11 @@ class Services:
         return match
 
     def wait_until_responsive(
-        self, lume_services_settings, timeout, pause, clock=timeit.default_timer
+        self,
+        lume_services_settings: LUMEServicesSettings,
+        timeout: float,
+        pause: float,
+        clock=timeit.default_timer,
     ):
         """Wait until services are responsive."""
 
@@ -208,7 +213,7 @@ def get_setup_command():
 
 @contextmanager
 def run_docker_services(
-    lume_services_settings,
+    lume_services_settings: LUMEServicesSettings,
     timeout: float,
     pause: float,
     project_name="lume-services",
@@ -217,14 +222,17 @@ def run_docker_services(
     """Context manager for executing dockerized services.
 
     Args:
-        lume_services_settings (): LUME-services settings used to configure ports,
-            passwords etc. for services.
+        lume_services_settings (LUMEServicesSettings): LUME-services settings used to
+            configure ports, passwords etc. for services.
         timeout (float): Total time for executing checks against services.
             Docker-compose will exit all services if checks do not succeed within this
             time window.
         pause (float): Pause between checks.
-        project_name (str="lume-services"): Name of docker project
-        ui (bool=False): Whether to run UI service.
+        project_name (str): Name of docker project
+        ui (bool): Whether to run UI service.
+
+    Yields:
+        Services
 
     """
     logger.info(f"Running services in environment: {dict(os.environ)}")

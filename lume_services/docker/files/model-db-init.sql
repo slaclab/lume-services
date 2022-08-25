@@ -14,6 +14,12 @@ CREATE TABLE project (
 	description VARCHAR(255) NOT NULL,
 	PRIMARY KEY (project_name)
 );
+CREATE TABLE dependency_type (
+	id INTEGER NOT NULL AUTO_INCREMENT,
+	name VARCHAR(255) NOT NULL,
+	install_type VARCHAR(255) NOT NULL,
+	PRIMARY KEY (id)
+);
 CREATE TABLE deployment (
 	deployment_id INTEGER NOT NULL AUTO_INCREMENT,
 	version VARCHAR(255) NOT NULL,
@@ -37,6 +43,19 @@ CREATE TABLE flow (
 	FOREIGN KEY(project_name) REFERENCES project (project_name),
 	FOREIGN KEY(deployment_id) REFERENCES deployment (deployment_id)
 );
+CREATE TABLE deployment_dependencies (
+	_id INTEGER NOT NULL AUTO_INCREMENT,
+	name VARCHAR(255) NOT NULL,
+	source VARCHAR(255) NOT NULL,
+	pkg_type VARCHAR(255) NOT NULL,
+	local_source VARCHAR(255),
+	version VARCHAR(255) NOT NULL,
+	deployment_id INTEGER NOT NULL,
+	dependency_type_id INTEGER NOT NULL,
+	PRIMARY KEY (_id),
+	FOREIGN KEY(deployment_id) REFERENCES deployment (deployment_id),
+	FOREIGN KEY(dependency_type_id) REFERENCES dependency_type (id)
+);
 CREATE TABLE flow_of_flows (
 	_id INTEGER NOT NULL AUTO_INCREMENT,
 	parent_flow_id VARCHAR(255) NOT NULL,
@@ -47,3 +66,5 @@ CREATE TABLE flow_of_flows (
 	FOREIGN KEY(parent_flow_id) REFERENCES flow (flow_id),
 	FOREIGN KEY(flow_id) REFERENCES flow (flow_id)
 );
+INSERT INTO dependency_type (name, install_type) VALUES ('conda', 'local');
+INSERT INTO dependency_type (name, install_type) VALUES ('pip', 'local');
