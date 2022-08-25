@@ -170,6 +170,7 @@ class ModelDBService:
         """
         # execute query
         query = select(Model).filter_by(**kwargs)
+
         result = self._model_db.select(query)
 
         if len(result):
@@ -272,7 +273,7 @@ class ModelDBService:
         """Get a flow from criteria
 
         Returns:
-            Flow:
+            Flow: Select a flow from the database.
 
         raises:
             ValueError: Passed kwarg not in Project schema
@@ -301,7 +302,7 @@ class ModelDBService:
         """Get a flow from criteria
 
         Returns:
-            FlowOfFlows:
+            FlowOfFlows: Select a flow of flows from the database.
 
         raises:
             ValueError: Passed kwarg not in Project schema
