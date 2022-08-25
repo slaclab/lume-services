@@ -59,15 +59,13 @@ class MongodbCollection(BaseModel):
 class MongodbResultsDB(ResultsDB):
     # Note: pymongo is threadsafe
 
-    def __init__(self, db_config: MongodbResultsDBConfig, connect: bool = True):
+    def __init__(self, db_config: MongodbResultsDBConfig):
         self.config = db_config
 
         # track pid to make multiprocessing safe
         self._pid = os.getpid()
         self._client = ContextVar("client", default=None)
         self._collections = ContextVar("collections", default={})
-        if connect:
-            self._connect()
 
     def _connect(self) -> MongoClient:
         """Establish connection and set _client."""
