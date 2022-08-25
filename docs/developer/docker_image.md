@@ -6,9 +6,10 @@ When a job is submitted to the scheduling service, the agent creates a container
 
 The image allows for environment specification via two environment variables, `EXTRA_CONDA_PACKAGES` and `EXTRA_PIP_PACKAGES`, provided as comma-separated strings (see [environment.sh](https://github.com/slaclab/lume-services/blob/main/entrypoint.sh)).
 
-## Environment resolution for isolated jobs
 
-Because jobs may be submitted for execution in isolated environments, `LUME-services` provides an additional environment resolution tool that allows users to prepare a channel with resolved dependencies. Channels can be configured as either a server-based resource or as a mounted filesystem.
+## Isolation
+
+Because jobs may be submitted for execution in isolated environments without access to the standard conda channels, `LUME-services` provides an additional environment resolution tool that allows users to prepare a mounted channel with resolved dependencies. Channels can be configured as either a server-based resource or as a mounted filesystem.
 
 
 * Insert diagram of requirement flow here

@@ -23,8 +23,8 @@
 TODO:
     - [ ] CLI tool
     - [ ] Instructions for templating tool and configuration
-    - [ ] Templated README
-    - [ ] Handling of input/output variables at outset
+    - [x] Templated README
+    - [x] Handling of input/output variables at outset
     - [ ] Drop required defaults for lume-model variables
     - [ ] Check functionality of all
     - [ ] Docs
@@ -60,9 +60,9 @@ TODO:
 
 ## Scheduler
 - TODO:
-    - [ ] Test flow of flows composition
+    - [x] Test flow of flows composition
     - [ ] Add mapped parameters to database?
-    - [ ] Add requirements table
+    - [x] Add requirements table
     - [ ] Kubernetes backend tests
     - [ ] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
