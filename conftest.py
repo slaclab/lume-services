@@ -12,8 +12,6 @@ from lume_services.services.scheduling.backends.server import (
     PrefectServerConfig,
 )
 
-logging.basicConfig(level=logging.INFO)
-
 from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
