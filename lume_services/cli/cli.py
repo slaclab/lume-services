@@ -1,10 +1,13 @@
 import click
 from .docker_compose import docker
+from lume_services.config import configure
 
 
 @click.group()
-def main():
-    pass
+@click.pass_context
+def main(ctx):
+    # configure lume services
+    configure()
 
 
 main.add_command(docker)

@@ -1,12 +1,17 @@
 import click
-from lume_services.config import LUMEServicesSettings
+from lume_services.config import LUMEServicesSettings, get_env_vars
 from lume_services.docker.compose import run_docker_services
+from lume_services.errors import EnvironmentNotConfiguredError
 import time
 
 
 @click.group()
 def docker():
     pass
+
+
+def wait():
+    time.sleep(2)
 
 
 @docker.command(help="Start cluster of docker services.")
@@ -31,12 +36,16 @@ def start_services(project_name, timeout, pause):
 
     """
     lume_services_settings = LUMEServicesSettings()
+    if lume_services_settings.prefect is None:
+        env_vars = get_env_vars()
+        raise EnvironmentNotConfiguredError(env_vars)
+
     try:
         with run_docker_services(
             lume_services_settings, timeout, pause, project_name=project_name, ui=True
         ):
             print("All services started and passing health checks.")
             while True:
-                time.sleep(2)
+                wait()
     except KeyboardInterrupt:
-        print("Shutting down LUME-services ")
+        print("Shutting down LUME-services.")
