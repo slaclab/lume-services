@@ -6,7 +6,7 @@ import os
 class EnvironmentNotConfiguredError(Exception):
     """Error for marking unconfigured environment."""
 
-    def __init__(self, env_vars, validation_error: ValidationError):
+    def __init__(self, env_vars, validation_error: ValidationError = None):
         self.env = dict(os.environ)
         self.env_vars = []
 
@@ -15,11 +15,15 @@ class EnvironmentNotConfiguredError(Exception):
 
         self.missing_vars = [var for var in self.env_vars if var not in self.env]
 
-        self.message = "%s. Evironment variables not defined: %s"
+        if validation_error is None:
+            self.message = "Environment variables not defined: %s."
+            super().__init__(self.message, ", ".join(self.missing_vars))
 
-        super().__init__(
-            self.message, str(validation_error), ", ".join(self.missing_vars)
-        )
+        else:
+            self.message = "%s. Evironment variables not defined: %s"
+            super().__init__(
+                self.message, str(validation_error), ", ".join(self.missing_vars)
+            )
 
 
 # Model errors
@@ -231,3 +235,21 @@ class UnableToIndexLocalChannelError(Exception):
         super().__init__(
             self.message, self.local_channel_directory, self.return_code, self.output
         )
+
+
+class MissingEnvironmentYamlError(Exception):
+    """Error raised when a model package directory is missing an environment.yml
+    spec.
+
+    """
+
+    def __init__(self, directory: str):
+        """
+        Args:
+            directory (str): Local directory holding the package source.
+
+        """
+        self.directory = directory
+        self.message = "Poorly formed package at %s. No Environment yaml provided."
+
+        super().__init__(self.message, self.directory)
