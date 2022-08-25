@@ -95,6 +95,12 @@ theme:
 markdown_extensions:
   - pymdownx.tasklist
   - mkdocs-click
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
 #  - attr_list
 
 extra_css:
