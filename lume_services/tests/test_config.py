@@ -18,7 +18,7 @@ class TestLumeSettings:
         config.context = None
 
     def test_list_environ(self):
-        env_vars = config.list_env_vars()
+        env_vars = config.get_env_vars()
         assert isinstance(env_vars, (dict,))
 
     def test_configure_from_env(
