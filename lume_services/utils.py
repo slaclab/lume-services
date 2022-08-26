@@ -400,3 +400,34 @@ class ObjLoader(
         # return loaded object w/o storing
         else:
             return self.loader()
+
+
+def select_python_version(version: str) -> str:
+    """Utility for selecting a python version given a version string formatted with
+    a pin.
+
+    Args:
+        version (str): String rep of version with pin
+
+    Returns:
+        str: Sting rep of version to use
+
+    Raises:
+        ValueError: Unable to parse python version.
+
+    """
+
+    # if >=, use base
+    if ">=" in version or "<=" in version or "=" in version:
+        v = float(version.split("=")[1])
+
+    elif ">" in version:
+        v = float(version.replace(">", "")) + 0.1
+
+    elif "<" in version:
+        v = float(version.replace("<", "")) - 0.1
+
+    else:
+        raise ValueError("Cannot parse python version %s", version)
+
+    return str(v)
