@@ -10,15 +10,10 @@ Because we've chosen the approach of having a single docker image representing o
 
 
 
-
-
 ## Requirements
 - Must include lume-services
 
-
-
-
-
+No additional dependencies will be downloaded for pip packages. This means requirements must be defined in the environment.yaml...
 
 # steps
 ## 1. Create package repository

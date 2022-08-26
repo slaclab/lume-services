@@ -174,7 +174,17 @@ sequenceDiagram
 ```
 
 ### Pip installations
-Pip installations should be avoided as much as possible...
+
+No additional dependencies will be downloaded for pip packages. This means all
 
 TODO:
 - Add requirements table to model database
+
+
+### Notes
+
+At present, LUME-services does not take advantage of all the features of sqlalchemy, most notably the ability to do joined loads to link data between tables using [relationships](https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html).
+
+```
+deployment.model
+```
