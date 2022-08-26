@@ -72,7 +72,7 @@ class Context(containers.DeclarativeContainer):
             "lume_services.files",
             "lume_services.results",
             "lume_services.flows",
-            #           "lume_services.models",
+            "lume_services.models",
         ],
     )
 

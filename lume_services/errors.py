@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pydantic import ValidationError
 import os
 
@@ -209,6 +209,36 @@ class UnableToInstallCondaDependenciesError(Exception):
 
         self.message = "Unable to install conda dependencies: %s"
         super().__init__(self.message, ", ".join(self.deps))
+
+
+class UnableToInstallPipDependenciesError(Exception):
+    """Error indicating failed pip installation."""
+
+    def __init__(
+        self,
+        pip_dependencies: List[str],
+        python_version: float,
+        platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
+        e: Exception,
+    ):
+        """
+
+        Args:
+            pip_dependencies (List[str]): List of dependencies to be installed with pip
+            python_version (float): Python version used for installation
+            platform (Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"]):
+                Platform used for installation
+            e (Exception): Exception raised from installation subprocess
+
+
+        """
+        self.deps = pip_dependencies
+        self.python_version = python_version
+        self.platform = platform
+
+        self.message = "Unable to install pip dependencies: %s for python=%s on \
+            platform=%s with error: %s"
+        super().__init__(self.message, ", ".join(self.deps), self.python_version, e)
 
 
 class UnableToIndexLocalChannelError(Exception):
