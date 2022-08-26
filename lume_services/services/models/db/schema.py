@@ -1,8 +1,8 @@
 import logging
 
+from sqlalchemy import insert
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import Integer, String, DateTime, Boolean
 
@@ -27,7 +27,7 @@ class Model(Base):
     description = Column("description", String(255), nullable=False)
 
     # one to many relationship with deployment
-    deployment = relationship("Deployment", backref="model")
+    deployments = relationship("Deployment", back_populates="model")
 
     def __repr__(self):
         return f"Model( \
@@ -63,8 +63,14 @@ class Deployment(Base):
         "model_id", ForeignKey("model.model_id"), nullable=False, onupdate="cascade"
     )
 
+    # one to many
+    model = relationship("Model", back_populates="deployments", uselist=False)
+
     # one -> many
-    flow = relationship("Flow", backref="deployment")
+    flow = relationship("Flow", back_populates="deployment", uselist=False)
+
+    # one -> many
+    dependencies = relationship("DeploymentDependencies", back_populates="deployment")
 
     # unique constraints
     __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)
@@ -79,7 +85,6 @@ class Deployment(Base):
                 source={self.source!r}, \
                 sha256={self.sha_256!r}, \
                 image={self.image!r}, \
-                url={self.url!r}, \
                 is_live={self.is_live!r} \
                 )"
 
@@ -92,7 +97,7 @@ class Project(Base):
     description = Column("description", String(255), nullable=False)
 
     # relationships
-    flows = relationship("Flow", backref="project")
+    flows = relationship("Flow", back_populates="project")
 
     def __repr__(self):
         return f"Project( \
@@ -121,6 +126,9 @@ class Flow(Base):
         onupdate="cascade",
     )
 
+    deployment = relationship("Deployment", back_populates="flow", uselist=False)
+    project = relationship("Project", back_populates="flows", uselist=False)
+
     def __repr__(self):
         return f"Flow( \
                 flow_id={self.flow_id!r}, \
@@ -144,13 +152,15 @@ class FlowOfFlows(Base):
     # position in execution order
     position = Column("position", Integer, nullable=False)
 
-    parent = relationship(
-        "Flow",
-        foreign_keys="FlowOfFlows.parent_flow_id",
-        backref="composing_flows",
-        lazy="joined",
+    parent_flow = relationship(
+        "Flow", foreign_keys="FlowOfFlows.parent_flow_id", uselist=False
     )
-    flow = relationship("Flow", foreign_keys="FlowOfFlows.flow_id", lazy="joined")
+    flow = relationship(
+        "Flow",
+        foreign_keys="FlowOfFlows.flow_id",
+        backref="composing_flows",
+        uselist=False,
+    )
 
     # constraints
     __table_args__ = (
@@ -164,3 +174,93 @@ class FlowOfFlows(Base):
                 parent_flow_id={self.parent_flow_id!r}, \
                 position={self.position!r} \
                 )"
+
+
+class DependencyType(Base):
+    __tablename__ = "dependency_type"
+
+    # columns
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
+    name = Column("name", String(255), nullable=False)
+    install_type = Column(
+        "install_type", String(255), nullable=False
+    )  # local, download
+
+    def __repr__(self):
+        return f"DependencyType( \
+                id={self.id!r}, \
+                name={self.name!r}, \
+                install_type={self.install_type!r}, \
+                )"
+
+
+class DeploymentDependencies(Base):
+
+    __tablename__ = "deployment_dependencies"
+
+    # columns
+    #  _id not necessarily referenced, but need pk for performance
+    id = Column("_id", Integer, primary_key=True, autoincrement=True)
+    # dependencies
+    name = Column("name", String(255), nullable=False)
+    source = Column("source", String(255), nullable=False)
+    pkg_type = Column("pkg_type", String(255), nullable=False)
+    local_source = Column("local_source", String(255), nullable=True)
+    version = Column("version", String(255), nullable=False)
+
+    # one to many mapping deployment_id -> flow
+    deployment_id = Column(
+        "deployment_id",
+        ForeignKey("deployment.deployment_id"),
+        nullable=False,
+        onupdate="cascade",
+    )
+
+    dependency_type_id = Column(
+        "dependency_type_id",
+        ForeignKey("dependency_type.id"),
+        nullable=False,
+        onupdate="cascade",
+    )
+
+    deployment = relationship(
+        "Deployment",
+        foreign_keys="DeploymentDependencies.deployment_id",
+        back_populates="dependencies",
+        uselist=False,
+    )
+    dependency_type = relationship(
+        "DependencyType",
+        foreign_keys="DeploymentDependencies.dependency_type_id",
+        uselist=False,
+    )
+
+    def __repr__(self):
+        return f"Dependencies( \
+                id={self.id!r}, \
+                flow_id={self.flow_id!r}, \
+                parent_flow_id={self.parent_flow_id!r}, \
+                position={self.position!r} \
+                )"
+
+
+# used for auto-generating schema docs
+__table_schema__ = [
+    Model,
+    DeploymentDependencies,
+    Deployment,
+    DependencyType,
+    Flow,
+    FlowOfFlows,
+    Model,
+    Project,
+]
+
+# Dependency types to store in model on population
+CondaDependencyTypeInsert = insert(DependencyType).values(
+    name="conda", install_type="local"
+)
+
+PipDependencyTypeInsert = insert(DependencyType).values(
+    name="pip", install_type="local"
+)
