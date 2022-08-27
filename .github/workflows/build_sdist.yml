@@ -19,10 +19,17 @@ jobs:
       #    sudo apt-get install libpcap-dev
       #  if: runner.os == 'Linux'
     - name: Build sdist
+      id: sdist
       run: |
         python setup.py sdist
-      # XXX: Use pypa/gh-action-pypi-publish instead
-    - uses: actions/upload-artifact@v3
+        export FILENAME=$(pwd)/dist/`python setup.py --fullname`.tar.gz
+        echo "::set-output name=filename::$FILENAME"
+
+    - name: Upload artifact to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        name: sdist
-        path: dist
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ steps.sdist.outputs.filename} }}
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
