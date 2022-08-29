@@ -175,10 +175,22 @@ sequenceDiagram
 
 ### Pip installations
 
-No additional dependencies will be downloaded for pip packages. This means all
+No additional dependencies will be downloaded for pip packages.
+
+This means all dependencies must be provided in the environment.yml of the project.
+
+with the appropriate `PKG-INFO` file in the project root.
 
 TODO:
 - Add requirements table to model database
+
+
+MUST BE SDIST OR BDIST!
+https://docs.python.org/3/distutils/sourcedist.html
+https://docs.python.org/3/distutils/builtdist.html
+
+
+The template includes environment.yml in the MANIFEST.in
 
 
 ### Notes

@@ -21,3 +21,15 @@ In the repository root we have:
  - `dev-environment.yml`: Developer environment, which should be kept in sync with the above.
 
 There is an additional `environment.yml` packaged in `lume_services.docker.files` which must be consistent with requirements defined in the repository root. This file is used for composing the Docker image inside which workflows will run in a distributed configuration. This file is also used for [isolated environment resolution](docker_image.md#isolation).
+
+
+## GitHub actions build
+Upon push of a tag to the repository, the GitHub action defined in `.github/workflows/build_sdist.yml` will publish the [source distribution](https://docs.python.org/3/distutils/sourcedist.html) to the GitHub release artifact. Users installing LUME-services using pip should point to the sdist file.
+
+
+
+The environment resolver uses the sdist info in order to register
+See more notes [here](services/models.md#environment-resolution).
+
+
+This workflow requires the GitHub secret: GITHUB_TOKEN to be set for the repository. This can be confiured by creating an [access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and setting it on the repo using the GitHub interface.
