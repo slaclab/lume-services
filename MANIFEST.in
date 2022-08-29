@@ -4,5 +4,5 @@ recursive-include lume_services/services/scheduling/files *
 recursive-include lume_services/docker/files *
 include README.md
 include LICENSE
-include requirements.txt
+include *requirements.txt
 include setup.py
