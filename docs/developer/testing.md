@@ -8,7 +8,9 @@ The `pytest.ini` file at the root of the repository describes the port-forwardin
 
 ### Tests
 
-
+```
+pytest . --log_cli_level=INFO
+```
 
 Create subprocess for agent
 

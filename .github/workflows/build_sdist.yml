@@ -1,0 +1,35 @@
+name: Publish sdist
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-sdist:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+      #- name: Install libpcap (Linux)
+      #  run: |
+      #    sudo apt-get update
+      #    sudo apt-get install libpcap-dev
+      #  if: runner.os == 'Linux'
+    - name: Build sdist
+      id: sdist
+      run: |
+        python setup.py sdist
+        export FILENAME=$(pwd)/dist/`python setup.py --fullname`.tar.gz
+        echo "::set-output name=filename::$FILENAME"
+
+    - name: Upload artifact to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ steps.sdist.outputs.filename }}
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

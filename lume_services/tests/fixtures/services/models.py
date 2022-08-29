@@ -2,7 +2,7 @@ import pytest
 import logging
 from sqlalchemy import create_engine
 
-from lume_services.services.models.db.mysql import MySQLModelDB, MySQLModelDBConfig
+from lume_services.services.models.db import ModelDB, ModelDBConfig
 from lume_services.services.models.service import ModelDBService
 
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
@@ -15,7 +15,7 @@ def mysql_config(
     mysql_user, mysql_password, mysql_host, mysql_port, mysql_database, mysql_pool_size
 ):
 
-    return MySQLModelDBConfig(
+    return ModelDBConfig(
         user=mysql_user,
         password=mysql_password,
         host=mysql_host,
@@ -28,7 +28,7 @@ def mysql_config(
 @pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="session", autouse=True)
 def mysql_service(mysql_config):
-    mysql_service = MySQLModelDB(mysql_config)
+    mysql_service = ModelDB(mysql_config)
     return mysql_service
 
 

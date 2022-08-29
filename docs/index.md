@@ -11,7 +11,7 @@
 [![Issues Closed][issues-closed-shield]][issues-closed-url]
 [![Tests][tests-workflow]][tests-workflow-url]
 ![Coverage][coverage]
-[![Docs][docs-workflow]][docs-workflow-url]
+![[Docs][docs-workflow]][docs-workflow-url]
 </div>
 <br />
 

@@ -15,7 +15,13 @@ _ResultTypes = {
 }
 
 
-def get_result_from_string(result_type_string: str):
+def get_result_from_string(result_type_string: str) -> Result:
+    """Returns a LUME-model result type from a string import path.
+
+    Args:
+        result_type_string (str): Full import path of result type class.
+
+    """
 
     if not _ResultTypes.get(result_type_string):
         raise ValueError(
@@ -28,7 +34,14 @@ def get_result_from_string(result_type_string: str):
         return _ResultTypes.get(result_type_string)
 
 
-def get_result_types():
+def get_result_types() -> Dict[str, Result]:
+    """Get mapping of result import strings to LUME-services results objects.
+
+    Returns:
+        Dict[str, Result]: Mapping of result import strings to LUME-services results
+            objects.
+
+    """
     return _ResultTypes
 
 
@@ -36,7 +49,7 @@ def get_collections() -> Dict[str, List[str]]:
     """Utility function for returning result collection info.
 
     Returns:
-        dict: Dictionary mapping collection name to unique index.
+        Dict[str, List[str]]: Dictionary mapping collection name to unique index.
 
     """
     collection_rep = {}
@@ -49,7 +62,13 @@ def get_collections() -> Dict[str, List[str]]:
     return collection_rep
 
 
-def get_unique_hash(result_rep):
+def get_unique_hash(result_rep) -> str:
+    """Get a unique hash identifier of the result using the unique result fields.
+
+    Args:
+        result_rep (dict): Dictionary representation of the result.
+
+    """
     result_type = get_result_from_string(result_rep["result_type_string"])
 
     unique_fields = result_type.__fields__["unique_on"].default

@@ -4,28 +4,38 @@
 |LUME_BACKEND|string|local  |
 
 
+# Filesystem Configuration
+|                Name                | Type |     Default     |
+|------------------------------------|------|-----------------|
+|LUME_MOUNTED_FILESYSTEM__IDENTIFIER |string|mounted          |
+|LUME_MOUNTED_FILESYSTEM__MOUNT_PATH |string|                 |
+|LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS|string|                 |
+|LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE |string|DirectoryOrCreate|
+
+
 # Model Database
-|                  Name                  | Type  |Default|
-|----------------------------------------|-------|-------|
-|LUME_MODEL_DB__HOST                     |string |       |
-|LUME_MODEL_DB__PORT                     |integer|       |
-|LUME_MODEL_DB__USER                     |string |       |
-|LUME_MODEL_DB__PASSWORD                 |string |       |
-|LUME_MODEL_DB__DATABASE                 |string |       |
-|LUME_MODEL_DB__CONNECTION__POOL_SIZE    |integer|       |
-|LUME_MODEL_DB__CONNECTION__POOL_PRE_PING|boolean|True   |
+|                  Name                  | Type  |   Default   |
+|----------------------------------------|-------|-------------|
+|LUME_MODEL_DB__HOST                     |string |             |
+|LUME_MODEL_DB__PORT                     |integer|             |
+|LUME_MODEL_DB__USER                     |string |             |
+|LUME_MODEL_DB__PASSWORD                 |string |             |
+|LUME_MODEL_DB__DATABASE                 |string |             |
+|LUME_MODEL_DB__CONNECTION__POOL_SIZE    |integer|             |
+|LUME_MODEL_DB__CONNECTION__POOL_PRE_PING|boolean|True         |
+|LUME_MODEL_DB__DIALECT_STR              |string |mysql+pymysql|
 
 
 # Results Database
-|                  Name                  | Type  |Default|
-|----------------------------------------|-------|-------|
-|LUME_MODEL_DB__HOST                     |string |       |
-|LUME_MODEL_DB__PORT                     |integer|       |
-|LUME_MODEL_DB__USER                     |string |       |
-|LUME_MODEL_DB__PASSWORD                 |string |       |
-|LUME_MODEL_DB__DATABASE                 |string |       |
-|LUME_MODEL_DB__CONNECTION__POOL_SIZE    |integer|       |
-|LUME_MODEL_DB__CONNECTION__POOL_PRE_PING|boolean|True   |
+|             Name             | Type  |Default|
+|------------------------------|-------|-------|
+|LUME_RESULTS_DB__DATABASE     |string |       |
+|LUME_RESULTS_DB__USERNAME     |string |       |
+|LUME_RESULTS_DB__HOST         |string |       |
+|LUME_RESULTS_DB__PASSWORD     |string |       |
+|LUME_RESULTS_DB__PORT         |integer|       |
+|LUME_RESULTS_DB__AUTHMECHANISM|string |DEFAULT|
+|LUME_RESULTS_DB__OPTIONS      |object |{}     |
 
 
 # Scheduling Service

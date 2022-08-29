@@ -1,2 +1,2 @@
-from .db.mysql import MySQLModelDBConfig, MySQLModelDB
+from .db import ModelDBConfig, ModelDB
 from .service import ModelDBService

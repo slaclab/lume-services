@@ -5,7 +5,6 @@ pymysql
 pandas
 pymongo
 click
-blinker
 prefect<2.0
 dependency_injector
 lume-base>=0.2.2
@@ -13,3 +12,4 @@ h5py
 pyyaml
 docker>=5.0.0
 lume-base>=0.2.2
+conda-build

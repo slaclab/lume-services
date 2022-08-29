@@ -8,10 +8,16 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - service-net
+    volumes:
+      - type: bind
+        source: ./model-db-init.sql
+        target: /docker-entrypoint-initdb.d/model-db-init.sql
+        read_only: true
     environment:
       MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       MYSQL_ROOT_HOST: '%'
       MYSQL_ROOT_USER: ${LUME_MODEL_DB__USER:-root}
+      MYSQL_DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_services_models}
 
   # Mongodb
   mongodb:
@@ -144,7 +150,7 @@ services:
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net"
     volumes:
         - type: bind
-          source: ${LUME_SERVICES_ROOTDIR}/lume_services/docker/files/config.toml
+          source: ./config.toml
           target: /root/.prefect/config.toml
           read_only: true
         - type: bind

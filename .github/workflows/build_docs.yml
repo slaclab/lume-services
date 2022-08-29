@@ -46,9 +46,6 @@ jobs:
         run: |
           python scripts/build_configuration_table.py  build-configuration-table --output_filename docs/files/env_vars.md
 
-
-
-
       - name: Build and deploy
         shell: bash -l {0}
         run: |

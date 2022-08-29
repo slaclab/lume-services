@@ -12,7 +12,6 @@ dependencies:
   - pandas
   - pymongo
   - click
-  - blinker
   - dependency_injector
   - h5py
   - sqlalchemy_schemadisplay
@@ -21,6 +20,7 @@ dependencies:
   - docker-py>=5.0
   - lume-base>=0.2.2
   - lume-model>=1.4
+  - conda-build
 
 # Developer
   - pytest

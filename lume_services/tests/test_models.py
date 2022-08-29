@@ -1,7 +1,29 @@
 import pytest
 import logging
+from lume_services.models.environment.solver import _GITHUB_TARBALL_TEMPLATE
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0",
+        pytest.param(
+            "api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "https://api.github.com/repos/jacquelinegarrahan/my-model/zip/v0.0",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "https://api.github.com/repos/tarball/v0.0", marks=pytest.mark.xfail
+        ),
+    ],
+)  # TODO CHANGE TO SLACLAB
+def test_tarball_template(url):
+    assert _GITHUB_TARBALL_TEMPLATE.match(url)
 
 
 class TestModelDB:
@@ -118,6 +140,12 @@ class TestModelDB:
 
         assert deployment.deployment_id == deployment_id
 
+    def test_get_model_from_deployment(self, model_db_service, deployment_id):
+
+        deployment = model_db_service.get_deployment(deployment_id=deployment_id)
+
+        deployment.model
+
     @pytest.fixture(scope="class")
     def project_name(self, model_db_service):
         project_name = model_db_service.store_project(
@@ -205,20 +233,3 @@ class TestModelDB:
     def test_get_flow_bad_sig(self, model_db_service, flow_id):
         with pytest.raises(ValueError):
             model_db_service.get_flow(flow_identifier=flow_id)
-
-
-"""
-@pytest.fixture(scope="module", autouse=True)
-def flow_of_flows_id(
-    model_db_service, flow_dict, deployment_id, project_name
-):
-
-    flow_dict["project_name"] = project_name
-    flow_dict["deployment_ids"] = [deployment_id]
-
-    flow_id = model_db_service.store_flow_of_flows(**flow_dict)
-
-    assert flow_id is not None
-
-    return flow_id
-"""

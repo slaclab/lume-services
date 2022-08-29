@@ -1,12 +1,5 @@
 from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
-from lume_services.services.models.db.schema import (
-    Base,
-    Model,
-    Deployment,
-    Flow,
-    Project,
-    FlowOfFlows,
-)
+from lume_services.services.models.db.schema import __table_schema__, Base
 from sqlalchemy.orm import class_mapper
 
 import click
@@ -53,7 +46,7 @@ def generate_uml_graph(output_filename: str):
     """
 
     # compile mappers
-    mappers = [class_mapper(x) for x in [Model, Deployment, Flow, Project, FlowOfFlows]]
+    mappers = [class_mapper(x) for x in __table_schema__]
     graph = create_uml_graph(
         mappers, show_operations=False, show_multiplicity_one=False
     )
