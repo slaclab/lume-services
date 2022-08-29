@@ -17,6 +17,13 @@ git clone https://github.com/jacquelinegarrahan/lume-services-model-template
 cd lume-services-model-template
 ```
 
+Create your environment:
+
+```
+conda env create -f environment.yml
+conda activate lume-services-project-template
+```
+
 Create your project. The `-o` flag indicates the directory where you'd like the resulting repo to be stored. For now, let's create it in the repo root:
 ```
 cookiecutter template -o $(pwd)
