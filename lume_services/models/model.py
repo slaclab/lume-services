@@ -47,6 +47,11 @@ class Deployment(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+    def _store_dependencies(self, model_db_service: ModelDBService = Provide[Context.model_db_service]):
+        ...
+
+
+
 
 class Model(BaseModel):
     """Class used for interacting with models."""
@@ -92,7 +97,7 @@ class Model(BaseModel):
                 # if a deployment is found, load the deployment
                 if deployment is not None:
                     new_values["deployment"] = {"metadata": deployment}
-                    flow = model_db_service.get_deployment_flow(
+                    flow = model_db_service.get_flow(
                         deployment_id=deployment_id
                     )
                     new_values["deployment"]["project"] = flow.project
@@ -153,7 +158,6 @@ class Model(BaseModel):
 
     def register_deployment(
         self,
-        project_name,
         version,
         asset_dir,
         sha256,
@@ -162,6 +166,10 @@ class Model(BaseModel):
         image,
         model_db_service: ModelDBService = Provide[Context.model_db_service],
     ):
+
+        # first solve environment
+        
+
         # register the deployment
         deployment_id = model_db_service.store_deployment(
             model_id=self.metadata.model_id,
@@ -212,7 +220,7 @@ class Model(BaseModel):
                 )
 
         # load flow
-        flow_metadata = model_db_service.get_deployment_flow(
+        flow_metadata = model_db_service.get_flow(
             deployment_id=deployment.deployment_id
         )
         # check if flow is flow of flows
