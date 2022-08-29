@@ -5,3 +5,4 @@ recursive-include lume_services/docker/files *
 include README.md
 include LICENSE
 include requirements.txt
+include setup.py
