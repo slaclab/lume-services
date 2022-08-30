@@ -13,11 +13,6 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-      #- name: Install libpcap (Linux)
-      #  run: |
-      #    sudo apt-get update
-      #    sudo apt-get install libpcap-dev
-      #  if: runner.os == 'Linux'
     - name: Build sdist
       id: sdist
       run: |
