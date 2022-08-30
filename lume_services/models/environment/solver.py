@@ -28,7 +28,7 @@ from lume_services.errors import (
     UnableToIndexLocalChannelError,
     MissingEnvironmentYamlError,
     UnableToInstallPipDependenciesError,
-    NoCondaEnvironmentFoundError
+    NoCondaEnvironmentFoundError,
 )
 
 from lume_services.utils import select_python_version
@@ -36,11 +36,11 @@ from lume_services.utils import select_python_version
 import logging
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 # We use this template to check remote sources in
 # EnvironmentResolverConfig.validate_source
 _GITHUB_TARBALL_TEMPLATE = re.compile(
-    r"^https://api.github.com/repos/([a-z0-9_-]+)/([a-z0-9_-]+)/tarball/([a-z0-9_-]+)"
+    r"^https://github.com/([a-z0-9_-]+)/([a-z0-9_-]+)l/releases/download/([a-z0-9_.-]+)/([a-z0-9._-]+).tar.gz"  # noqa
 )
 
 
@@ -116,6 +116,39 @@ def load_environment_yaml(environment_yaml_path: str):
     return channels, conda_dependencies, pip_dependencies
 
 
+def get_mamba_transaction(
+    conda_dependencies, prefix, channels, platform, local_channel, execute=False
+):
+    """Mamba context must be scoped"""
+    prefix = pathlib.Path(prefix)
+
+    # create conda enviroment directories
+    (prefix / "conda-meta").mkdir(parents=True, exist_ok=True)
+    (prefix / "pkgs").mkdir(parents=True, exist_ok=True)
+
+    libmamba_context = libmambapy.Context()
+    libmamba_context.target_prefix = str(prefix)
+    libmamba_context.pkgs_dirs = [str(prefix / "pkgs")]
+
+    if not platform:
+        platform = libmamba_context.platform
+
+    mamba_solver = MambaSolver(
+        channels,
+        platform,
+        libmamba_context,
+        output_folder=local_channel,
+    )
+
+    transaction = mamba_solver.solve(conda_dependencies)
+
+    if execute:
+        transaction.fetch_extract_packages()
+        transaction.execute(libmambapy.PrefixData(str(prefix)))
+
+    return transaction.to_conda()
+
+
 class EnvironmentResolverConfig(BaseModel):
     """Configuration for the EnvironmentResolver class.
 
@@ -134,7 +167,7 @@ class EnvironmentResolverConfig(BaseModel):
             conda-build platform target, see: https://docs.conda.io/projects/conda-build/en/latest/user-guide/tutorials/build-pkgs.html#converting-a-package-for-use-on-all-platforms
         url_retry_count (int): Number of times to retry a download when fetching url.
         source_type (Literal["file", "url"])
-        python_version (str): Fallback python version if no python specified in 
+        python_version (str): Fallback python version if no python specified in
             environment.yml
 
     """  # noqa
@@ -150,15 +183,16 @@ class EnvironmentResolverConfig(BaseModel):
 
 class Source(BaseModel):
     """
-    
+
     Attributes:
         source_type (Literal["file", "url"])
         path (str): Sources can be provided by either a file path to a local resource
-            or a GitHub url to a release tarball with the form  https://api.github.com/repos/{USERNAME}/{REPO}/tarball/{VERSION_TAG}
+            or a GitHub url to a release tarball with the form: https://github.com/{USERNAME}/{REPO}/releases/download/{VERSION_TAG}/{REPO}-{VERSION_TAG}.tar.gz
             These sources must be fromatted in compliance with the LUME-services model
             standard. See: https://slaclab.github.io/lume-services/model_packaging/
-    
-    """
+
+    """  # noqa
+
     path: str
     source_type: Literal["file", "url"]
 
@@ -247,7 +281,6 @@ class EnvironmentResolver:
         if not os.access(self._local_conda_channel_directory, os.X_OK | os.W_OK):
             raise WritePermissionError(self._local_conda_channel_directory)
 
-
     def solve(
         self,
         source_path: str,
@@ -281,25 +314,35 @@ class EnvironmentResolver:
 
         # run resolution on file
         dependencies = self._resolve_dependencies(
-            env_yaml_path,
-            self._platform,
-            use_temp = True
+            env_yaml_path, self._platform, use_temp=True
         )
 
         # add source to pip dependendencies
         dependencies["pip"].append(tar_filepath)
 
-
         # install dependencies
         if dry_run:
-            pip_dep_strings = [f"    {dep['name']}: {dep['version']}" for dep in dependencies["pip"]]
-            conda_dep_strings = [    f"{dep['name']}: {dep['version']}" for dep in dependencies["conda"]]
+            pip_dep_strings = [f"    {dep}" + "\n" for dep in dependencies["pip"]]
+            conda_dep_strings = [
+                f"    {dep['name']}: {dep['version']}" + "\n"
+                for dep in dependencies["conda"]
+            ]
 
-            logger.info("Environment solved for %s using Python=%s on %s", source_path, dependencies["python_version"], self._platform)
-            logger.info("Pip dependencies are: \n%s", "\n".join(pip_dep_strings))
-            logger.info("Conda dependencies are: \n%s", "\n".join(conda_dep_strings))
-
-            return 
+            logger.info(
+                "Environment solved for %s using Python=%s on %s",
+                source_path,
+                dependencies["python_version"],
+                self._platform,
+            )
+            print(
+                f"Environment solved for {source_path} using \
+                    Python={dependencies['python_version']} on {self._platform}"
+            )
+            logger.info("Pip dependencies are: \n%s", "".join(pip_dep_strings))
+            print(f"Pip dependencies are: \n{''.join(pip_dep_strings)}")
+            logger.info("Conda dependencies are: \n%s", "".join(conda_dep_strings))
+            print(f"Conda dependencies are: \n{''.join(conda_dep_strings)}")
+            return
 
         else:
             logger.info("Installing dependencies...")
@@ -312,7 +355,9 @@ class EnvironmentResolver:
                 )
 
             installed_pip = self._install_pip_dependencies_to_local_repo(
-                dependencies["pip"], python_version=dependencies["python_version"], platform = self._platform
+                dependencies["pip"],
+                python_version=dependencies["python_version"],
+                platform=self._platform,
             )
             logger.info("Dependency installation complete")
 
@@ -325,8 +370,9 @@ class EnvironmentResolver:
 
             return {"pip": installed_pip, "conda": installed_conda}
 
-    
-    def install(self, source_path: str,
+    def install(
+        self,
+        source_path: str,
         dry_run: bool = False,
     ):
         """
@@ -357,39 +403,58 @@ class EnvironmentResolver:
         if not os.path.isfile(f"{pkg_dir}/environment.yml"):
             env_yaml_path = f"{pkg_dir}/environment.yaml"
 
-        dependencies = self._resolve_dependencies(env_yaml_path, platform=None, use_temp=False)
+        channels, conda_dependencies, pip_dependencies = load_environment_yaml(
+            env_yaml_path
+        )
+
+        # build pip dependencies
+        pip_dependencies = list(set(self._base_pip_dependencies + pip_dependencies))
 
         # add source to pip dependendencies
-        dependencies["pip"].append(tar_filepath)
+        pip_dependencies.append(tar_filepath)
 
         # install dependencies
         if dry_run:
-            pip_dep_strings = [f"    {dep['name']}: {dep['version']}" for dep in dependencies["pip"]]
-            conda_dep_strings = [    f"{dep['name']}: {dep['version']}" for dep in dependencies["conda"]]
+            pip_dep_strings = [f"    {dep}" + "\n" for dep in pip_dependencies]
+            conda_dep_strings = [f"    {dep}" + "\n" for dep in conda_dependencies]
 
-            logger.info("Environment solved for %s using Python=%s on %s", source_path, dependencies["python_version"], sys.platform)
-            logger.info("Pip dependencies are: \n%s", "\n".join(pip_dep_strings))
-            logger.info("Conda dependencies are: \n%s", "\n".join(conda_dep_strings))
+            logger.info(
+                "Environment solved for %s using Python=%s on %s",
+                source_path,
+                sys.version,
+                sys.platform,
+            )
+            print(
+                f"Environment solved for {source_path} using Python={sys.version} \
+                    on {sys.platform}"
+            )
+            logger.info("Pip dependencies are: \n%s", "".join(pip_dep_strings))
+            print(f"Pip dependencies are: \n{''.join(pip_dep_strings)}")
+            logger.info("Conda dependencies are: \n%s", "".join(conda_dep_strings))
+            print(f"Conda dependencies are: \n {''.join(conda_dep_strings)}")
 
-            return 
+            return
 
         else:
             logger.info("Installing dependencies...")
 
-            # install conda dependencies
-            dependencies["conda_transaction"].execute(libmambapy.PrefixData(str(prefix)))
+            get_mamba_transaction(
+                conda_dependencies, prefix, channels, None, None, execute=True
+            )
 
             # run verbose
-            pip_cmd = (
-                [sys.executable, "-m", "pip", "install" "--yes", "--no-deps", "-v"]
-                + dependencies["pip"]
-            )
+            pip_cmd = [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--no-deps",
+                "-v",
+            ] + pip_dependencies
 
             # run pip command
             try:
-                download_proc = subprocess.check_output(
-                    pip_cmd
-                )
+                download_proc = subprocess.check_output(pip_cmd)
 
                 output_lines = download_proc.decode("utf-8").split("\n")
                 for line in output_lines:
@@ -399,9 +464,8 @@ class EnvironmentResolver:
 
             except subprocess.CalledProcessError as e:
                 raise UnableToInstallPipDependenciesError(
-                    dependencies["pip"], sys.version, sys.platform, e
+                    pip_dependencies, sys.version, sys.platform, e
                 )
-
 
     def _prepare_source(self, source_path) -> tuple:
         """Prepare source from tarball. If source is remote, will request download of
@@ -427,7 +491,7 @@ class EnvironmentResolver:
                 urllib.request.urlretrieve(source.path, filename=tar_filename)
                 logger.info("%s saved to %s", source.path, tar_filename)
             except Exception as e:
-                logger.error("Unable to download souce %s", source.path)
+                logger.error("Unable to download source %s", source.path)
                 raise e
 
         # source type is file
@@ -444,7 +508,12 @@ class EnvironmentResolver:
 
         return tar_filename, f"{untar_dir}/{extract_subdir}"
 
-    def _resolve_dependencies(self, environment_yaml_path: str, platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"], use_temp=True) -> dict:
+    def _resolve_dependencies(
+        self,
+        environment_yaml_path: str,
+        platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
+        use_temp=True,
+    ) -> dict:
         """Solves environment
 
         Args:
@@ -457,7 +526,7 @@ class EnvironmentResolver:
             dict: Dictionary of the form:
                 {"pip": ..., "conda": ..., "python_version": ...}
 
-        """ # noqa
+        """  # noqa
         channels, conda_dependencies, pip_dependencies = load_environment_yaml(
             environment_yaml_path
         )
@@ -488,43 +557,62 @@ class EnvironmentResolver:
             conda_dependencies = list(
                 set(
                     [f"python={python_version}"]
-                    + [dep for dep in self._base_conda_dependencies if "python" not in dep]
+                    + [
+                        dep
+                        for dep in self._base_conda_dependencies
+                        if "python" not in dep
+                    ]
                     + [dep for dep in conda_dependencies if "python" not in dep]
                 )
             )
 
             with temp_conda_env(self._tmp_directory, "tmp_env") as prefix:
-                _, conda_pkg_reps = self._resolve_conda_dependencies(
+                conda_pkg_reps = self._resolve_conda_dependencies(
                     prefix, platform, channels, conda_dependencies
                 )
-                transaction = None
 
         # we are checking deps against active conda env
         else:
+            # get prefix
+            prefix = os.environ.get("CONDA_PREFIX")
+
+            # if the prefix isn't set
+            if not prefix:
+                raise NoCondaEnvironmentFoundError()
+
+            # set python version
+            python_version = sys.version
+
             logger.info(
                 "Using conda channels %s to install dependencies.", ", ".join(channels)
             )
             conda_dependencies = list(
-            set(
-                [dep for dep in self._base_conda_dependencies if "python" not in dep]
-                + [dep for dep in conda_dependencies if "python" not in dep]
-            )
-            )
-            transaction, conda_pkg_reps = self._resolve_conda_dependencies(
-                    prefix, platform, channels, conda_dependencies
+                set(
+                    [
+                        dep
+                        for dep in self._base_conda_dependencies
+                        if "python" not in dep
+                    ]
+                    + [dep for dep in conda_dependencies if "python" not in dep]
                 )
-
+            )
+            conda_pkg_reps = self._resolve_conda_dependencies(
+                prefix, platform, channels, conda_dependencies
+            )
 
         # return
         return {
             "pip": pip_dependencies,
             "conda": conda_pkg_reps,
             "python_version": python_version,
-            "conda_transaction": transaction
         }
 
     def _resolve_conda_dependencies(
-        self, prefix: str, platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"], channels: List[str], conda_dependencies: List[str]
+        self,
+        prefix: str,
+        platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
+        channels: List[str],
+        conda_dependencies: List[str],
     ) -> List[dict]:
         """Resolves conda dependencies for an environment specification using mamba and
         formats a list of specs that can be used for installation.
@@ -544,7 +632,7 @@ class EnvironmentResolver:
             NoPackagesToInstallError: MambaSolver did not return conda dependencies
                 to install.
 
-        """
+        """  # noqa
         logger.info("Resolving conda dependencies...")
 
         to_install = None
@@ -552,23 +640,14 @@ class EnvironmentResolver:
         pkg_reps = []
         prefix = pathlib.Path(prefix)
 
-        # create conda enviroment directories
-        (prefix / "conda-meta").mkdir(parents=True, exist_ok=True)
-        (prefix / "pkgs").mkdir(parents=True, exist_ok=True)
-
-        libmamba_context = libmambapy.Context()
-        libmamba_context.target_prefix = str(prefix)
-        libmamba_context.pkgs_dirs = [str(prefix / "pkgs")]
-
-        mamba_solver = MambaSolver(
+        _, to_install, _ = get_mamba_transaction(
+            conda_dependencies,
+            prefix,
             channels,
             platform,
-            libmamba_context,
-            output_folder=self._local_conda_channel_directory,
+            self._local_conda_channel_directory,
+            execute=False,
         )
-
-        transaction = mamba_solver.solve(conda_dependencies)
-        _, to_install, _ = transaction.to_conda()
 
         if to_install is None:
             logger.error("No packages found for installation.")
@@ -585,11 +664,16 @@ class EnvironmentResolver:
                 version = rep["version"]
 
                 pkg_reps.append(
-                    {"url": url, "subdir": subdir, "filename": filename, "name": name, "version": version}
+                    {
+                        "url": url,
+                        "subdir": subdir,
+                        "filename": filename,
+                        "name": name,
+                        "version": version,
+                    }
                 )
 
-        return transaction, pkg_reps
-
+        return pkg_reps
 
     def _install_conda_dependencies_to_local_channel(
         self,
@@ -612,7 +696,6 @@ class EnvironmentResolver:
                 {"name": ..., "path": ..., "version": ...}
 
         """
-        count = 1
         failed = []
         installed = []
         for rep in conda_pkg_reps:
@@ -621,7 +704,6 @@ class EnvironmentResolver:
             filename = rep["filename"]
             name = rep["name"]
             version = rep["version"]
-
 
             # if the url is already a member of the local channel, skip
             if self._local_conda_channel_directory in url:
@@ -632,6 +714,7 @@ class EnvironmentResolver:
 
             file_target = f"{self._local_conda_channel_directory}/{subdir}/{filename}"
             success = False
+            count = 1
             while count <= self._url_retry_count:
                 logger.info("Collecting %s", file_target)
                 try:
@@ -641,7 +724,9 @@ class EnvironmentResolver:
                         filename=file_target,
                     )
                     success = True
-                    installed.append({"name": name, "path": file_target, "version": version})
+                    installed.append(
+                        {"name": name, "path": file_target, "version": version}
+                    )
                     break
                 except Exception as e:
                     logger.error(
@@ -674,9 +759,80 @@ class EnvironmentResolver:
 
         return installed
 
-    
+    def _install_conda_dependencies(
+        self,
+        prefix: str,
+        platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
+        channels: List[str],
+        conda_dependencies: List[str],
+    ) -> List[dict]:
+        """Install conda dependencies for an environment specification using mamba.
+
+        Args:
+            prefix (str): Prefix of conda environment within which to resolve deps.
+            platform (Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"]):
+            conda-build platform target, see: https://docs.conda.io/projects/conda-build/en/latest/user-guide/tutorials/build-pkgs.html#converting-a-package-for-use-on-all-platforms
+            channels (List[str]): List of channels for fetching packages.
+            conda_dependencies (List[str]): List of conda dependencies to resolve.
+
+        Returns:
+            List[dict]: List of package representations in form:
+                {"url": ..., "name":..., "filename": ...}
+
+        Raises:
+            NoPackagesToInstallError: MambaSolver did not return conda dependencies
+                to install.
+
+        """  # noqa
+        logger.info("Resolving conda dependencies...")
+
+        to_install = None
+
+        pkg_reps = []
+        prefix = pathlib.Path(prefix)
+
+        # create conda enviroment directories
+        transaction = get_mamba_transaction(
+            conda_dependencies,
+            prefix,
+            channels,
+            platform,
+            self._local_conda_channel_directory,
+            execute=False,
+        )
+        _, to_install, _ = transaction.to_conda()
+
+        if to_install is None:
+            logger.error("No packages found for installation.")
+            raise NoPackagesToInstallError(channels, platform, conda_dependencies)
+
+        # format specs
+        else:
+            for spec in to_install:
+                rep = json.loads(spec[2])
+                url = rep["url"]
+                subdir = rep["subdir"]  # platform
+                filename = rep["fn"]
+                name = rep["name"]
+                version = rep["version"]
+
+                pkg_reps.append(
+                    {
+                        "url": url,
+                        "subdir": subdir,
+                        "filename": filename,
+                        "name": name,
+                        "version": version,
+                    }
+                )
+
+        return transaction, pkg_reps
+
     def _install_pip_dependencies_to_local_repo(
-        self, pip_dependencies: List[str], python_version: str, platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"]
+        self,
+        pip_dependencies: List[str],
+        python_version: str,
+        platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
     ) -> List[dict]:
         """Install required pip packages.
 
@@ -693,7 +849,7 @@ class EnvironmentResolver:
         Raises:
             UnableToInstallPipDependenciesError: Failed installation.
 
-        """
+        """  # noqa
 
         # must run as verbose to get the downloaded files
         pip_cmd = (
@@ -716,9 +872,7 @@ class EnvironmentResolver:
         # run pip command
         full_filepaths = []
         try:
-            download_proc = subprocess.check_output(
-                pip_cmd
-            )
+            download_proc = subprocess.check_output(pip_cmd)
 
             output_lines = download_proc.decode("utf-8").split("\n")
             package_lines = [
@@ -733,7 +887,6 @@ class EnvironmentResolver:
                 pip_dependencies, python_version, platform, e
             )
 
-
         pip_deps = []
         # Now, we can get the metadata from the file
         for pkg_file in full_filepaths:
@@ -745,7 +898,6 @@ class EnvironmentResolver:
 
         return pip_deps
 
-
     def _index_local_conda_channel(self) -> None:
         """Indexes the local conda channel to register the downloaded packages.
 
@@ -754,7 +906,7 @@ class EnvironmentResolver:
 
         """
         index_proc = subprocess.Popen(
-            ["conda", "index", f"file://{self._local_conda_channel_directory}"],
+            ["conda", "index", self._local_conda_channel_directory],
             stdout=subprocess.PIPE,
         )
         output = index_proc.communicate()[0]
@@ -767,4 +919,3 @@ class EnvironmentResolver:
             raise UnableToIndexLocalChannelError(
                 self._local_conda_channel_directory, return_code, output
             )
-
