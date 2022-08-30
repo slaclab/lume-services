@@ -181,13 +181,12 @@ class DependencyType(Base):
 
     # columns
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    type = Column("name", String(255), nullable=False)
+    type = Column("type", String(255), nullable=False)
 
     def __repr__(self):
         return f"DependencyType( \
                 id={self.id!r}, \
-                name={self.name!r}, \
-                install_type={self.install_type!r}, \
+                type={self.type!r}, \
                 )"
 
 
@@ -254,6 +253,6 @@ __table_schema__ = [
 ]
 
 # Dependency types to store in model on population
-CondaDependencyTypeInsert = insert(DependencyType).values(name="conda")
+CondaDependencyTypeInsert = insert(DependencyType).values(type="conda")
 
-PipDependencyTypeInsert = insert(DependencyType).values(name="pip")
+PipDependencyTypeInsert = insert(DependencyType).values(type="pip")
