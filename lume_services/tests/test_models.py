@@ -1,6 +1,11 @@
 import pytest
 import logging
 from lume_services.models.environment.solver import _GITHUB_TARBALL_TEMPLATE
+from lume_services.models.environment.solver import (
+    EnvironmentResolver,
+    EnvironmentResolverConfig,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -233,3 +238,36 @@ class TestModelDB:
     def test_get_flow_bad_sig(self, model_db_service, flow_id):
         with pytest.raises(ValueError):
             model_db_service.get_flow(flow_identifier=flow_id)
+
+
+class TestEnvironmentResolution:
+    @pytest.fixture(scope="class")
+    def local_pip_repo(self, tmp_path_factory):
+        return str(tmp_path_factory.mktemp("mounted_dir"))
+
+    @pytest.fixture(scope="class")
+    def local_conda_channel_directory(self, tmp_path_factory):
+        return str(tmp_path_factory.mktemp("mounted_dir"))
+
+    def test_resolution_dry_run(self, local_pip_repo, local_conda_channel_directory):
+        config = EnvironmentResolverConfig(
+            local_pip_directory=local_pip_repo,
+            local_conda_channel_directory=local_conda_channel_directory,
+        )
+
+        resolver = EnvironmentResolver(config)
+        resolver.solve(
+            "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.6/my_model-0.0.6.tar.gz",  # noqa
+            dry_run=True,
+        )
+
+    def test_resolution(self, local_pip_repo, local_conda_channel_directory):
+        config = EnvironmentResolverConfig(
+            local_pip_directory=local_pip_repo,
+            local_conda_channel_directory=local_conda_channel_directory,
+        )
+
+        resolver = EnvironmentResolver(config)
+        resolver.solve(
+            "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.6/my_model-0.0.6.tar.gz"  # noqa
+        )
