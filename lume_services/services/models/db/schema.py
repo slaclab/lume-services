@@ -204,7 +204,6 @@ class DeploymentDependencies(Base):
     # dependencies
     name = Column("name", String(255), nullable=False)
     source = Column("source", String(255), nullable=False)
-    pkg_type = Column("pkg_type", String(255), nullable=False)
     local_source = Column("local_source", String(255), nullable=True)
     version = Column("version", String(255), nullable=False)
 
@@ -237,10 +236,11 @@ class DeploymentDependencies(Base):
 
     def __repr__(self):
         return f"Dependencies( \
-                id={self.id!r}, \
-                flow_id={self.flow_id!r}, \
-                parent_flow_id={self.parent_flow_id!r}, \
-                position={self.position!r} \
+                    id={self.id!r}, \
+                    name={self.name!r}, \
+                    source={self.source!r}, \
+                    local_source={self.local_source!r} \
+                    version={self.version!r} \
                 )"
 
 
