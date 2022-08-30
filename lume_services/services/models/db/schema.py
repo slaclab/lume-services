@@ -70,7 +70,7 @@ class Deployment(Base):
     flow = relationship("Flow", back_populates="deployment", uselist=False)
 
     # one -> many
-    dependencies = relationship("DeploymentDependencies", back_populates="deployment")
+    dependencies = relationship("DeploymentDependency", back_populates="deployment")
 
     # unique constraints
     __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)
@@ -181,10 +181,7 @@ class DependencyType(Base):
 
     # columns
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    name = Column("name", String(255), nullable=False)
-    install_type = Column(
-        "install_type", String(255), nullable=False
-    )  # local, download
+    type = Column("name", String(255), nullable=False)
 
     def __repr__(self):
         return f"DependencyType( \
@@ -194,7 +191,7 @@ class DependencyType(Base):
                 )"
 
 
-class DeploymentDependencies(Base):
+class DeploymentDependency(Base):
 
     __tablename__ = "deployment_dependencies"
 
@@ -224,13 +221,13 @@ class DeploymentDependencies(Base):
 
     deployment = relationship(
         "Deployment",
-        foreign_keys="DeploymentDependencies.deployment_id",
+        foreign_keys="DeploymentDependency.deployment_id",
         back_populates="dependencies",
         uselist=False,
     )
     dependency_type = relationship(
         "DependencyType",
-        foreign_keys="DeploymentDependencies.dependency_type_id",
+        foreign_keys="DeploymentDependency.dependency_type_id",
         uselist=False,
     )
 
@@ -247,7 +244,7 @@ class DeploymentDependencies(Base):
 # used for auto-generating schema docs
 __table_schema__ = [
     Model,
-    DeploymentDependencies,
+    DeploymentDependency,
     Deployment,
     DependencyType,
     Flow,
@@ -257,10 +254,6 @@ __table_schema__ = [
 ]
 
 # Dependency types to store in model on population
-CondaDependencyTypeInsert = insert(DependencyType).values(
-    name="conda", install_type="local"
-)
+CondaDependencyTypeInsert = insert(DependencyType).values(name="conda")
 
-PipDependencyTypeInsert = insert(DependencyType).values(
-    name="pip", install_type="local"
-)
+PipDependencyTypeInsert = insert(DependencyType).values(name="pip")
