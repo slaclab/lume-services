@@ -4,6 +4,7 @@ import urllib
 import subprocess
 import sys
 import re
+import hashlib
 from contextlib import contextmanager
 from mamba.api import MambaSolver
 import libmambapy
@@ -153,7 +154,7 @@ class EnvironmentResolverConfig(BaseModel):
     """Configuration for the EnvironmentResolver class.
 
     Attributes:
-        local_pip_directory (str): Path to local pip repository.
+        local_pip_repository (str): Path to local pip repository.
         local_conda_channel_directory (str): Directory of local conda channel where
             dependencies will be downloaded to and registered with.
         base_env_filepath (Optional[str]): Optional string for indicating base
@@ -172,7 +173,7 @@ class EnvironmentResolverConfig(BaseModel):
 
     """  # noqa
 
-    local_pip_directory: str
+    local_pip_repository: str
     local_conda_channel_directory: str
     base_env_filepath: Optional[str] = ENVIRONMENT_YAML
     tmp_directory: str = "/tmp/lume-services"
@@ -190,11 +191,20 @@ class Source(BaseModel):
             or a GitHub url to a release tarball with the form: https://github.com/{USERNAME}/{REPO}/releases/download/{VERSION_TAG}/{REPO}-{VERSION_TAG}.tar.gz
             These sources must be fromatted in compliance with the LUME-services model
             standard. See: https://slaclab.github.io/lume-services/model_packaging/
+        tar_filename (Optional[str]):
+        untar_dir (Optional[str]):
+        checksum (Optional[str]):
 
     """  # noqa
 
     path: str
     source_type: Literal["file", "url"]
+    tar_filename: Optional[str]
+    untar_dir: Optional[str]
+    subdir: Optional[str]
+    version: Optional[str]
+    name: Optional[str]
+    checksum: Optional[str]
 
     @root_validator(pre=True)
     def validate_source(cls, values):
@@ -218,6 +228,78 @@ class Source(BaseModel):
                 values["source_type"] = "url"
 
         return values
+
+    def load(self, target_dir: str, extract: bool = False, keep_tarball: bool = True):
+        """
+
+        Args:
+            target_dir (str): Target directory for storing file.
+            extract (bool): Whether to extract the tarball.
+            keep_tarball (bool): Whether to keep the tarball after extracting.
+
+        """
+
+        if self.source_type == "url":
+            # url is of form:
+            # https://github.com/{USERNAME}/{REPO}/releases/download/{VERSION_TAG}/{REPO}-{VERSION_TAG}.tar.gz # noqa
+            # can use index to extract name and version:
+            url_split = self.path.split("/")
+            tmp_filename = url_split["-1"]
+            self.tar_filename = f"{target_dir}/{tmp_filename}"
+
+            try:
+                urllib.request.urlretrieve(self.path, filename=self.tar_filename)
+                logger.info("%s saved to %s", self.path, self.tar_filename)
+            except Exception as e:
+                logger.error("Unable to download source %s", self.path)
+                raise e
+
+            pkg = SDist(tmp_filename)
+            self.version = pkg.version
+            self.name = pkg.name
+
+            self.tar_filename = f"{target_dir}/{self.name}-{self.version}.tar.gz"
+
+            shutil.move(tmp_filename, self.tar_filename)
+
+        # source type is file
+        else:
+            self.tar_filename = self.path
+
+            # get repo and tag
+            pkg = SDist(self.path)
+            self.version = pkg.version
+            self.name = pkg.name
+
+        # compute sha256 checksum
+        self.checksum = hashlib.sha256(open(self.tar_filename, "rb").read()).hexdigest()
+
+        if extract:
+            self.extract(target_dir, keep_tarball=keep_tarball)
+
+    def extract(self, extract_target, keep_tarball: bool = True):
+        """Extract source.
+
+        Args:
+            extract_target (str): Directory path target for extracting
+            keep_tarball (bool): Whether to keep tarball after extracting
+
+        """
+
+        # untar the file
+        if self.tar_filename is None:
+            raise ValueError("Source must first be loaded with source.load(target_dir)")
+
+        target = f"{extract_target}/{self.name}-{self.version}"
+        with tarfile.open(self.tar_filename) as f:
+            # extracting will create a subdir for each member.
+            # This should be the top level of the repo
+            self.subdir = f.getmembers()[0].name
+            f.extractall(target)
+            self.untar_dir = f"{extract_target}/{self.name}-{self.version}"
+
+        if not keep_tarball:
+            shutil.remove(self.tar_filename)
 
 
 class EnvironmentResolver:
@@ -248,7 +330,7 @@ class EnvironmentResolver:
         self._base_pip_dependencies = []
         self._platform = config.platform
         self._local_conda_channel_directory = config.local_conda_channel_directory
-        self._local_pip_directory = config.local_pip_directory
+        self._local_pip_directory = config.local_pip_repository
         self._base_env_filepath = config.base_env_filepath
         self._tmp_directory = config.tmp_directory
         self._url_retry_count = config.url_retry_count
@@ -467,7 +549,7 @@ class EnvironmentResolver:
                     pip_dependencies, sys.version, sys.platform, e
                 )
 
-    def _prepare_source(self, source_path) -> tuple:
+    def _prepare_source(self, source_path: str) -> tuple:
         """Prepare source from tarball. If source is remote, will request download of
         artifact.
 
@@ -476,43 +558,15 @@ class EnvironmentResolver:
 
         """
         source = Source(path=source_path)
+        source.load(target_dir=self._tmp_directory, extract=True)
 
-        if source.source_type == "url":
-            # url is of form:
-            # https://api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0
-            # can use index to extract name and version:
-            url_split = source.path.split("/")
-            repo = url_split[-3]
-            tag = url_split[-1]
-            tar_filename = f"{self._tmp_directory}/{repo}-{tag}.tar.gz"
-            untar_dir = f"{self._tmp_directory}/{repo}-{tag}"
-
-            try:
-                urllib.request.urlretrieve(source.path, filename=tar_filename)
-                logger.info("%s saved to %s", source.path, tar_filename)
-            except Exception as e:
-                logger.error("Unable to download source %s", source.path)
-                raise e
-
-        # source type is file
-        else:
-            tar_filename = source.path
-            untar_dir = source.path.replace(".tar.gz", "")
-
-        # untar the directory
-        with tarfile.open(tar_filename) as f:
-            # extracting will create a subdir for each member.
-            # This should be the top level of the repo
-            extract_subdir = f.getmembers()[0].name
-            f.extractall(untar_dir)
-
-        return tar_filename, f"{untar_dir}/{extract_subdir}"
+        return source.tar_filename, source.untar_dir
 
     def _resolve_dependencies(
         self,
         environment_yaml_path: str,
         platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
-        use_temp=True,
+        use_temp: bool = True,
     ) -> dict:
         """Solves environment
 
@@ -919,3 +973,19 @@ class EnvironmentResolver:
             raise UnableToIndexLocalChannelError(
                 self._local_conda_channel_directory, return_code, output
             )
+
+    def get_source(self, source_path) -> Source:
+        """Get source info from the sdist of the package. If the source_type is a url
+        will download file to the temporary directory and remove after inspecting.
+
+        Args:
+            source_path (str): Path to local or remote source
+
+        Returns:
+            Source
+
+        """
+
+        source = Source(path=source_path)
+        source.load(target_dir=self._tmp_directory, extract=False)
+        return source
