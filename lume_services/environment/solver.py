@@ -8,6 +8,7 @@ import hashlib
 from contextlib import contextmanager
 from mamba.api import MambaSolver
 import libmambapy
+from platform import python_version as current_python_version
 from pydantic import BaseModel, root_validator
 from typing import List
 import pathlib
@@ -179,7 +180,7 @@ class EnvironmentResolverConfig(BaseModel):
     tmp_directory: str = "/tmp/lume-services"
     platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"] = "linux-64"
     url_retry_count: int = 3
-    python_version: str = sys.version
+    python_version: str = current_python_version()
 
 
 class Source(BaseModel):
@@ -334,7 +335,7 @@ class EnvironmentResolver:
         self._base_env_filepath = config.base_env_filepath
         self._tmp_directory = config.tmp_directory
         self._url_retry_count = config.url_retry_count
-        self._active_python_version = sys.version
+        self._active_python_version = current_python_version()
 
         if config.base_env_filepath is not None:
             (
@@ -503,11 +504,11 @@ class EnvironmentResolver:
             logger.info(
                 "Environment solved for %s using Python=%s on %s",
                 source_path,
-                sys.version,
+                current_python_version(),
                 sys.platform,
             )
             print(
-                f"Environment solved for {source_path} using Python={sys.version} \
+                f"Environment solved for {source_path} using Python={current_python_version()} \
                     on {sys.platform}"
             )
             logger.info("Pip dependencies are: \n%s", "".join(pip_dep_strings))
@@ -546,7 +547,7 @@ class EnvironmentResolver:
 
             except subprocess.CalledProcessError as e:
                 raise UnableToInstallPipDependenciesError(
-                    pip_dependencies, sys.version, sys.platform, e
+                    pip_dependencies, current_python_version(), sys.platform, e
                 )
 
     def _prepare_source(self, source_path: str) -> tuple:
@@ -635,7 +636,7 @@ class EnvironmentResolver:
                 raise NoCondaEnvironmentFoundError()
 
             # set python version
-            python_version = sys.version
+            python_version = current_python_version()
 
             logger.info(
                 "Using conda channels %s to install dependencies.", ", ".join(channels)
