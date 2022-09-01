@@ -6,5 +6,5 @@ from .schema import (
     Project,
     FlowOfFlows,
     DependencyType,
-    DeploymentDependencies,
+    DeploymentDependency,
 )
