@@ -119,7 +119,7 @@ def load_environment_yaml(environment_yaml_path: str):
 
 
 def get_mamba_transaction(
-    conda_dependencies, prefix, channels, platform, local_channel, execute=False
+    conda_dependencies, prefix, channels, platform, output_folder, execute=False
 ):
     """Mamba context must be scoped"""
     prefix = pathlib.Path(prefix)
@@ -139,14 +139,20 @@ def get_mamba_transaction(
         channels,
         platform,
         libmamba_context,
-        output_folder=local_channel,
+        output_folder=output_folder,
     )
 
     transaction = mamba_solver.solve(conda_dependencies)
 
+    logger.debug(f"Channels: {channels}")
+    logger.debug(f"Platform: {platform}")
+    logger.debug(f"Output_folder: {output_folder}")
+    logger.debug(f"Prefix: {str(prefix)}")
+
     if execute:
-        transaction.fetch_extract_packages()
-        transaction.execute(libmambapy.PrefixData(str(prefix)))
+        # transaction.fetch_extract_packages()
+        libmamba_prefix = libmambapy.PrefixData(str(prefix))
+        transaction.execute(libmamba_prefix)
 
     return transaction.to_conda()
 
@@ -174,8 +180,8 @@ class EnvironmentResolverConfig(BaseModel):
 
     """  # noqa
 
-    local_pip_repository: str
-    local_conda_channel_directory: str
+    local_pip_repository: Optional[str]
+    local_conda_channel_directory: Optional[str]
     base_env_filepath: Optional[str] = ENVIRONMENT_YAML
     tmp_directory: str = "/tmp/lume-services"
     platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"] = "linux-64"
@@ -245,23 +251,23 @@ class Source(BaseModel):
             # https://github.com/{USERNAME}/{REPO}/releases/download/{VERSION_TAG}/{REPO}-{VERSION_TAG}.tar.gz # noqa
             # can use index to extract name and version:
             url_split = self.path.split("/")
-            tmp_filename = url_split["-1"]
+            tmp_filename = url_split[-1]
             self.tar_filename = f"{target_dir}/{tmp_filename}"
 
             try:
-                urllib.request.urlretrieve(self.path, filename=self.tar_filename)
+                urllib.request.urlretrieve(
+                    self.path, filename=self.tar_filename
+                )  # NEED TO HANDLE PRIVATE REPOS
                 logger.info("%s saved to %s", self.path, self.tar_filename)
             except Exception as e:
                 logger.error("Unable to download source %s", self.path)
                 raise e
 
-            pkg = SDist(tmp_filename)
+            pkg = SDist(self.tar_filename)
             self.version = pkg.version
             self.name = pkg.name
 
             self.tar_filename = f"{target_dir}/{self.name}-{self.version}.tar.gz"
-
-            shutil.move(tmp_filename, self.tar_filename)
 
         # source type is file
         else:
@@ -291,13 +297,13 @@ class Source(BaseModel):
         if self.tar_filename is None:
             raise ValueError("Source must first be loaded with source.load(target_dir)")
 
-        target = f"{extract_target}/{self.name}-{self.version}"
+        target = f"{extract_target}"
         with tarfile.open(self.tar_filename) as f:
             # extracting will create a subdir for each member.
             # This should be the top level of the repo
             self.subdir = f.getmembers()[0].name
             f.extractall(target)
-            self.untar_dir = f"{extract_target}/{self.name}-{self.version}"
+            self.untar_dir = f"{target}/{self.name}-{self.version}"
 
         if not keep_tarball:
             shutil.remove(self.tar_filename)
@@ -331,7 +337,7 @@ class EnvironmentResolver:
         self._base_pip_dependencies = []
         self._platform = config.platform
         self._local_conda_channel_directory = config.local_conda_channel_directory
-        self._local_pip_directory = config.local_pip_repository
+        self._local_pip_repository = config.local_pip_repository
         self._base_env_filepath = config.base_env_filepath
         self._tmp_directory = config.tmp_directory
         self._url_retry_count = config.url_retry_count
@@ -357,12 +363,23 @@ class EnvironmentResolver:
             raise WritePermissionError(self._tmp_directory)
 
         # check existence of local channel
-        if not os.path.isdir(self._local_conda_channel_directory):
-            logger.error("%s is not a directory.", self._local_conda_channel_directory)
-            raise FileNotFoundError(self._local_conda_channel_directory)
+        if self._local_conda_channel_directory is not None:
+            if not os.path.isdir(self._local_conda_channel_directory):
+                logger.error(
+                    "%s is not a directory.", self._local_conda_channel_directory
+                )
+                raise FileNotFoundError(self._local_conda_channel_directory)
 
-        if not os.access(self._local_conda_channel_directory, os.X_OK | os.W_OK):
-            raise WritePermissionError(self._local_conda_channel_directory)
+            if not os.access(self._local_conda_channel_directory, os.X_OK | os.W_OK):
+                raise WritePermissionError(self._local_conda_channel_directory)
+
+        if self._local_pip_repository is not None:
+            if not os.path.isdir(self._local_pip_repository):
+                logger.error("%s is not a directory.", self._local_pip_repository)
+                raise FileNotFoundError(self._local_pip_repository)
+
+            if not os.access(self._local_pip_repository, os.X_OK | os.W_OK):
+                raise WritePermissionError(self._local_pip_repository)
 
     def solve(
         self,
@@ -380,7 +397,6 @@ class EnvironmentResolver:
                 fail.
             dry_run (bool): Dry runs will not install dependencies, but rather log the
                 dependency output to the CLI.
-
 
         Returns:
             Union[None, dict]: Returns none if dry-run instalation. Returns dictionary
@@ -448,8 +464,8 @@ class EnvironmentResolver:
 
             tar_filename = tar_filepath.split("/")[-1]
 
-            shutil.move(tar_filepath, f"{self._local_pip_directory}/{tar_filename}")
-            logger.info("Instaled source to local pip repo.")
+            shutil.move(tar_filepath, f"{self._local_pip_repository}/{tar_filename}")
+            logger.info("Installed source to local pip repo.")
 
             return {"pip": installed_pip, "conda": installed_conda}
 
@@ -490,6 +506,10 @@ class EnvironmentResolver:
             env_yaml_path
         )
 
+        # filter python
+        conda_dependencies = [dep for dep in conda_dependencies if "python" not in dep]
+        conda_dependencies.insert(0, f"python={self._active_python_version}")
+
         # build pip dependencies
         pip_dependencies = list(set(self._base_pip_dependencies + pip_dependencies))
 
@@ -508,8 +528,8 @@ class EnvironmentResolver:
                 sys.platform,
             )
             print(
-                f"Environment solved for {source_path} using Python={current_python_version()} \
-                    on {sys.platform}"
+                f"Environment solved for {source_path} using \
+                    Python={current_python_version()} on {sys.platform}"
             )
             logger.info("Pip dependencies are: \n%s", "".join(pip_dep_strings))
             print(f"Pip dependencies are: \n{''.join(pip_dep_strings)}")
@@ -521,10 +541,17 @@ class EnvironmentResolver:
         else:
             logger.info("Installing dependencies...")
 
+            logger.debug("installing mamba")
             get_mamba_transaction(
-                conda_dependencies, prefix, channels, None, None, execute=True
+                conda_dependencies,
+                prefix,
+                channels,
+                None,
+                self._local_conda_channel_directory,
+                execute=True,
             )
 
+            logger.debug("installing pip deps")
             # run verbose
             pip_cmd = [
                 sys.executable,
@@ -537,6 +564,7 @@ class EnvironmentResolver:
 
             # run pip command
             try:
+                logger.debug("Opening subprocess")
                 download_proc = subprocess.check_output(pip_cmd)
 
                 output_lines = download_proc.decode("utf-8").split("\n")
@@ -780,7 +808,12 @@ class EnvironmentResolver:
                     )
                     success = True
                     installed.append(
-                        {"name": name, "path": file_target, "version": version}
+                        {
+                            "name": name,
+                            "source": url,
+                            "local_source": file_target,
+                            "version": version,
+                        }
                     )
                     break
                 except Exception as e:
@@ -919,7 +952,7 @@ class EnvironmentResolver:
                 "--exists-action",
                 "i",
                 "-d",
-                self._local_pip_directory,
+                self._local_pip_repository,
                 "-v",
             ]
         )
@@ -944,12 +977,19 @@ class EnvironmentResolver:
 
         pip_deps = []
         # Now, we can get the metadata from the file
-        for pkg_file in full_filepaths:
+        for i, pkg_file in enumerate(full_filepaths):
             pkg = SDist(pkg_file)
             version = pkg.version
             name = pkg.name
 
-            pip_deps.append({"name": name, "version": version, "filename": pkg_file})
+            pip_deps.append(
+                {
+                    "name": name,
+                    "version": version,
+                    "source": pip_dependencies[i],
+                    "local_source": pkg_file,
+                }
+            )
 
         return pip_deps
 

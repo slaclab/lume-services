@@ -55,6 +55,14 @@ class TestModelDB:
     # flow
     flow_id_placeholder = "test"
     flow_name = "my_test_flow"
+    dependencies = [
+        {
+            "name": "matplotlib",
+            "type": "conda",
+            "version": "3.5.3",
+            "source": "/Users/jgarra/sandbox/lume-services/dev/matplotlib-3.5.3.tar.gz",
+        }
+    ]
 
     @pytest.fixture(scope="class")
     def model_id(self, model_db_service):
@@ -183,6 +191,12 @@ class TestModelDB:
 
         return flow_id
 
+    @pytest.fixture(scope="class")
+    def dependencies(self, model_db_service, deployment_id):
+        model_db_service.store_dependencies(
+            self.dependencies, deployment_id=deployment_id
+        )
+
     # test missing flow info
     def test_missing_flow_project_name(self, model_db_service, deployment_id, flow_id):
         with pytest.raises(TypeError):
@@ -251,7 +265,7 @@ class TestEnvironmentResolution:
 
     def test_resolution_dry_run(self, local_pip_repo, local_conda_channel_directory):
         config = EnvironmentResolverConfig(
-            local_pip_directory=local_pip_repo,
+            local_pip_repository=local_pip_repo,
             local_conda_channel_directory=local_conda_channel_directory,
         )
 
@@ -263,7 +277,7 @@ class TestEnvironmentResolution:
 
     def test_resolution(self, local_pip_repo, local_conda_channel_directory):
         config = EnvironmentResolverConfig(
-            local_pip_directory=local_pip_repo,
+            local_pip_repository=local_pip_repo,
             local_conda_channel_directory=local_conda_channel_directory,
         )
 

@@ -118,7 +118,7 @@ class Flow(BaseModel):
     mapped_parameters: Optional[Dict[str, MappedParameter]]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
-    image: str = "build-test:latest"
+    image: str = "jgarrahan/lume-services-prefect:latest"
 
     class Config:
         arbitrary_types_allowed = True

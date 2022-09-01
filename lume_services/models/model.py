@@ -1,12 +1,7 @@
-from pydantic import BaseModel, root_validator, create_model
-import os
-import sys
-import subprocess
+from pydantic import BaseModel, root_validator
 from typing import Optional, List
-from importlib import import_module, find_loader
 from importlib_metadata import distribution
-from dependency_injector.wiring import Provide, inject
-from datetime import datetime
+from dependency_injector.wiring import Provide
 
 from lume_services.config import Context
 from lume_services.errors import (
@@ -14,11 +9,15 @@ from lume_services.errors import (
     DeploymentNotFoundError,
     DeploymentNotRegisteredError,
 )
+
+from lume_services.services.scheduling import SchedulingService
 from lume_services.flows.flow import Flow
 from lume_services.flows.flow_of_flows import FlowOfFlows
+from lume_services.environment.solver import EnvironmentResolver
 from lume_services.results import Result
 from lume_services.services.models.service import ModelDBService
 from lume_services.services.models.db.schema import (
+    DeploymentDependency as DeploymentDependencySchema,
     Model as ModelSchema,
     Deployment as DeploymentSchema,
     Project as ProjectSchema,
@@ -43,14 +42,15 @@ class Project(BaseModel):
 class Deployment(BaseModel):
     metadata: Optional[DeploymentSchema]
     project: Optional[Project]
+    dependencies: Optional[List[DeploymentDependencySchema]]
 
     class Config:
         arbitrary_types_allowed = True
 
-    def _store_dependencies(self, model_db_service: ModelDBService = Provide[Context.model_db_service]):
+    def store_dependencies(
+        self, model_db_service: ModelDBService = Provide[Context.model_db_service]
+    ):
         ...
-
-
 
 
 class Model(BaseModel):
@@ -58,7 +58,7 @@ class Model(BaseModel):
 
     metadata: Optional[ModelSchema]
     deployment: Optional[Deployment]
-    model_obj: Optional[BaseModel]  # lume-model model
+    model_obj: Optional[type]  # lume-model model
     flow: Optional[Flow]  # local flow
     results: Optional[List[Result]]
 
@@ -83,7 +83,8 @@ class Model(BaseModel):
             else:
                 if not values.get("deployment_id"):
                     raise ValueError(
-                        "Either model_id or deployment_id must be passed to Model on construction."
+                        "Either model_id or deployment_id must be passed to Model on \
+                            construction."
                     )
 
                 deployment_id = values.get("deployment_id")
@@ -97,9 +98,7 @@ class Model(BaseModel):
                 # if a deployment is found, load the deployment
                 if deployment is not None:
                     new_values["deployment"] = {"metadata": deployment}
-                    flow = model_db_service.get_flow(
-                        deployment_id=deployment_id
-                    )
+                    flow = model_db_service.get_flow(deployment_id=deployment_id)
                     new_values["deployment"]["project"] = flow.project
 
                     # check if flow is flow of flows
@@ -156,37 +155,6 @@ class Model(BaseModel):
         model = model_db_service.get_model(model_id=model_id)
         return cls(metadata=model)
 
-    def register_deployment(
-        self,
-        version,
-        asset_dir,
-        sha256,
-        source,
-        is_live,
-        image,
-        model_db_service: ModelDBService = Provide[Context.model_db_service],
-    ):
-
-        # first solve environment
-        
-
-        # register the deployment
-        deployment_id = model_db_service.store_deployment(
-            model_id=self.metadata.model_id,
-            version=version,
-            asset_dir=asset_dir,
-            sha256=sha256,
-            source=source,
-            is_live=is_live,
-            image=image,
-        )
-
-        # load the flow
-
-    def load_model(self):
-        if self.deployment is None:
-            raise ValueError()
-
     def load_deployment(
         self,
         deployment_id: int = None,
@@ -206,6 +174,11 @@ class Model(BaseModel):
                 deployment = model_db_service.get_latest_deployment(
                     model_id=self.metadata.model_id
                 )
+
+                dependencies = model_db_service.get_dependencies(
+                    deployment_id=deployment.deployment_id
+                )
+
             except DeploymentNotFoundError:
                 raise DeploymentNotRegisteredError(model_id=self.metadata.model_id)
 
@@ -214,6 +187,10 @@ class Model(BaseModel):
                 deployment = model_db_service.get_deployment(
                     model_id=self.metadata.model_id, deployment_id=deployment_id
                 )
+                dependencies = model_db_service.get_dependencies(
+                    deployment_id=deployment.deployment_id
+                )
+
             except DeploymentNotFoundError:
                 raise DeploymentNotRegisteredError(
                     model_id=self.metadata.model_id, deployment_id=deployment_id
@@ -249,15 +226,197 @@ class Model(BaseModel):
                 project_name=flow_metadata.project_name,
             )
 
+        project = model_db_service.get_project(project_name=flow_metadata.project_name)
+
         self.deployment = Deployment(
-            metadatata=deployment, project=flow_metadata.project
+            metadatata=deployment,
+            project={"metadata": project},
+            dependencies=dependencies,
         )
         self.flow = flow
+
+    def store_deployment(
+        self,
+        source_path: str,
+        project_name: str,
+        is_live: bool = True,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        model_db_service: ModelDBService = Provide[Context.model_db_service],
+        environment_resolver: EnvironmentResolver = Provide[
+            Context.environment_resolver
+        ],
+    ):
+        """
+
+        Args:
+            source_path (str): Path to local or remote source
+            project_name (str):
+            is_live (bool): Whether the model is live or not
+            model_db_service (ModelDBService):
+            environment_resolver (EnvironmentResolver):
+
+        """
+
+        source = environment_resolver.get_source(source_path)
+
+        deployment_id = model_db_service.store_deployment(
+            model_id=self.metadata.model_id,
+            version=source.version,
+            source=source.path,
+            is_live=is_live,
+            sha256=source.checksum,
+            image=scheduling_service.backend.config.image,
+        )
+
+        dependencies = environment_resolver.solve(source_path=source_path)
+
+        logger.info("installing package")
+
+        # in order to store the flow, we have to install
+        environment_resolver.install(source_path=source_path)
+
+        model_db_service.store_dependencies(dependencies, deployment_id=deployment_id)
+
+        dist = distribution(source.name)
+
+        model_entrypoint = dist.entry_points.select(
+            group="orchestration", name=f"{source.name}.model"
+        )
+        if len(model_entrypoint):
+            self.model_obj = model_entrypoint[0].value
+
+        # register flow
+        flow_entrypoint = dist.entry_points.select(
+            group="orchestration", name=f"{source.name}.flow"
+        )
+        if len(flow_entrypoint):
+            self.flow = Flow(
+                prefect_flow=flow_entrypoint[0].value(), project_name=project_name
+            )
+            print(self.flow)
+            self.flow.register(scheduling_service=scheduling_service)
+
+        # now load to update object
+        self.load_deployment(deployment_id=deployment_id)
+
+    def run(
+        self,
+        parameters: dict,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+        """
+
+        Args:
+            parameters (dict): Dictionary of values to pass to flow parameters.
+            scheduling_service (SchedulingService): Instantiated SchedulingService
+                object.
+
+        """
+
+        pip_dependencies = " ".join(
+            [dep.name for dep in self.dependencies if dep.dependency_type.type == "pip"]
+        )
+        conda_dependencies = " ".join(
+            [
+                dep.name
+                for dep in self.dependencies
+                if dep.dependency_type.type == "conda"
+            ]
+        )
+
+        run_config = scheduling_service.backend.run_config_type(
+            env={
+                "EXTRA_CONDA_PACKAGES": conda_dependencies,
+                "EXTRA_PIP_PACKAGES": pip_dependencies,
+                "LOCAL_CHANNEL_ONLY": "false",
+            }
+        )
+
+        self.flow.run(
+            parameters,
+            run_config=run_config.build(),
+            scheduling_service=scheduling_service,
+        )
+
+    def run_and_return(
+        self,
+        parameters: dict,
+        task_name: str,
+        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+    ):
+        """
+
+        Args:
+            parameters (dict)
+            task_name (str)
+            scheduling_service (SchedulingService): Instantiated SchedulingService
+                object.
+
+        """
+
+        pip_dependencies = " ".join(
+            [dep.name for dep in self.dependencies if dep.dependency_type.type == "pip"]
+        )
+        conda_dependencies = " ".join(
+            [
+                dep.name
+                for dep in self.dependencies
+                if dep.dependency_type.type == "conda"
+            ]
+        )
+
+        run_config = scheduling_service.backend.run_config_type(
+            env={
+                "EXTRA_CONDA_PACKAGES": conda_dependencies,
+                "EXTRA_PIP_PACKAGES": pip_dependencies,
+                "LOCAL_CHANNEL_ONLY": "false",  # CHANGE THIS
+            }
+        )
+
+        self.flow.run_and_return(
+            parameters,
+            run_config=run_config.build(),
+            task_name=task_name,
+            scheduling_service=scheduling_service,
+        )
+
+    @classmethod
+    def create_model(
+        cls,
+        author: str,
+        laboratory: str,
+        facility: str,
+        beampath: str,
+        description: str,
+        model_db_service: ModelDBService = Provide[Context.model_db_service],
+    ):
+        """
+
+        Args:
+            author (str):
+            laboratory (str):
+            facility (str):
+            beampath (str):
+            description (str):
+            model_db_service (ModelDBService):
+
+        """
+
+        model_id = model_db_service.store_model(
+            author=author,
+            laboratory=laboratory,
+            facility=facility,
+            beampath=beampath,
+            description=description,
+        )
+
+        return cls(model_id=model_id, model_db_service=model_db_service)
 
 
 """
     @inject
-    def install(self, deployment_id: str = None, model_db_service: ModelDBService = Provide[Context.model_db_service]):
+    def install(self, deployment_id: str = None, model_db_service:
+        ModelDBService = Provide[Context.model_db_service]):
         global _model_registry
 
         if deployment_id is None:
@@ -308,7 +467,8 @@ class Model(BaseModel):
 
         # try install of environment
         try:
-            output = subprocess.check_call(["conda", "env", "update", "--name",  env_name, "--file", env_url])
+            output = subprocess.check_call(["conda", "env", "update",
+            "--name",  env_name, "--file", env_url])
 
         except:
             print(f"Unable to install environment for {deployment.package_name}")
@@ -316,7 +476,8 @@ class Model(BaseModel):
 
         # try install of package
         try:
-            output = subprocess.check_call([sys.executable, '-m', 'pip', 'install', f"git+{version_url}"])
+            output = subprocess.check_call([sys.executable, '-m', 'pip',
+            'install', f"git+{version_url}"])
 
         except:
             print(f"Unable to install {deployment.package_name}")
@@ -350,16 +511,20 @@ class Model(BaseModel):
 
     def _register_deployment(self, deployment):
         dist = distribution(deployment.package_name)
-        model_entrypoint = dist.entry_points.select(group="orchestration", name=f"{deployment.package_name}.model")
+        model_entrypoint = dist.entry_points.select(group="orchestration",
+        name=f"{deployment.package_name}.model")
         if len(model_entrypoint):
             model_entrypoint = model_entrypoint[0].value
 
-        flow_entrypoint = dist.entry_points.select(group="orchestration", name=f"{deployment.package_name}.flow")
+        flow_entrypoint = dist.entry_points.select(group="orchestration",
+         name=f"{deployment.package_name}.flow")
         if len(flow_entrypoint):
             flow_entrypoint = flow_entrypoint[0].value
 
         # add to registry
-        self._model_registry[deployment.model_id] = {"model_entrypoint": model_entrypoint, "package": deployment.package_name, "flow_entrypoint": flow_entrypoint}
+        self._model_registry[deployment.model_id] = {"model_entrypoint":
+        model_entrypoint, "package": deployment.package_name,
+        "flow_entrypoint": flow_entrypoint}
 
 
     @staticmethod
@@ -411,7 +576,9 @@ class Model(BaseModel):
 
         flow_id = self._scheduler.register_flow(flow, project_name, deployment.version)
 
-        self._model_db.store_flow(flow_id =flow_id, deployment_ids=[deployment_id],flow_name= self._model_registry[deployment.model_id]["package"], project_name=project_name)
+        self._model_db.store_flow(flow_id =flow_id, deployment_ids=[deployment_id],
+        flow_name= self._model_registry[deployment.model_id]["package"],
+        project_name=project_name)
 
         return flow_id
 
