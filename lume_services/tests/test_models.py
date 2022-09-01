@@ -1,7 +1,7 @@
 import pytest
 import logging
-from lume_services.models.environment.solver import _GITHUB_TARBALL_TEMPLATE
-from lume_services.models.environment.solver import (
+from lume_services.environment.solver import _GITHUB_TARBALL_TEMPLATE
+from lume_services.environment.solver import (
     EnvironmentResolver,
     EnvironmentResolverConfig,
 )
