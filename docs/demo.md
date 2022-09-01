@@ -57,7 +57,7 @@ cd my-model
 
 Replace username and brackets in the below command:
 ```
-git remote add origin git@github.com:{YOUR_GITHUB_USERNAME}/my-project.git
+git remote add origin git@github.com:{YOUR_GITHUB_USERNAME}/my-model.git
 git push --set-upstream origin main
 ```
 
@@ -195,3 +195,10 @@ git push
 ```
 
 In your browser, navigate to your GitHub repository at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions, replacing username and brackets with your github username. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
+
+
+## 10. Start services with docker-compose
+
+```
+lume-services docker start-services
+```
