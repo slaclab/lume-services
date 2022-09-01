@@ -61,7 +61,7 @@ class DeploymentNotFoundError(Exception):
     def __init__(self, query):
         self.query = query
         self.message = "Deployment not found for query: %s."
-        super().__init__(self.message, self.query)
+        super().__init__(self.message, str(self.query))
 
 
 # Scheduling errors
