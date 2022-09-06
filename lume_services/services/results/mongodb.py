@@ -111,7 +111,7 @@ class MongodbResultsDB(ResultsDB):
         """Disconnect mongodb connection."""
         client = self._client.get()
         if client is not None:
-            client.disconnect()
+            client.close()
         self._client.set(None)
         self._collections.set(None)
 
