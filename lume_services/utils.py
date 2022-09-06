@@ -4,10 +4,9 @@ import inspect
 import logging
 import docker
 from importlib import import_module
-from pydantic import BaseSettings
 from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
-from pydantic import BaseModel, root_validator, create_model, Field, Extra
+from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
 from pydantic.generics import GenericModel
 
 logger = logging.getLogger(__name__)
