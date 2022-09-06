@@ -13,8 +13,9 @@ COPY lume_services/docker/files/entrypoint.sh /prefect/entrypoint.sh
 COPY lume_services/docker/files/environment.yml /lume/environment.yml
 COPY . /lume/lume-services
 
-RUN conda env update --name base --file /lume/environment.yml && \
-    conda run -n base pip install /lume/lume-services && \
+RUN conda env create --file /lume/environment.yml && \
+    echo "conda activate lume-services" > ~/.bashrc && \
+    conda run -n lume-services pip install /lume/lume-services && \
     chmod +x /prefect/entrypoint.sh
 
 ENTRYPOINT [ "/prefect/entrypoint.sh" ]
