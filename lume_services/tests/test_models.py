@@ -1,11 +1,13 @@
 import pytest
 import logging
+import os
+import subprocess
 from lume_services.environment.solver import _GITHUB_TARBALL_TEMPLATE
 from lume_services.environment.solver import (
     EnvironmentResolver,
     EnvironmentResolverConfig,
 )
-
+from lume_services.errors import UnableToIndexLocalChannelError
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,7 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "url",
     [
-        "https://api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0",
+        "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.7/my_model-0.0.7.tar.gz",
         pytest.param(
             "api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0",
             marks=pytest.mark.xfail,
@@ -153,12 +155,6 @@ class TestModelDB:
 
         assert deployment.deployment_id == deployment_id
 
-    def test_get_model_from_deployment(self, model_db_service, deployment_id):
-
-        deployment = model_db_service.get_deployment(deployment_id=deployment_id)
-
-        deployment.model
-
     @pytest.fixture(scope="class")
     def project_name(self, model_db_service):
         project_name = model_db_service.store_project(
@@ -257,11 +253,31 @@ class TestModelDB:
 class TestEnvironmentResolution:
     @pytest.fixture(scope="class")
     def local_pip_repo(self, tmp_path_factory):
-        return str(tmp_path_factory.mktemp("mounted_dir"))
+        return str(tmp_path_factory.mktemp("local_pip_repo"))
 
     @pytest.fixture(scope="class")
     def local_conda_channel_directory(self, tmp_path_factory):
-        return str(tmp_path_factory.mktemp("mounted_dir"))
+
+        local_channel = str(tmp_path_factory.mktemp("local_conda_channel"))
+
+        os.mkdir(f"{local_channel}/linux-64")
+        os.mkdir(f"{local_channel}/linux-32")
+        os.mkdir(f"{local_channel}/osx-64")
+        os.mkdir(f"{local_channel}/win-64")
+        os.mkdir(f"{local_channel}/win-32")
+
+        index_proc = subprocess.Popen(
+            ["conda", "index", local_channel],
+            stdout=subprocess.PIPE,
+        )
+        output = index_proc.communicate()[0]
+        return_code = index_proc.returncode
+
+        if return_code != 0:
+            logger.error("Unable to index channel at %s", local_channel)
+            raise UnableToIndexLocalChannelError(local_channel, return_code, output)
+
+        return local_channel
 
     def test_resolution_dry_run(self, local_pip_repo, local_conda_channel_directory):
         config = EnvironmentResolverConfig(
