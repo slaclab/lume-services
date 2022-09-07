@@ -53,6 +53,7 @@ class TestModelDB:
     # project
     project = "my_project"
     project_description = "placeholder"
+    package_import_name="placeholder"
 
     # flow
     flow_id_placeholder = "test"
@@ -141,6 +142,7 @@ class TestModelDB:
             source=self.source,
             is_live=self.is_live,
             image=self.image,
+            package_import_name=self.package_import_name,
         )
 
         assert deployment_id is not None
