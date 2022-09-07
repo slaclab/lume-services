@@ -1,5 +1,6 @@
 from pydantic import BaseModel, root_validator
 from typing import Optional, List
+import importlib
 from importlib_metadata import distribution
 from dependency_injector.wiring import Provide
 
@@ -8,6 +9,7 @@ from lume_services.errors import (
     FlowOfFlowsNotFoundError,
     DeploymentNotFoundError,
     DeploymentNotRegisteredError,
+    NoFlowFoundError,
 )
 
 from lume_services.services.scheduling import SchedulingService
@@ -15,6 +17,8 @@ from lume_services.flows.flow import Flow
 from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.environment.solver import EnvironmentResolver
 from lume_services.results import Result
+from lume_services.results.utils import get_result_from_string
+from lume_services.utils import get_callable_from_string
 from lume_services.services.models.service import ModelDBService
 from lume_services.services.models.db.schema import (
     DeploymentDependency as DeploymentDependencySchema,
@@ -22,14 +26,12 @@ from lume_services.services.models.db.schema import (
     Deployment as DeploymentSchema,
     Project as ProjectSchema,
 )
+from lume_services.services.results import ResultsDBService
 
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-# maintain cache of loaded models
-_model_registry = {}
 
 
 class Project(BaseModel):
@@ -43,14 +45,12 @@ class Deployment(BaseModel):
     metadata: Optional[DeploymentSchema]
     project: Optional[Project]
     dependencies: Optional[List[DeploymentDependencySchema]]
+    flow: Optional[Flow]  # defined using template entrypoints
+    model_type: Optional[type]
 
     class Config:
         arbitrary_types_allowed = True
-
-    def store_dependencies(
-        self, model_db_service: ModelDBService = Provide[Context.model_db_service]
-    ):
-        ...
+        validate_on_assignment = True
 
 
 class Model(BaseModel):
@@ -58,12 +58,18 @@ class Model(BaseModel):
 
     metadata: Optional[ModelSchema]
     deployment: Optional[Deployment]
-    model_obj: Optional[type]  # lume-model model
-    flow: Optional[Flow]  # local flow
     results: Optional[List[Result]]
 
     class Config:
         arbitrary_types_allowed = True
+
+    def __init__(
+        self,
+        model_db_service: ModelDBService = Provide[Context.model_db_service],
+        **values,
+    ):
+        values["model_db_service"] = model_db_service
+        super().__init__(**values)
 
     @root_validator(pre=True)
     def load_model_data(cls, values):
@@ -113,7 +119,7 @@ class Model(BaseModel):
                             for flow in flows
                         ]
 
-                        values["flow"] = FlowOfFlows(
+                        new_values["deployment"]["flow"] = FlowOfFlows(
                             flow_id=flow.flow_id,
                             name=flow.flow_name,
                             project_name=flow.project_name,
@@ -122,7 +128,7 @@ class Model(BaseModel):
 
                     # if not flow of flow, use standard flow
                     except FlowOfFlowsNotFoundError:
-                        values["flow"] = Flow(
+                        new_values["deployment"]["flow"] = Flow(
                             flow_id=flow.flow_id,
                             name=flow.flow_name,
                             project_name=flow.project_name,
@@ -226,14 +232,37 @@ class Model(BaseModel):
                 project_name=flow_metadata.project_name,
             )
 
+        dist = distribution(deployment.package_import_name)
+
+        model_entrypoint = dist.entry_points.select(
+            group="orchestration", name=f"{deployment.package_import_name}.model"
+        )
+        if len(model_entrypoint):
+            model_type = model_entrypoint[0].load()
+
+        flow_entrypoint = dist.entry_points.select(
+            group="orchestration", name=f"{deployment.package_import_name}.flow"
+        )
+        if len(flow_entrypoint):
+            prefect_flow = flow_entrypoint[0].load()
+
+        else:
+            raise NoFlowFoundError(deployment.package_import_name)
+
+        flow = Flow(
+            prefect_flow=prefect_flow,
+            name=prefect_flow.name,
+            project_name=flow.project_name,
+        )
+
         project = model_db_service.get_project(project_name=flow_metadata.project_name)
 
         self.deployment = Deployment(
             metadatata=deployment,
             project={"metadata": project},
             dependencies=dependencies,
+            flow=flow,
         )
-        self.flow = flow
 
     def store_deployment(
         self,
@@ -250,7 +279,7 @@ class Model(BaseModel):
 
         Args:
             source_path (str): Path to local or remote source
-            project_name (str):
+            project_name (str): Name of Prefect project for storing flow.
             is_live (bool): Whether the model is live or not
             model_db_service (ModelDBService):
             environment_resolver (EnvironmentResolver):
@@ -259,15 +288,6 @@ class Model(BaseModel):
 
         source = environment_resolver.get_source(source_path)
 
-        deployment_id = model_db_service.store_deployment(
-            model_id=self.metadata.model_id,
-            version=source.version,
-            source=source.path,
-            is_live=is_live,
-            sha256=source.checksum,
-            image=scheduling_service.backend.config.image,
-        )
-
         dependencies = environment_resolver.solve(source_path=source_path)
 
         logger.info("installing package")
@@ -275,29 +295,47 @@ class Model(BaseModel):
         # in order to store the flow, we have to install
         environment_resolver.install(source_path=source_path)
 
-        model_db_service.store_dependencies(dependencies, deployment_id=deployment_id)
-
         dist = distribution(source.name)
 
-        model_entrypoint = dist.entry_points.select(
-            group="orchestration", name=f"{source.name}.model"
-        )
-        if len(model_entrypoint):
-            self.model_obj = model_entrypoint[0].value
-
-        # register flow
         flow_entrypoint = dist.entry_points.select(
             group="orchestration", name=f"{source.name}.flow"
         )
         if len(flow_entrypoint):
-            self.flow = Flow(
-                prefect_flow=flow_entrypoint[0].value(), project_name=project_name
-            )
-            print(self.flow)
-            self.flow.register(scheduling_service=scheduling_service)
+            prefect_flow = flow_entrypoint[0].load()
+
+        else:
+            raise NoFlowFoundError(source_path)
+
+        flow = Flow(
+            prefect_flow=prefect_flow, name=prefect_flow.name, project_name=project_name
+        )
+
+        deployment_id = model_db_service.store_deployment(
+            model_id=self.metadata.model_id,
+            version=source.version,
+            source=source.path,
+            is_live=is_live,
+            sha256=source.checksum,
+            image=scheduling_service.backend.config.default_image,
+            package_import_name=source.name,
+        )
+
+        model_db_service.store_dependencies(dependencies, deployment_id=deployment_id)
+
+        # register flow
+        prefect_flow_id = flow.register(scheduling_service=scheduling_service)
+
+        _ = model_db_service.store_flow(
+            deployment_id=deployment_id,
+            flow_id=prefect_flow_id,
+            flow_name=prefect_flow.name,
+            project_name=project_name,
+        )
 
         # now load to update object
-        self.load_deployment(deployment_id=deployment_id)
+        self.load_deployment(
+            deployment_id=deployment_id,
+        )
 
     def run(
         self,
@@ -332,7 +370,7 @@ class Model(BaseModel):
             }
         )
 
-        self.flow.run(
+        self.deployment.flow.run(
             parameters,
             run_config=run_config.build(),
             scheduling_service=scheduling_service,
@@ -373,7 +411,7 @@ class Model(BaseModel):
             }
         )
 
-        self.flow.run_and_return(
+        self.deployment.flow.run_and_return(
             parameters,
             run_config=run_config.build(),
             task_name=task_name,
@@ -411,6 +449,18 @@ class Model(BaseModel):
         )
 
         return cls(model_id=model_id, model_db_service=model_db_service)
+
+    def get_results(
+        self,
+        results_db_service: ResultsDBService = Provide[Context.results_db_service],
+        model_db_service: ModelDBService = Provide[Context.model_db_service],
+    ):
+
+        # self.metadata.model_id
+
+        ...
+        # result_type = get_result_from_string  entrypoint???
+        # result_type.load_from_query(
 
 
 """
@@ -484,20 +534,6 @@ class Model(BaseModel):
             sys.exit()
 
 
-
-    def run_flow(self):
-        # add function to get old deployment
-
-        if self._model_registry.get(model_id) is not None:
-            pass
-
-        else:
-            deployment = self._model_db.get_latest_deployment(self.model_id)
-            model_info = self._get_model_info(deployment)
-
-        return self._load_model_from_entrypoint(model_info["model_entrypoint"])
-
-
     def run_flow_and_return(self):
         ...
 
@@ -507,37 +543,6 @@ class Model(BaseModel):
     def predict(self, *, model_id: int, input_variables):
         model = self.get_latest_model(model_id)
         return model.evaluate(input_variables)
-
-
-    def _register_deployment(self, deployment):
-        dist = distribution(deployment.package_name)
-        model_entrypoint = dist.entry_points.select(group="orchestration",
-        name=f"{deployment.package_name}.model")
-        if len(model_entrypoint):
-            model_entrypoint = model_entrypoint[0].value
-
-        flow_entrypoint = dist.entry_points.select(group="orchestration",
-         name=f"{deployment.package_name}.flow")
-        if len(flow_entrypoint):
-            flow_entrypoint = flow_entrypoint[0].value
-
-        # add to registry
-        self._model_registry[deployment.model_id] = {"model_entrypoint":
-        model_entrypoint, "package": deployment.package_name,
-        "flow_entrypoint": flow_entrypoint}
-
-
-    @staticmethod
-    def _load_flow_from_entrypoint(flow_entrypoint):
-        module_name, fn_name = flow_entrypoint.rsplit(":", 1)
-        fn = getattr(import_module(module_name), fn_name)
-        return fn()
-
-    @staticmethod
-    def _load_model_from_entrypoint(model_entrypoint):
-        module_name, class_name = model_entrypoint.rsplit(":", 1)
-        model_class = getattr(import_module(module_name), class_name)
-        return model_class()
 
     @staticmethod
     def _check_installed(...):
@@ -567,20 +572,6 @@ class Model(BaseModel):
         flow_run_id = self._scheduler.schedule_run(flow_id=flow_id, data=data)
         print(f"Run scheduled for model {model_id} with flow_run_id = {flow_run_id}")
 
-    def register_deployment(self, *, deployment_id, project_name):
-        deployment = self._model_db.get_deployment(deployment_id)
-        model_info = self._get_model_info(deployment)
-
-        flow_entrypoint = model_info["flow_entrypoint"]
-        flow = self._load_flow_from_entrypoint(flow_entrypoint)
-
-        flow_id = self._scheduler.register_flow(flow, project_name, deployment.version)
-
-        self._model_db.store_flow(flow_id =flow_id, deployment_ids=[deployment_id],
-        flow_name= self._model_registry[deployment.model_id]["package"],
-        project_name=project_name)
-
-        return flow_id
 
     def save_model(self):
         ...
