@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator, Field, root_validator
 from prefect import Parameter
 from prefect.run_configs import RunConfig
 from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
-
+from lume_services.utils import get_callable_from_string
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.services.scheduling.backends.local import LocalBackend
