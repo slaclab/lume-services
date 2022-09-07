@@ -52,8 +52,9 @@ class Deployment(Base):
     deploy_date = Column(
         "deploy_date", DateTime(timezone=True), server_default=func.now()
     )
+    package_import_name = Column("package_import_name", String(255), nullable=False)
     asset_dir = Column("asset_dir", String(255), nullable=True)
-    source = Column("source", String(255), nullable=True)
+    source = Column("source", String(255), nullable=False)
     sha_256 = Column("sha256", String(255), nullable=False)
     image = Column("image", String(255), nullable=True)
     is_live = Column("is_live", Boolean, nullable=False)
@@ -86,6 +87,7 @@ class Deployment(Base):
                 sha256={self.sha_256!r}, \
                 image={self.image!r}, \
                 is_live={self.is_live!r} \
+                package_import_name={self.package_import_name!r} \
                 )"
 
 
