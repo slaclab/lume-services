@@ -38,7 +38,7 @@ from lume_services.utils import select_python_version
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+
 # We use this template to check remote sources in
 # EnvironmentResolverConfig.validate_source
 _GITHUB_TARBALL_TEMPLATE = re.compile(
@@ -122,6 +122,7 @@ def get_mamba_transaction(
     conda_dependencies, prefix, channels, platform, output_folder, execute=False
 ):
     """Mamba context must be scoped"""
+
     prefix = pathlib.Path(prefix)
 
     # create conda enviroment directories
@@ -512,6 +513,10 @@ class EnvironmentResolver:
 
         # build pip dependencies
         pip_dependencies = list(set(self._base_pip_dependencies + pip_dependencies))
+        # filter lume-services
+        pip_dependencies = [
+            dep for dep in pip_dependencies if "lume-services" not in dep
+        ]
 
         # add source to pip dependendencies
         pip_dependencies.append(tar_filepath)
@@ -541,15 +546,25 @@ class EnvironmentResolver:
         else:
             logger.info("Installing dependencies...")
 
-            logger.debug("installing mamba")
-            get_mamba_transaction(
-                conda_dependencies,
-                prefix,
-                channels,
-                None,
-                self._local_conda_channel_directory,
-                execute=True,
-            )
+            logger.debug("installing conda deps")
+
+            conda_cmd = ["conda", "install", "-y"]
+            for channel in channels:
+                conda_cmd += ["-c", channel]
+
+            conda_cmd += conda_dependencies
+
+            try:
+                logger.debug("Opening subprocess")
+                download_proc = subprocess.check_output(conda_cmd)
+
+                output_lines = download_proc.decode("utf-8").split("\n")
+                for line in output_lines:
+                    logger.debug(line)
+
+                logger.info("Dependency installation complete")
+            except subprocess.CalledProcessError as e:
+                raise UnableToInstallCondaDependenciesError(conda_dependencies)
 
             logger.debug("installing pip deps")
             # run verbose
