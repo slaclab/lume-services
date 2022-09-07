@@ -290,3 +290,11 @@ class NoCondaEnvironmentFoundError(Exception):
 
     def __init__(self):
         super().__init__("CONDA_PREFIX environment variabe is not set.")
+
+
+class NoFlowFoundError(Exception):
+
+    def __init__(self, source_path):
+        self.source_path = source_path
+        self.message = "No flow entrypoint found for the distribution at %s"
+        super().__init__(self.message, self.source_path)
