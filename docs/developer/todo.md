@@ -67,6 +67,7 @@ TODO:
     - [ ] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
     - [ ] Environment solving for containerized jobs
+    - [ ] Interfact to model 
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26

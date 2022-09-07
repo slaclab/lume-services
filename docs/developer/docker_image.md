@@ -13,3 +13,9 @@ Because jobs may be submitted for execution in isolated environments without acc
 
 
 * Insert diagram of requirement flow here
+
+
+## Notes:
+
+This project might be helpful for future development: https://github.com/conda-forge/conda-docker-feedstock
+
