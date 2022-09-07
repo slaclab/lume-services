@@ -71,6 +71,7 @@ class ModelDBService:
         source: str,
         sha256: str,
         image: str,
+        package_import_name: str,
         is_live: bool = False,
         asset_dir=None,
     ) -> int:
@@ -84,6 +85,7 @@ class ModelDBService:
             image (str): Container image to be used with this deployment.
             is_live (bool=False): Whether deployment is live.
             asset_dir (str): Directory for assets stored on filesystem.
+            package_import_name (str): Name of package
 
         Returns:
             int: ID of inserted deployment id
@@ -98,6 +100,7 @@ class ModelDBService:
             image=image,
             is_live=is_live,
             asset_dir=asset_dir,
+            package_import_name=package_import_name,
         )
 
         result = self._model_db.insert(insert_stmt)
@@ -367,20 +370,21 @@ class ModelDBService:
 
         stmts = []
 
-        for dep in dependencies:
-            type_stmt = (
-                select(DependencyType.id).filter_by(type=dep["type"]).as_scalar()
-            )
+        for dep_type, deps in dependencies.items():
+            for dep in deps:
+                type_stmt = (
+                    select(DependencyType.id).filter_by(type=dep_type).as_scalar()
+                )
 
-            insert_stmt = insert(DeploymentDependency).values(
-                deployment_id=deployment_id,
-                name=dep["name"],
-                source=dep["source"],
-                local_source=dep.get("local_source"),
-                version=dep["version"],
-                dependency_type_id=type_stmt,
-            )
-            stmts.append(insert_stmt)
+                insert_stmt = insert(DeploymentDependency).values(
+                    deployment_id=deployment_id,
+                    name=dep["name"],
+                    source=dep["source"],
+                    local_source=dep.get("local_source"),
+                    version=dep["version"],
+                    dependency_type_id=type_stmt,
+                )
+                stmts.append(insert_stmt)
 
         result = self._model_db.insert_many(stmts)
 
