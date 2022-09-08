@@ -58,6 +58,7 @@ class PrefectConfig(BaseModel):
     debug: bool = False
     backend: Literal["server", "cloud"] = "server"
     default_image: str = Field("jgarrahan/lume-services-prefect:latest", alias="image")
+    isolated: bool = False
 
     def apply(self):
         prefect_config.update(
