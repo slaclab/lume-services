@@ -60,7 +60,7 @@ def flow3_id(project_name, lume_services_settings):
         return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
-class TestFlows:
+class TestFlowExecution:
     text1 = "hey"
     text2 = " you"
 
@@ -221,6 +221,11 @@ class TestFlows:
             )
             result = task_run.get_result()
             assert result
+
+
+class TestFlow:
+    def test_flow_construction(self):
+        Flow(prefect_flow="lume_services.tests.files.")
 
 
 class TestFlowOfFlows:
