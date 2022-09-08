@@ -225,7 +225,7 @@ class TestFlowExecution:
 
 class TestFlow:
     def test_flow_construction(self):
-        Flow(prefect_flow="lume_services.tests.files.")
+        ...
 
 
 class TestFlowOfFlows:
