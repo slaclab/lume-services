@@ -180,6 +180,7 @@ class Model(BaseModel):
         """
         # load deployment
         if deployment_id is None:
+            logger.info("Loading latest deployment.")
             try:
                 deployment = model_db_service.get_latest_deployment(
                     model_id=self.metadata.model_id
@@ -193,6 +194,7 @@ class Model(BaseModel):
                 raise DeploymentNotRegisteredError(model_id=self.metadata.model_id)
 
         else:
+            logger.info("Loading deployment %s", deployment_id)
             try:
                 deployment = model_db_service.get_deployment(
                     model_id=self.metadata.model_id, deployment_id=deployment_id
@@ -200,6 +202,7 @@ class Model(BaseModel):
                 dependencies = model_db_service.get_dependencies(
                     deployment_id=deployment.deployment_id
                 )
+                logger.info("Deployment loaded.")
 
             except DeploymentNotFoundError:
                 raise DeploymentNotRegisteredError(
@@ -207,6 +210,7 @@ class Model(BaseModel):
                 )
 
         # load flow
+        logger.debug("Loading flow for deployment %s", deployment.deployment_id)
         flow_metadata = model_db_service.get_flow(
             deployment_id=deployment.deployment_id
         )
@@ -252,19 +256,13 @@ class Model(BaseModel):
                 group="orchestration", name=f"{deployment.package_import_name}.flow"
             )
             if len(flow_entrypoint):
-                prefect_flow = flow_entrypoint[0].load()
+                flow.prefect_flow = flow_entrypoint[0].load()
 
             else:
                 raise NoFlowFoundError(deployment.package_import_name)
 
-            flow = Flow(
-                prefect_flow=prefect_flow,
-                name=prefect_flow.name,
-                project_name=flow.project_name,
-            )
-
         self.deployment = Deployment(
-            metadatata=deployment,
+            metadata=deployment,
             project={"metadata": project},
             dependencies=dependencies,
             flow=flow,
@@ -338,6 +336,8 @@ class Model(BaseModel):
             flow_name=prefect_flow.name,
             project_name=project_name,
         )
+
+        logger.info("Loading deployment %s", deployment_id)
 
         # now load to update object
         self.load_deployment(
