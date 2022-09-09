@@ -1,9 +1,9 @@
 # Demo
 
 This demo walks through the creation of a model compatible with [LUME-services](https://slaclab.github.io/lume-services/) tooling. You will:
-1. Create a GitHub repository for the demo model.
-2. Build a templated project using [`lume-services-model-template`]()
-3.
+1. Create a GitHub repository for the demo model.  
+2. Build a templated project using [`lume-services-model-template`](https://github.com/slaclab/lume-services-model-template)  
+3. Register your model using the LUME-services API  to Prefect orchestration tools, the MySQL model registry, and store results in a MongoDB service  
 
 
 ## Package a model
