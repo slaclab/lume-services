@@ -136,7 +136,7 @@ class MyModel(BaseModel):
 
 Add `numpy` to the `dev-environment.yml`, `environment.yml`, and `requirements.txt` files.
 
-## 5. Set up flow
+### 5. Set up flow
 
 In order for our flow to run, we must edit the code in `my_model/flow.py`. First, delete the `preprocessing_task` code, as we won't be using it. Second, edit `format_file` such that the file holds a string representation of the sum of `output2` and `output3`.
 
@@ -187,7 +187,7 @@ Navigate back to your `my-model` directory. You can now test your flow locally b
 pytest .
 ```
 
-## 9. Run tests with GitHub actions
+### 9. Run tests with GitHub actions
 
 Check in all of your code, and push to GitHub.
 
