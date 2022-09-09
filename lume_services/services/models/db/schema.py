@@ -52,8 +52,9 @@ class Deployment(Base):
     deploy_date = Column(
         "deploy_date", DateTime(timezone=True), server_default=func.now()
     )
+    package_import_name = Column("package_import_name", String(255), nullable=False)
     asset_dir = Column("asset_dir", String(255), nullable=True)
-    source = Column("source", String(255), nullable=True)
+    source = Column("source", String(255), nullable=False)
     sha_256 = Column("sha256", String(255), nullable=False)
     image = Column("image", String(255), nullable=True)
     is_live = Column("is_live", Boolean, nullable=False)
@@ -70,7 +71,7 @@ class Deployment(Base):
     flow = relationship("Flow", back_populates="deployment", uselist=False)
 
     # one -> many
-    dependencies = relationship("DeploymentDependencies", back_populates="deployment")
+    dependencies = relationship("DeploymentDependency", back_populates="deployment")
 
     # unique constraints
     __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)
@@ -86,6 +87,7 @@ class Deployment(Base):
                 sha256={self.sha_256!r}, \
                 image={self.image!r}, \
                 is_live={self.is_live!r} \
+                package_import_name={self.package_import_name!r} \
                 )"
 
 
@@ -181,20 +183,16 @@ class DependencyType(Base):
 
     # columns
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    name = Column("name", String(255), nullable=False)
-    install_type = Column(
-        "install_type", String(255), nullable=False
-    )  # local, download
+    type = Column("type", String(255), nullable=False)
 
     def __repr__(self):
         return f"DependencyType( \
                 id={self.id!r}, \
-                name={self.name!r}, \
-                install_type={self.install_type!r}, \
+                type={self.type!r}, \
                 )"
 
 
-class DeploymentDependencies(Base):
+class DeploymentDependency(Base):
 
     __tablename__ = "deployment_dependencies"
 
@@ -204,7 +202,6 @@ class DeploymentDependencies(Base):
     # dependencies
     name = Column("name", String(255), nullable=False)
     source = Column("source", String(255), nullable=False)
-    pkg_type = Column("pkg_type", String(255), nullable=False)
     local_source = Column("local_source", String(255), nullable=True)
     version = Column("version", String(255), nullable=False)
 
@@ -225,29 +222,30 @@ class DeploymentDependencies(Base):
 
     deployment = relationship(
         "Deployment",
-        foreign_keys="DeploymentDependencies.deployment_id",
+        foreign_keys="DeploymentDependency.deployment_id",
         back_populates="dependencies",
         uselist=False,
     )
     dependency_type = relationship(
         "DependencyType",
-        foreign_keys="DeploymentDependencies.dependency_type_id",
+        foreign_keys="DeploymentDependency.dependency_type_id",
         uselist=False,
     )
 
     def __repr__(self):
         return f"Dependencies( \
-                id={self.id!r}, \
-                flow_id={self.flow_id!r}, \
-                parent_flow_id={self.parent_flow_id!r}, \
-                position={self.position!r} \
+                    id={self.id!r}, \
+                    name={self.name!r}, \
+                    source={self.source!r}, \
+                    local_source={self.local_source!r} \
+                    version={self.version!r} \
                 )"
 
 
 # used for auto-generating schema docs
 __table_schema__ = [
     Model,
-    DeploymentDependencies,
+    DeploymentDependency,
     Deployment,
     DependencyType,
     Flow,
@@ -257,10 +255,6 @@ __table_schema__ = [
 ]
 
 # Dependency types to store in model on population
-CondaDependencyTypeInsert = insert(DependencyType).values(
-    name="conda", install_type="local"
-)
+CondaDependencyTypeInsert = insert(DependencyType).values(type="conda")
 
-PipDependencyTypeInsert = insert(DependencyType).values(
-    name="pip", install_type="local"
-)
+PipDependencyTypeInsert = insert(DependencyType).values(type="pip")

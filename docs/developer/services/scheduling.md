@@ -96,4 +96,8 @@ ENV EXTRA_PIP_PACKAGES=""
 ```
 
 
-## Serialization
+## Entrypoints
+
+Use importlib_metadata to load a distribution
+Entrypoints provide flow and model to loading 
+Formatted like {package_name}.model=import.path.to.module:callable

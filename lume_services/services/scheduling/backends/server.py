@@ -57,6 +57,8 @@ class PrefectConfig(BaseModel):
     home_dir: str = "~/.prefect"
     debug: bool = False
     backend: Literal["server", "cloud"] = "server"
+    default_image: str = Field("jgarrahan/lume-services-prefect:latest", alias="image")
+    isolated: bool = False
 
     def apply(self):
         prefect_config.update(
@@ -93,7 +95,6 @@ class ServerBackend(Backend):
     """
 
     config: PrefectConfig
-    default_image: str = Field(None, alias="image")
 
     class Config:
         underscore_attrs_are_private = True

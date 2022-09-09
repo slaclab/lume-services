@@ -61,7 +61,7 @@ class DeploymentNotFoundError(Exception):
     def __init__(self, query):
         self.query = query
         self.message = "Deployment not found for query: %s."
-        super().__init__(self.message, self.query)
+        super().__init__(self.message, str(self.query))
 
 
 # Scheduling errors
@@ -283,3 +283,18 @@ class MissingEnvironmentYamlError(Exception):
         self.message = "Poorly formed package at %s. No Environment yaml provided."
 
         super().__init__(self.message, self.directory)
+
+
+class NoCondaEnvironmentFoundError(Exception):
+    """Error raised when CONDA_PREFIX is not defined."""
+
+    def __init__(self):
+        super().__init__("CONDA_PREFIX environment variabe is not set.")
+
+
+class NoFlowFoundError(Exception):
+
+    def __init__(self, source_path):
+        self.source_path = source_path
+        self.message = "No flow entrypoint found for the distribution at %s"
+        super().__init__(self.message, self.source_path)

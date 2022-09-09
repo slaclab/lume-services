@@ -33,3 +33,10 @@
 [release]: https://img.shields.io/github/v/release/slaclab/lume-services?style=for-the-badge
 [release-url]: https://github.com/slaclab/lume-services/releases
 [coverage]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jacquelinegarrahan/61dce43449fc0509f34520fd7efc41b1/raw/slaclab-lume-services-coverage.json&style=for-the-badge
+
+
+## Start services with docker-compose
+
+```
+lume-services docker start-services
+```

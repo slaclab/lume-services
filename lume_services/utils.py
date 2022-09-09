@@ -3,11 +3,11 @@ import hashlib
 import inspect
 import logging
 import docker
+import numpy as np
 from importlib import import_module
-from pydantic import BaseSettings
 from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
-from pydantic import BaseModel, root_validator, create_model, Field, Extra
+from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
 from pydantic.generics import GenericModel
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ JSON_ENCODERS = {
     type: lambda x: f"{x.__module__}.{x.__name__}",
     # for encoding instances of the ObjType}
     ObjType: lambda x: f"{x.__module__}.{x.__class__.__qualname__}",
+    np.ndarray: lambda x: json.dumps(x.tolist()),
 }
 
 

@@ -6,10 +6,13 @@ This demo walks through the creation of a model compatible with [LUME-services](
 3.
 
 
-## 1. Create a repository for your project on GitHub
+## Package a model
+
+
+### 1. Create a repository for your project on GitHub
 Using your GitHub account, create an repository named `my-model` (feel free to sub this with whatever you'd like).
 
-## 2: Create project
+### 2: Create project
 
 Clone `lume-model-services-template` and navigate to repository:
 ```
@@ -53,15 +56,15 @@ Now, navigate to the directory where you've created your repository:
 cd my-model
 ```
 
-## 3. Configure generated repo to use GitHub repo as the origin:
+### 3. Configure generated repo to use GitHub repo as the origin:
 
 Replace username and brackets in the below command:
 ```
-git remote add origin git@github.com:{YOUR_GITHUB_USERNAME}/my-project.git
+git remote add origin git@github.com:{YOUR_GITHUB_USERNAME}/my-model.git
 git push --set-upstream origin main
 ```
 
-## 4. Set up model
+### 4. Set up model
 
 Replace ellipses in the `evaluate` method of `my_model/model.py` with:
 ```python
@@ -146,7 +149,7 @@ def format_file(output_variables):
 
 ```
 
-## 6. Create development environment
+### 6. Create development environment
 
 Now, create an environment for working with your model package:
 
@@ -160,7 +163,7 @@ Install your package into this environment:
 pip install -e .
 ```
 
-## 7. Run your flow
+### 7. Run your flow
 
 Navigate to the `examples` directory inside the `lume-services-model-template` repository. Open the noteboook `run.ipynb`.
 
@@ -170,7 +173,7 @@ jupyter notebook run.ipynb
 ```
 
 
-## 8. Set up tests
+### 8. Set up tests
 
 In `my_model/tests/test_flow.py` modify the `test_flow_execution` function, adding the `tmp_path` fixture to the signature and passing `filename=f"{tmp_dir}/test_file.txt"` and `filesytem_identifier="local"` to the run method. The resulting code should look like:
 
@@ -195,3 +198,93 @@ git push
 ```
 
 In your browser, navigate to your GitHub repository at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions, replacing username and brackets with your github username. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
+
+
+### 10. Create a release 
+
+Create a tagged release for your model. Navigate to https://github.com/{YOUR_GITHUB_USERNAME}/my-model/releases -> Draft a new release
+
+![draft_release](files/draft_new_release.png)
+
+Under choose tag, type v0.0.1 (this is a development tag, [semantic versioning](https://semver.org/) for releases formally starts at v0.1). You can enter the same for the title and may enter some description, but this is optional. Check the pre-release box at the bottom of the page and click the button to publish your release.
+
+## Deploying a model to production:
+
+The below steps outline a production deployment workflow. 
+
+### 11. Create a local conda channel
+
+
+You can create a file conda channel by following the directions hosted in the [conda docs](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/create-custom-channels.html) and reiterated here. First create all platform subdirs:
+
+```
+mkdir local-conda-channel
+mkdir local-conda-channel/linux-64
+mkdir local-conda-channel/linux-32
+mkdir local-conda-channel/osx-64
+mkdir local-conda-channel/win-64
+mkdir local-conda-channel/win-32
+```
+
+Now index the channel:
+```
+conda index local-conda-channel
+```
+
+Set LUME-services environment variable:
+```
+export LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY=$(pwd)/local-conda-channel
+```
+### 12. Create a local pip repository
+Files installed with pip will be stored in a local directory.
+
+```
+mkdir local-pip-repository
+```
+Set LUME-services environment variable:
+```
+export LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY=$(pwd)/local-pip-repository
+```
+
+
+### 13. Start services with docker-compose
+
+LUME-services is packaged with a command line utility for launching the development environment, a docker-compose application with all services packaged and configurable via environment variables.  
+
+![docker](files/docker_architecture.png)
+
+First, configure your environment variables. 
+
+
+```
+source docs/examples/demo.env
+```
+
+Next start up your services:
+```
+lume-services docker start-services
+```
+
+Once the console logs a message about passed health checks, you've started all services successfully. You can inspect the services using Docker Desktop: 
+
+![desktop](files/docker_desktop.png)
+
+And access the UI using your browser at http://localhost:8080.
+
+
+
+### 14. Run the notebook and register your model
+
+Create a new console window. Activate lume-services-dev and configure the environment variables:
+```
+source docs/examples/demo.env
+export LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY=$(pwd)/local-conda-channel
+export LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY=$(pwd)/local-pip-repository
+```
+Open the demo notebook and continue the remainder of the demo by running each cell:
+```
+jupyter notebook docs/examples/Demo.ipynb
+```
+
+
+## Isolated cluster...

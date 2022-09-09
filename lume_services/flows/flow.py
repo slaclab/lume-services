@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator, Field, root_validator
 from prefect import Parameter
 from prefect.run_configs import RunConfig
 from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
-
+from lume_services.utils import get_callable_from_string
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.services.scheduling.backends.local import LocalBackend
@@ -118,7 +118,7 @@ class Flow(BaseModel):
     mapped_parameters: Optional[Dict[str, MappedParameter]]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
-    image: str = "build-test:latest"
+    image: str = "jgarrahan/lume-services-prefect:latest"
 
     class Config:
         arbitrary_types_allowed = True

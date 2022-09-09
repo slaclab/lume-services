@@ -4,6 +4,7 @@ First, create the development environment with conda.
 ```
 conda env create -f dev-environment.yml
 conda activate lume-services-dev
+pip install -e .
 ```
 The repository is packaged using pre-commit hooks for code format consistency. In order to install, run:
 ```
@@ -32,4 +33,7 @@ The environment resolver uses the sdist info in order to register
 See more notes [here](services/models.md#environment-resolution).
 
 
-This workflow requires the GitHub secret: GITHUB_TOKEN to be set for the repository. This can be confiured by creating an [access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and setting it on the repo using the GitHub interface.
+
+
+
+This workflow requires the GitHub secret: GITHUB_TOKEN to be set for the repository. This can be confiured by creating an [access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) (Settings -> Developer > Personal access tokens) and setting it on the repo using the GitHub interface.

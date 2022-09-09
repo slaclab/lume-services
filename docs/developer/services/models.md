@@ -116,7 +116,7 @@ class Project(Base):
 
 ### DependencyType
 
-### DeploymentDependencies
+### DeploymentDependency
 
 
 ## Updating the model schema

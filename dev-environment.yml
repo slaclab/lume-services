@@ -8,7 +8,7 @@ dependencies:
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
-  - prefect<2.0
+  - prefect[viz]<2.0
   - pandas
   - pymongo
   - click
@@ -21,6 +21,7 @@ dependencies:
   - lume-base>=0.2.2
   - lume-model>=1.4
   - conda-build
+  - mamba
 
 # Developer
   - pytest
@@ -31,6 +32,7 @@ dependencies:
   - docker-compose
   - pyfakefs
   - black
+  - jupyterlab
 
 # Docs
   - mkdocs

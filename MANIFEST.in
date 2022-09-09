@@ -1,5 +1,8 @@
 include versioneer.py
 include lume_services/_version.py
 recursive-include lume_services/services/scheduling/files *
-recursive-include lume_services/models/templating/template *
-recursive-include lume_services/docker/files
+recursive-include lume_services/docker/files *
+include README.md
+include LICENSE
+include requirements.txt
+include setup.py

@@ -1,9 +1,12 @@
+from typing import List
 from sqlalchemy import insert, select, desc
 import logging
 
 from lume_services.services.models.db import ModelDB
 from lume_services.services.models.db.schema import (
     Base,
+    DependencyType,
+    DeploymentDependency,
     Model,
     Deployment,
     Flow,
@@ -68,6 +71,7 @@ class ModelDBService:
         source: str,
         sha256: str,
         image: str,
+        package_import_name: str,
         is_live: bool = False,
         asset_dir=None,
     ) -> int:
@@ -81,6 +85,7 @@ class ModelDBService:
             image (str): Container image to be used with this deployment.
             is_live (bool=False): Whether deployment is live.
             asset_dir (str): Directory for assets stored on filesystem.
+            package_import_name (str): Name of package
 
         Returns:
             int: ID of inserted deployment id
@@ -95,6 +100,7 @@ class ModelDBService:
             image=image,
             is_live=is_live,
             asset_dir=asset_dir,
+            package_import_name=package_import_name,
         )
 
         result = self._model_db.insert(insert_stmt)
@@ -321,3 +327,70 @@ class ModelDBService:
         """Applies database schema to connected service."""
 
         Base.metadata.create_all(self._model_db.engine)
+
+    def get_dependencies(self, deployment_id: int) -> DeploymentDependency:
+        """Get the dependencies for a deployment. Performs joined load of
+        DeploymentType.
+
+        Args:
+            deployment_id (int): Id of deployment for which to fetch dependencies.
+
+        Returns:
+            DeploymentDependency
+
+        Raises:
+            DeploymentNotFoundError: Deployment was not found.
+
+        """
+        from sqlalchemy.orm import joinedload
+
+        query = (
+            select(DeploymentDependency)
+            .filter_by(deployment_id=deployment_id)
+            .options(joinedload(DeploymentDependency.dependency_type))
+        )
+
+        deps = self._model_db.select(query)
+        if len(deps):
+            return deps
+
+        else:
+            raise DeploymentNotFoundError(query)
+
+    def store_dependencies(self, dependencies: List[dict], deployment_id: int):
+        """Store dependencies for a deployment.
+
+        Args:
+            dependencies (List[dict]): List of dependencies in the form:
+                {"name": ..., "type": ..., "source": ..., "local_source": ... ,
+                "version": ...}
+            deployment_id (int): Id of deployment for which to store dependencies.
+
+        """
+
+        stmts = []
+
+        for dep_type, deps in dependencies.items():
+            for dep in deps:
+                type_stmt = (
+                    select(DependencyType.id).filter_by(type=dep_type).as_scalar()
+                )
+
+                insert_stmt = insert(DeploymentDependency).values(
+                    deployment_id=deployment_id,
+                    name=dep["name"],
+                    source=dep["source"],
+                    local_source=dep.get("local_source"),
+                    version=dep["version"],
+                    dependency_type_id=type_stmt,
+                )
+                stmts.append(insert_stmt)
+
+        result = self._model_db.insert_many(stmts)
+
+        # return inserted ids
+        if len(result):
+            return result
+
+        else:
+            return None

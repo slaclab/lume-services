@@ -13,6 +13,18 @@
 |LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE |string|DirectoryOrCreate|
 
 
+# Environment Resolution
+|                     Name                      | Type  |                                         Default                                          |
+|-----------------------------------------------|-------|------------------------------------------------------------------------------------------|
+|LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY         |string |                                                                                          |
+|LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY|string |                                                                                          |
+|LUME_ENVIRONMENT__BASE_ENV_FILEPATH            |string |/Users/jacquelinegarrahan/sandbox/lume-services/lume_services/docker/files/environment.yml|
+|LUME_ENVIRONMENT__TMP_DIRECTORY                |string |/tmp/lume-services                                                                        |
+|LUME_ENVIRONMENT__PLATFORM                     |string |linux-64                                                                                  |
+|LUME_ENVIRONMENT__URL_RETRY_COUNT              |integer|                                                                                         3|
+|LUME_ENVIRONMENT__PYTHON_VERSION               |string |3.9.13                                                                                    |
+
+
 # Model Database
 |                  Name                  | Type  |   Default   |
 |----------------------------------------|-------|-------------|
@@ -55,3 +67,4 @@
 |LUME_PREFECT__HOME_DIR          |string |~/.prefect                   |
 |LUME_PREFECT__DEBUG             |boolean|False                        |
 |LUME_PREFECT__BACKEND           |string |server                       |
+

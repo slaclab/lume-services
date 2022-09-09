@@ -254,7 +254,7 @@ def run_docker_services(
                 docker_compose.execute(cmd)
             except Exception as cleanup_exception:
                 logger.warning(
-                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                    f"Cleanup command exception for {cmd}: {cleanup_exception}"
                 )
                 pass
         raise e
@@ -277,7 +277,7 @@ def run_docker_services(
                 except Exception as cleanup_exception:
                     logger.warning(
                         f"Cleanup command exception for {cmd}: \
-                            {cleanup_exception.message}"
+                            {cleanup_exception}"
                     )
                     pass
             raise e
@@ -291,7 +291,7 @@ def run_docker_services(
                 docker_compose.execute(cmd)
             except Exception as cleanup_exception:
                 logger.warning(
-                    f"Cleanup command exception for {cmd}: {cleanup_exception.message}"
+                    f"Cleanup command exception for {cmd}: {cleanup_exception}"
                 )
                 pass
 

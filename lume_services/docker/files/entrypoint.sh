@@ -3,7 +3,7 @@ set -e
 
 prefect backend server
 
-if [ ! -z "$EXTRA_CONDA_PACKAGES" ] && [ "$LOCAL_CHANNEL_ONLY"="true" ]; then
+if [ -n "$EXTRA_CONDA_PACKAGES" ] && [ "$LOCAL_CHANNEL_ONLY" = "true" ]; then
 
   if [ ! -d "$LOCAL_CONDA_CHANNEL" ]; then
     echo "Must mount conda channel to $LOCAL_CONDA_CHANNEL"
@@ -13,7 +13,7 @@ if [ ! -z "$EXTRA_CONDA_PACKAGES" ] && [ "$LOCAL_CHANNEL_ONLY"="true" ]; then
   echo "+conda install --yes -c file://$LOCAL_CONDA_CHANNEL $EXTRA_CONDA_PACKAGES --offline"
   conda install --yes -c "file://$LOCAL_CONDA_CHANNEL" $EXTRA_CONDA_PACKAGES --offline
 else
-  if [ ! -z "$EXTRA_CONDA_PACKAGES" ]; then
+  if [ -n "$EXTRA_CONDA_PACKAGES" ]; then
     echo "+conda install --yes $EXTRA_CONDA_PACKAGES"
     conda install --yes $EXTRA_CONDA_PACKAGES
   fi

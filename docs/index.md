@@ -82,3 +82,8 @@ pip install git+https://github.com/slaclab/lume-services.git
 ```
 
 or from conda using ... (*once configured with conda-forge)
+
+
+## Intro
+
+Most use will  use the model class as an interface to the other objects
