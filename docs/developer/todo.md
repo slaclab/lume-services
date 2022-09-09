@@ -2,9 +2,11 @@
 ## Repo setup
 - TODO:
     - [ ] Docs for injection and container
-    - [ ] Remove tests in pip installation, move to directory base
+    - [x] Remove tests in pip installation
     - [ ] Docs!
     - [ ] Set up all loggers
+    - [ ] Move environments, flows, tasks, and results under model directory
+    - [ ] Fix image issue... Build a designated image in deployment using a lume-services base image
 - Done:
     - [x] Versioneer
     - [x] Action for testing package install & running pytests
@@ -26,7 +28,6 @@ TODO:
     - [x] Templated README
     - [x] Handling of input/output variables at outset
     - [ ] Drop required defaults for lume-model variables
-    - [ ] Check functionality of all
     - [ ] Docs
 - Done:
     - [x] Action for testing package install & running pytests
@@ -50,7 +51,6 @@ TODO:
 
 ## Backlog
 - TODO:
-    - [ ] Implement/plan for logging infrastructure
     - [ ] Synchronous snapshot service (-> SLAC-services)
     - [ ] HPC interface
     - [ ] Slurm interface
@@ -64,10 +64,10 @@ TODO:
     - [ ] Add mapped parameters to database?
     - [x] Add requirements table
     - [ ] Kubernetes backend tests
-    - [ ] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
+    - [x] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
-    - [ ] Environment solving for containerized jobs
-    - [ ] Interfact to model 
+    - [x] Environment solving for containerized jobs
+    - [x] Interace to model 
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26
@@ -101,7 +101,7 @@ TODO:
 
 ## Models
 - TODO:
-    - [ ] Create model interface with injected services
+    - [x] Create model interface with injected services
     - [ ] Add utility for loading flow objects
     - [ ] Preprocessing structure
     - [ ] Registration of preprocessing flows
