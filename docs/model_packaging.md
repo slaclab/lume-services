@@ -24,31 +24,34 @@ No additional dependencies will be downloaded for pip packages. This means requi
 
 ```yaml
 
-"cookiecutter.repo_name"
+"cookiecutter.project_slug"
 ├─ .github/
 |  ├─ workflows/
-|  |  ├─ build_flow_docker.yaml
+|  |  ├─ build_image.yaml
+|  |  ├─ build_image_scr.yml
 │  │  ├─ tests.yaml
-├─ "cookiecutter.project_slug"
+│  │  ├─ build.yaml
+├─ "cookiecutter.package"
 |  ├─ files/
 |  |  ├─ __init__.py
 |  |  ├─ variables.yaml
-|  ├─ flow/
-|  |  ├─ __init__.py
-|  |  ├─ _entrypoint.sh
-|  |  ├─ Dockerfile
-|  |  ├─ flow.py
 |  ├─ tests/
+|  |  ├─ test_flow.py
 |  ├─ __init__.py
 |  ├─ config.py
 |  ├─ model.py
-├─ dev-requirements.txt
-├─ requirements.txt
-├─ README.md
+|  ├─ flow.py
+├─ _entrypoint.sh
+├─ .gitignore
+├─ conftest.py
+├─ dev-environment.yml
+├─ Dockerfile
+├─ environment.yml
 ├─ MANIFEST.in
+├─ pytest.ini
+├─ requirements.txt
 ├─ setup.cfg
 ├─ setup.py
-├─ model.yaml
 
 ```
 
