@@ -199,8 +199,51 @@ git push
 
 In your browser, navigate to your GitHub repository at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions, replacing username and brackets with your github username. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
 
+### 10. Configure GitHub actions build
 
-### 10. Create a release 
+#### Stanford Container Registry
+
+SLAC users can take advantage of the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) to store their containers. The steps for configuring your project to use the registry are as follows:
+
+1. Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration. 
+
+![token](files/PAT.png)
+
+2. Create  a project using Stanford Code https://code.stanford.edu/projects/new#blank_project. In the `Project name` field, write `My Model`. Select internal visibility level. 
+
+![project](files/scr_project.png)
+
+3. Add the token to your repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value.  
+
+4. In your model repository, delete the DockerHub action `.github/workflows/build_image.yml`.
+```
+git rm .github/workflows/build_image.yml
+git commit -m "Remove DockerHub build"
+git mv .github/workflows/build_image_src.yml .github/workflows/build_image.yml
+git commit -m "Rename SRC build file"
+git push
+```
+
+#### DockerHub
+
+The LUME-services model template is pre-configured to publish the container image to DockerHub. In order to use this workflow, authentication for the repository must be configured using [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets). 
+
+1. Navigate to the settings on your repository.
+
+![settings](files/repo-actions-settings.png)
+
+2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value. 
+
+3. Remove the unused Stanford Container Registry workflow. 
+
+```
+git rm .github/workflows/build_image_scr.yml
+git commit -m "Remove SRC build file"
+git push
+```
+
+
+### 11. Create a release 
 
 Create a tagged release for your model. Navigate to https://github.com/{YOUR_GITHUB_USERNAME}/my-model/releases -> Draft a new release
 
@@ -208,11 +251,15 @@ Create a tagged release for your model. Navigate to https://github.com/{YOUR_GIT
 
 Under choose tag, type v0.0.1 (this is a development tag, [semantic versioning](https://semver.org/) for releases formally starts at v0.1). You can enter the same for the title and may enter some description, but this is optional. Check the pre-release box at the bottom of the page and click the button to publish your release.
 
+The release will trigger a GitHub action workflow for your project, which you can monitor at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions. 
+
+If you've used the DockerHub GitHub action, you will now be able to view your  
+
 ## Deploying a model to production:
 
 The below steps outline a production deployment workflow. 
 
-### 11. Create a local conda channel
+### 12. Create a local conda channel
 
 
 You can create a file conda channel by following the directions hosted in the [conda docs](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/create-custom-channels.html) and reiterated here. First create all platform subdirs:
@@ -235,7 +282,7 @@ Set LUME-services environment variable:
 ```
 export LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY=$(pwd)/local-conda-channel
 ```
-### 12. Create a local pip repository
+### 13. Create a local pip repository
 Files installed with pip will be stored in a local directory.
 
 ```
@@ -247,7 +294,7 @@ export LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY=$(pwd)/local-pip-repository
 ```
 
 
-### 13. Start services with docker-compose
+### 14. Start services with docker-compose
 
 LUME-services is packaged with a command line utility for launching the development environment, a docker-compose application with all services packaged and configurable via environment variables.  
 
@@ -273,7 +320,7 @@ And access the UI using your browser at http://localhost:8080.
 
 
 
-### 14. Run the notebook and register your model
+### 15. Run the notebook and register your model
 
 Create a new console window. Activate lume-services-dev and configure the environment variables:
 ```
