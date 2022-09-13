@@ -86,4 +86,4 @@ or from conda using ... (*once configured with conda-forge)
 
 ## Intro
 
-Most use will  use the model class as an interface to the other objects
+Most use will use the model class as an interface to the other objects
