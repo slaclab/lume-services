@@ -53,19 +53,11 @@ class TestModelDB:
     # project
     project = "my_project"
     project_description = "placeholder"
-    package_import_name="placeholder"
+    package_import_name = "placeholder"
 
     # flow
     flow_id_placeholder = "test"
     flow_name = "my_test_flow"
-    dependencies = [
-        {
-            "name": "matplotlib",
-            "type": "conda",
-            "version": "3.5.3",
-            "source": "/Users/jgarra/sandbox/lume-services/dev/matplotlib-3.5.3.tar.gz",
-        }
-    ]
 
     @pytest.fixture(scope="class")
     def model_id(self, model_db_service):
@@ -189,12 +181,6 @@ class TestModelDB:
 
         return flow_id
 
-    @pytest.fixture(scope="class")
-    def dependencies(self, model_db_service, deployment_id):
-        model_db_service.store_dependencies(
-            self.dependencies, deployment_id=deployment_id
-        )
-
     # test missing flow info
     def test_missing_flow_project_name(self, model_db_service, deployment_id, flow_id):
         with pytest.raises(TypeError):
@@ -250,56 +236,3 @@ class TestModelDB:
     def test_get_flow_bad_sig(self, model_db_service, flow_id):
         with pytest.raises(ValueError):
             model_db_service.get_flow(flow_identifier=flow_id)
-
-
-class TestEnvironmentResolution:
-    @pytest.fixture(scope="class")
-    def local_pip_repo(self, tmp_path_factory):
-        return str(tmp_path_factory.mktemp("local_pip_repo"))
-
-    @pytest.fixture(scope="class")
-    def local_conda_channel_directory(self, tmp_path_factory):
-
-        local_channel = str(tmp_path_factory.mktemp("local_conda_channel"))
-
-        os.mkdir(f"{local_channel}/linux-64")
-        os.mkdir(f"{local_channel}/linux-32")
-        os.mkdir(f"{local_channel}/osx-64")
-        os.mkdir(f"{local_channel}/win-64")
-        os.mkdir(f"{local_channel}/win-32")
-
-        index_proc = subprocess.Popen(
-            ["conda", "index", local_channel],
-            stdout=subprocess.PIPE,
-        )
-        output = index_proc.communicate()[0]
-        return_code = index_proc.returncode
-
-        if return_code != 0:
-            logger.error("Unable to index channel at %s", local_channel)
-            raise UnableToIndexLocalChannelError(local_channel, return_code, output)
-
-        return local_channel
-
-    def test_resolution_dry_run(self, local_pip_repo, local_conda_channel_directory):
-        config = EnvironmentResolverConfig(
-            local_pip_repository=local_pip_repo,
-            local_conda_channel_directory=local_conda_channel_directory,
-        )
-
-        resolver = EnvironmentResolver(config)
-        resolver.solve(
-            "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.6/my_model-0.0.6.tar.gz",  # noqa
-            dry_run=True,
-        )
-
-    def test_resolution(self, local_pip_repo, local_conda_channel_directory):
-        config = EnvironmentResolverConfig(
-            local_pip_repository=local_pip_repo,
-            local_conda_channel_directory=local_conda_channel_directory,
-        )
-
-        resolver = EnvironmentResolver(config)
-        resolver.solve(
-            "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.6/my_model-0.0.6.tar.gz"  # noqa
-        )
