@@ -1,13 +1,6 @@
 import pytest
 import logging
-import os
-import subprocess
 from lume_services.environment.solver import _GITHUB_TARBALL_TEMPLATE
-from lume_services.environment.solver import (
-    EnvironmentResolver,
-    EnvironmentResolverConfig,
-)
-from lume_services.errors import UnableToIndexLocalChannelError
 
 logger = logging.getLogger(__name__)
 
