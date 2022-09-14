@@ -1,10 +1,6 @@
 from dependency_injector import containers, providers
 from pydantic import BaseSettings, ValidationError
 from typing import Optional
-from lume_services.environment.solver import (
-    EnvironmentResolver,
-    EnvironmentResolverConfig,
-)
 
 from lume_services.services.models.db import ModelDB, ModelDBConfig
 from lume_services.services.models import ModelDBService
@@ -55,8 +51,6 @@ class Context(containers.DeclarativeContainer):
 
     scheduling_backend = providers.Dependency(instance_of=Backend)
 
-    environment_resolver = providers.Dependency(instance_of=EnvironmentResolver)
-
     # filter on the case that a filesystem is undefined
     file_service = providers.Singleton(FileService, filesystems=filesystems)
 
@@ -90,7 +84,6 @@ class LUMEServicesSettings(BaseSettings):
     results_db: Optional[MongodbResultsDBConfig]
     prefect: PrefectConfig
     mounted_filesystem: Optional[MountedFilesystem]
-    environment: EnvironmentResolverConfig = EnvironmentResolverConfig()
     backend: str = "local"
     # something wrong with pydantic literal parsing?
     # Literal["kubernetes", "local", "docker"] = "local"
@@ -153,10 +146,6 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
     else:
         backend = LocalBackend()
 
-    environment_resolver = None
-    if settings.environment is not None:
-        environment_resolver = EnvironmentResolver(config=settings.environment)
-
     filesystems = [
         LocalFilesystem(),
     ]
@@ -168,8 +157,7 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
         model_db=model_db,
         results_db=results_db,
         filesystems=filesystems,
-        scheduling_backend=backend,
-        environment_resolver=environment_resolver,
+        scheduling_backend=backend
     )
     _settings = settings
     logger.info("Environment configured.")
