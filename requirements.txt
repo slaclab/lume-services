@@ -13,4 +13,3 @@ pyyaml
 docker>=5.0.0
 lume-base>=0.2.2
 pkginfo
-conda

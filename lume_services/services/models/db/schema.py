@@ -1,6 +1,5 @@
 import logging
 
-from sqlalchemy import insert
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
@@ -69,9 +68,6 @@ class Deployment(Base):
 
     # one -> many
     flow = relationship("Flow", back_populates="deployment", uselist=False)
-
-    # one -> many
-    dependencies = relationship("DeploymentDependency", back_populates="deployment")
 
     # unique constraints
     __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)

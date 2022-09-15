@@ -21,7 +21,6 @@ dependencies:
   - lume-base>=0.2.2
   - lume-model>=1.4
   - pkginfo
-  - conda
 
 # Developer
   - pytest

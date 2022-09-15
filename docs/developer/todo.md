@@ -6,7 +6,7 @@
     - [ ] Docs!
     - [ ] Set up all loggers
     - [ ] Move environments, flows, tasks, and results under model directory
-    - [ ] Fix image issue... Build a designated image in deployment using a lume-services base image
+    - [x] Fix image issue... Build a designated image in deployment using a lume-services base image
 - Done:
     - [x] Versioneer
     - [x] Action for testing package install & running pytests
@@ -67,7 +67,7 @@ TODO:
     - [x] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
     - [x] Environment solving for containerized jobs
-    - [x] Interace to model 
+    - [x] Interace to model
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26
@@ -102,6 +102,6 @@ TODO:
 ## Models
 - TODO:
     - [x] Create model interface with injected services
-    - [ ] Add utility for loading flow objects
+    - [x] Add utility for loading flow objects
     - [ ] Preprocessing structure
     - [ ] Registration of preprocessing flows
