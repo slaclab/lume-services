@@ -1,6 +1,5 @@
 from importlib import import_module
 import os
-import json
 import urllib
 import subprocess
 import sys
@@ -8,7 +7,6 @@ import re
 import hashlib
 from contextlib import contextmanager
 from platform import python_version as current_python_version
-from xml.dom.expatbuilder import parseFragmentString
 from pydantic import BaseModel, root_validator
 from typing import List
 from typing import Optional, Literal
@@ -21,18 +19,12 @@ from conda.exceptions import EnvironmentFileNotFound
 import shutil
 from conda.cli.python_api import run_command
 
-from lume_services.docker.files import ENVIRONMENT_YAML
 from lume_services.errors import (
-    WritePermissionError,
-    NoPackagesToInstallError,
     UnableToInstallCondaDependenciesError,
-    UnableToIndexLocalChannelError,
     MissingEnvironmentYamlError,
     UnableToInstallPipDependenciesError,
     NoCondaEnvironmentFoundError,
 )
-
-from lume_services.utils import select_python_version
 
 import logging
 
@@ -318,7 +310,7 @@ class Source(BaseModel):
                     logger.debug(line)
 
                 logger.info("Dependency installation complete")
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 raise UnableToInstallCondaDependenciesError(conda_dependencies)
 
             logger.debug("installing pip deps")
