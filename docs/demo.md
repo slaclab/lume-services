@@ -325,8 +325,6 @@ And access the UI using your browser at http://localhost:8080.
 Create a new console window. Activate lume-services-dev and configure the environment variables:
 ```
 source docs/examples/demo.env
-export LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY=$(pwd)/local-conda-channel
-export LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY=$(pwd)/local-pip-repository
 ```
 Open the demo notebook and continue the remainder of the demo by running each cell:
 ```
