@@ -4,20 +4,14 @@ import urllib
 import subprocess
 import sys
 import re
+import yaml
 import hashlib
-from contextlib import contextmanager
 from platform import python_version as current_python_version
 from pydantic import BaseModel, root_validator
 from typing import List
 from typing import Optional, Literal
 import tarfile
 from pkginfo import SDist
-
-from conda_env.env import yaml_safe_load, validate_keys
-from conda.exceptions import EnvironmentFileNotFound
-
-import shutil
-from conda.cli.python_api import run_command
 
 from lume_services.errors import (
     UnableToInstallCondaDependenciesError,
@@ -37,31 +31,51 @@ _GITHUB_TARBALL_TEMPLATE = re.compile(
 )
 
 
-@contextmanager
-def temp_conda_env(env_path: str, prefix: str = "tmp_env") -> None:
-    """Context manager for creating transient conda environments. At exit, the
-    environment is removed.
+VALID_KEYS = ("name", "dependencies", "prefix", "channels", "variables")
 
-    Args:
-        env_path (str): Path to directory used for storing conda environments.
-        prefix (str): Prefix used for creating the conda environment.
 
-    Yields:
-        str: Full local path to the prefixed environment.
+def validate_keys(data, kwargs):
+    """Check for unknown keys, remove them and print a warning.
 
+    The below is from: https://github.com/conda/conda/blob/main/conda_env/env.py
+    license is added in this dir
     """
-    if not os.path.isdir(env_path):
-        raise FileNotFoundError(env_path)
+    invalid_keys = []
+    new_data = data.copy() if data else {}
+    for key in data.keys():
+        if key not in VALID_KEYS:
+            invalid_keys.append(key)
+            new_data.pop(key)
 
-    full_prefix = f"{env_path}/{prefix}"
+    if invalid_keys:
+        filename = kwargs.get("filename")
+        verb = "are" if len(invalid_keys) != 1 else "is"
+        plural = "s" if len(invalid_keys) != 1 else ""
+        print(
+            "\nEnvironmentSectionNotValid: The following section{plural} on "
+            "'{filename}' {verb} invalid and will be ignored:"
+            "".format(filename=filename, plural=plural, verb=verb)
+        )
+        for key in invalid_keys:
+            print(" - {}".format(key))
+        print("")
 
-    # Run conda creation command
-    run_command("create", "-p", full_prefix, use_exception_handler=False)
-
-    try:
-        yield full_prefix
-    finally:
-        shutil.rmtree(f"{env_path}/{prefix}")
+    deps = data.get("dependencies", [])
+    depsplit = re.compile(r"[<>~\s=]")
+    is_pip = lambda dep: "pip" in depsplit.split(dep)[0].split("::")  # noqa
+    lists_pip = any(is_pip(_) for _ in deps if not isinstance(_, dict))
+    for dep in deps:
+        if isinstance(dep, dict) and "pip" in dep and not lists_pip:
+            print(
+                "Warning: you have pip-installed dependencies in your environment file, "  # noqa
+                "but you do not list pip itself as one of your conda dependencies.  Conda "  # noqa
+                "may not use the correct pip to install your packages, and they may end up "  # noqa
+                "in the wrong place.  Please add an explicit pip dependency.  I'm adding one"  # noqa
+                " for you, but still nagging you."
+            )
+            new_data["dependencies"].insert(0, "pip")
+            break
+    return new_data
 
 
 def load_environment_yaml(environment_yaml_path: str):
@@ -82,11 +96,11 @@ def load_environment_yaml(environment_yaml_path: str):
 
     """
     if not os.path.isfile(environment_yaml_path):
-        raise EnvironmentFileNotFound(environment_yaml_path)
+        raise FileNotFoundError(environment_yaml_path)
 
     data = None
     with open(environment_yaml_path, "r") as f:
-        data = yaml_safe_load(f)
+        data = yaml.safe_load(f)
 
     data = validate_keys(data, {})
     channels = data["channels"]
