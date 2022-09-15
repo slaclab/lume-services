@@ -18,5 +18,3 @@ dependencies:
   - pyyaml
   - docker-py>=5.0
   - lume-base>=0.2.2
-  - conda-build
-  - mamba
