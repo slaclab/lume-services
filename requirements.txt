@@ -12,5 +12,5 @@ h5py
 pyyaml
 docker>=5.0.0
 lume-base>=0.2.2
-conda-build
-mamba
+pkginfo
+conda

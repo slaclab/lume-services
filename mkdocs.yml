@@ -58,6 +58,7 @@ nav:
 
 plugins:
   - macros
+  - mkdocs-jupyter
   - search:
       separator: '[\s\-\.]'
   - mkdocstrings:

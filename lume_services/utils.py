@@ -5,7 +5,7 @@ import logging
 import docker
 import numpy as np
 from importlib import import_module
-from typing import Any, Callable, Generic, List, Optional, TypeVar
+from typing import Any, Callable, Generic, List, Optional, TypeVar, Dict
 from types import FunctionType, MethodType
 from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
 from pydantic.generics import GenericModel
@@ -77,6 +77,14 @@ JSON_ENCODERS = {
     # for encoding instances of the ObjType}
     ObjType: lambda x: f"{x.__module__}.{x.__class__.__qualname__}",
     np.ndarray: lambda x: json.dumps(x.tolist()),
+    Dict[str, Any]: lambda x: {
+        key: (
+            value
+            if not isinstance(value, (np.ndarray))
+            else json.dumps(value.to_list())
+        )
+        for key, value in x.items()
+    },
 }
 
 

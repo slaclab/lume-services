@@ -1,10 +1,10 @@
 from pydantic import BaseModel, root_validator
 from typing import Optional, List
-import importlib
 from importlib_metadata import distribution
 from dependency_injector.wiring import Provide
 
 from lume_services.config import Context
+from lume_services.environment.solver import Source
 from lume_services.errors import (
     FlowOfFlowsNotFoundError,
     DeploymentNotFoundError,
@@ -15,13 +15,11 @@ from lume_services.errors import (
 from lume_services.services.scheduling import SchedulingService
 from lume_services.flows.flow import Flow
 from lume_services.flows.flow_of_flows import FlowOfFlows
-from lume_services.environment.solver import EnvironmentResolver
 from lume_services.results import Result
 from lume_services.results.utils import get_result_from_string
 from lume_services.utils import get_callable_from_string
 from lume_services.services.models.service import ModelDBService
 from lume_services.services.models.db.schema import (
-    DeploymentDependency as DeploymentDependencySchema,
     Model as ModelSchema,
     Deployment as DeploymentSchema,
     Project as ProjectSchema,
@@ -44,7 +42,6 @@ class Project(BaseModel):
 class Deployment(BaseModel):
     metadata: Optional[DeploymentSchema]
     project: Optional[Project]
-    dependencies: Optional[List[DeploymentDependencySchema]]
     flow: Optional[Flow]  # defined using template entrypoints
     model_type: Optional[type]
 
@@ -171,7 +168,9 @@ class Model(BaseModel):
 
 
         Args:
+            deployment_id (int):
             load_artifacts (bool): True requires local installation of package
+            model_db_service (ModelDBService):
         Raises:
             DeploymentNotRegisteredError: A matiching deployment cannot be found for
                 this model.
@@ -186,10 +185,6 @@ class Model(BaseModel):
                     model_id=self.metadata.model_id
                 )
 
-                dependencies = model_db_service.get_dependencies(
-                    deployment_id=deployment.deployment_id
-                )
-
             except DeploymentNotFoundError:
                 raise DeploymentNotRegisteredError(model_id=self.metadata.model_id)
 
@@ -199,9 +194,7 @@ class Model(BaseModel):
                 deployment = model_db_service.get_deployment(
                     model_id=self.metadata.model_id, deployment_id=deployment_id
                 )
-                dependencies = model_db_service.get_dependencies(
-                    deployment_id=deployment.deployment_id
-                )
+
                 logger.info("Deployment loaded.")
 
             except DeploymentNotFoundError:
@@ -232,6 +225,7 @@ class Model(BaseModel):
                 name=flow_metadata.flow_name,
                 project_name=flow_metadata.project_name,
                 composing_flows=composing_flows,
+                image=deployment.image,
             )
 
         # if not flow of flow, use standard flow
@@ -240,6 +234,7 @@ class Model(BaseModel):
                 flow_id=flow_metadata.flow_id,
                 name=flow_metadata.flow_name,
                 project_name=flow_metadata.project_name,
+                image=deployment.image,
             )
 
         model_type = None
@@ -264,7 +259,6 @@ class Model(BaseModel):
         self.deployment = Deployment(
             metadata=deployment,
             project={"metadata": project},
-            dependencies=dependencies,
             flow=flow,
             model_type=model_type,
         )
@@ -276,9 +270,6 @@ class Model(BaseModel):
         is_live: bool = True,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
-        environment_resolver: EnvironmentResolver = Provide[
-            Context.environment_resolver
-        ],
     ):
         """
 
@@ -287,18 +278,14 @@ class Model(BaseModel):
             project_name (str): Name of Prefect project for storing flow.
             is_live (bool): Whether the model is live or not
             model_db_service (ModelDBService):
-            environment_resolver (EnvironmentResolver):
 
         """
-
-        source = environment_resolver.get_source(source_path)
-
-        dependencies = environment_resolver.solve(source_path=source_path)
 
         logger.info("installing package")
 
         # in order to store the flow, we have to install
-        environment_resolver.install(source_path=source_path)
+        source = Source(path=source_path)
+        source.install()
 
         dist = distribution(source.name)
 
@@ -312,7 +299,10 @@ class Model(BaseModel):
             raise NoFlowFoundError(source_path)
 
         flow = Flow(
-            prefect_flow=prefect_flow, name=prefect_flow.name, project_name=project_name
+            prefect_flow=prefect_flow,
+            name=prefect_flow.name,
+            project_name=project_name,
+            image=source.image,
         )
 
         deployment_id = model_db_service.store_deployment(
@@ -321,11 +311,9 @@ class Model(BaseModel):
             source=source.path,
             is_live=is_live,
             sha256=source.checksum,
-            image=scheduling_service.backend.config.default_image,
+            image=source.image,
             package_import_name=source.name,
         )
-
-        model_db_service.store_dependencies(dependencies, deployment_id=deployment_id)
 
         # register flow
         prefect_flow_id = flow.register(scheduling_service=scheduling_service)
@@ -349,6 +337,7 @@ class Model(BaseModel):
         self,
         parameters: dict,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        **kwargs,
     ):
         """
 
@@ -356,39 +345,15 @@ class Model(BaseModel):
             parameters (dict): Dictionary of values to pass to flow parameters.
             scheduling_service (SchedulingService): Instantiated SchedulingService
                 object.
+            kwargs: Arguments passed to run config construction
+
 
         """
         if self.deployment is None:
             self.load_deployment()
 
-        pip_dependencies = " ".join(
-            [
-                dep.name
-                for dep in self.deployment.dependencies
-                if dep.dependency_type.type == "pip"
-            ]
-        )
-        conda_dependencies = " ".join(
-            [
-                dep.name
-                for dep in self.deployment.dependencies
-                if dep.dependency_type.type == "conda"
-            ]
-        )
-
-        run_config = scheduling_service.backend.run_config_type(
-            env={
-                "EXTRA_CONDA_PACKAGES": conda_dependencies,
-                "EXTRA_PIP_PACKAGES": pip_dependencies,
-                "LOCAL_CHANNEL_ONLY": scheduling_service.backend.config.isolated,
-            },
-            image=scheduling_service.backend.config.default_image,
-        )
-
         self.deployment.flow.run(
-            parameters,
-            run_config=run_config,
-            scheduling_service=scheduling_service,
+            parameters, scheduling_service=scheduling_service, **kwargs
         )
 
     def run_and_return(
@@ -396,6 +361,7 @@ class Model(BaseModel):
         parameters: dict,
         task_name: str = None,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        **kwargs,
     ):
         """
 
@@ -404,42 +370,16 @@ class Model(BaseModel):
             task_name (str)
             scheduling_service (SchedulingService): Instantiated SchedulingService
                 object.
+            kwargs: Arguments passed to run config construction
+
 
         """
 
         if self.deployment is None:
             self.load_deployment()
 
-        pip_dependencies = " ".join(
-            [
-                dep.name
-                for dep in self.deployment.dependencies
-                if dep.dependency_type.type == "pip"
-            ]
-        )
-        conda_dependencies = " ".join(
-            [
-                dep.name
-                for dep in self.deployment.dependencies
-                if dep.dependency_type.type == "conda"
-            ]
-        )
-
-        # all of this should be inside the scheduling service and not here...
-
-        # move all of scheduling service interface into  Flow and then dependencies
-        run_config = scheduling_service.backend.run_config_type(
-            env={
-                "EXTRA_CONDA_PACKAGES": conda_dependencies,
-                "EXTRA_PIP_PACKAGES": pip_dependencies,
-                "LOCAL_CHANNEL_ONLY": scheduling_service.backend.config.isolated,
-            },
-            image=scheduling_service.backend.config.default_image,
-        )
-
-        self.deployment.flow.run_and_return(
+        return self.deployment.flow.run_and_return(
             parameters,
-            run_config=run_config,
             task_name=task_name,
             scheduling_service=scheduling_service,
         )

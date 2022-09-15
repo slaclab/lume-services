@@ -118,7 +118,7 @@ class Flow(BaseModel):
     mapped_parameters: Optional[Dict[str, MappedParameter]]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
-    image: str = "jgarrahan/lume-services-prefect:latest"
+    image: str
 
     class Config:
         arbitrary_types_allowed = True
@@ -211,32 +211,41 @@ class Flow(BaseModel):
     def run(
         self,
         parameters,
-        run_config,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        **kwargs
     ):
-        """Run the flow."""
+        """Run the flow.
+
+        Args:
+            kwargs: Arguments passed to run config construction
+
+        """
         if isinstance(scheduling_service.backend, (LocalBackend,)):
             if self.prefect_flow is None:
                 self.load_flow()
 
             scheduling_service.run(
-                parameters=parameters, run_config=run_config, flow=self.prefect_flow
+                parameters=parameters, flow=self.prefect_flow, **kwargs
             )
 
         elif isinstance(scheduling_service.backend, (ServerBackend,)):
             scheduling_service.run(
-                parameters=parameters, run_config=run_config, flow_id=self.flow_id
+                parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs
             )
 
     def run_and_return(
         self,
         parameters,
-        run_config,
         task_name: Optional[str],
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        **kwargs
     ):
         """Run flow and return result. Result will reference either passed task name or
         the result of all tasks.
+
+        Args:
+            kwargs: Arguments passed to run config construction
+
 
         """
         if isinstance(scheduling_service.backend, (LocalBackend,)):
@@ -245,17 +254,19 @@ class Flow(BaseModel):
 
             scheduling_service.run_and_return(
                 parameters=parameters,
-                run_config=run_config,
                 flow=self.prefect_flow,
                 task_name=task_name,
+                image=self.image,
+                **kwargs
             )
 
         elif isinstance(scheduling_service.backend, (ServerBackend,)):
             scheduling_service.run_and_return(
                 parameters=parameters,
-                run_config=run_config,
                 flow_id=self.flow_id,
                 task_name=task_name,
+                image=self.image,
+                **kwargs
             )
 
 

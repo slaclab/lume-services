@@ -86,10 +86,7 @@ class SchedulingService:
         return self.backend.load_flow(flow_name, project_name)
 
     def run(
-        self,
-        parameters: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
-        **kwargs
+        self, parameters: Optional[Dict[str, Any]], run_config=None, **kwargs
     ) -> Union[str, None]:
         """Run a flow. Does not return result. Implementations should cover instantiation
         of run_config from kwargs as well as backend-specific kwargs.
@@ -97,7 +94,6 @@ class SchedulingService:
         Args:
             parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
                 name to value
-            run_config (Optional[RunConfig]): RunConfig object to configure flow fun.
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
 
@@ -112,7 +108,7 @@ class SchedulingService:
             ValueError: Value error on flow run
 
         """
-        return self.backend.run(parameters, run_config, **kwargs)
+        return self.backend.run(parameters, run_config=run_config, **kwargs)
 
     def run_and_return(
         self,

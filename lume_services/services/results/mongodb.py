@@ -146,6 +146,7 @@ class MongodbResultsDB(ResultsDB):
 
                 if client:
                     self._disconnect()
+                    self._client.set(None)
 
     def insert_one(self, collection: str, **kwargs) -> str:
         """Insert one document into the database.
@@ -204,7 +205,9 @@ class MongodbResultsDB(ResultsDB):
             else:
                 results = db[collection].find(query, projection=fields)
 
-        return list(results)
+            results = list(results)
+
+        return results
 
     def find_all(self, collection: str) -> List[dict]:
         """Find all documents for a collection
@@ -227,6 +230,8 @@ class MongodbResultsDB(ResultsDB):
 
         """
 
+        collection_indices = {}
+
         with self.client() as client:
             db = client[self.config.database]
 
@@ -235,11 +240,12 @@ class MongodbResultsDB(ResultsDB):
                 formatted_index = [(idx, DESCENDING) for idx in index]
                 db[collection_name].create_index(formatted_index, unique=True)
 
-        for collection_name in collections:
-            index_info = db[collection_name].index_information()
+                index_info = db[collection_name].index_information()
 
-            collections[collection_name] = MongodbCollection(
-                database=self.config.database, name=collection_name, indices=index_info
-            )
+                collection_indices[collection_name] = MongodbCollection(
+                    database=self.config.database,
+                    name=collection_name,
+                    indices=index_info,
+                )
 
-        self._collections.set(collections)
+        self._collections.set(collection_indices)

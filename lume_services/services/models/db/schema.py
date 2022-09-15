@@ -178,83 +178,12 @@ class FlowOfFlows(Base):
                 )"
 
 
-class DependencyType(Base):
-    __tablename__ = "dependency_type"
-
-    # columns
-    id = Column("id", Integer, primary_key=True, autoincrement=True)
-    type = Column("type", String(255), nullable=False)
-
-    def __repr__(self):
-        return f"DependencyType( \
-                id={self.id!r}, \
-                type={self.type!r}, \
-                )"
-
-
-class DeploymentDependency(Base):
-
-    __tablename__ = "deployment_dependencies"
-
-    # columns
-    #  _id not necessarily referenced, but need pk for performance
-    id = Column("_id", Integer, primary_key=True, autoincrement=True)
-    # dependencies
-    name = Column("name", String(255), nullable=False)
-    source = Column("source", String(255), nullable=False)
-    local_source = Column("local_source", String(255), nullable=True)
-    version = Column("version", String(255), nullable=False)
-
-    # one to many mapping deployment_id -> flow
-    deployment_id = Column(
-        "deployment_id",
-        ForeignKey("deployment.deployment_id"),
-        nullable=False,
-        onupdate="cascade",
-    )
-
-    dependency_type_id = Column(
-        "dependency_type_id",
-        ForeignKey("dependency_type.id"),
-        nullable=False,
-        onupdate="cascade",
-    )
-
-    deployment = relationship(
-        "Deployment",
-        foreign_keys="DeploymentDependency.deployment_id",
-        back_populates="dependencies",
-        uselist=False,
-    )
-    dependency_type = relationship(
-        "DependencyType",
-        foreign_keys="DeploymentDependency.dependency_type_id",
-        uselist=False,
-    )
-
-    def __repr__(self):
-        return f"Dependencies( \
-                    id={self.id!r}, \
-                    name={self.name!r}, \
-                    source={self.source!r}, \
-                    local_source={self.local_source!r} \
-                    version={self.version!r} \
-                )"
-
-
 # used for auto-generating schema docs
 __table_schema__ = [
     Model,
-    DeploymentDependency,
     Deployment,
-    DependencyType,
     Flow,
     FlowOfFlows,
     Model,
     Project,
 ]
-
-# Dependency types to store in model on population
-CondaDependencyTypeInsert = insert(DependencyType).values(type="conda")
-
-PipDependencyTypeInsert = insert(DependencyType).values(type="pip")

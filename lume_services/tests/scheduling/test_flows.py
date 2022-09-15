@@ -223,11 +223,13 @@ class TestFlowExecution:
             assert result
 
 
+@pytest.mark.skip()
 class TestFlow:
     def test_flow_construction(self):
         ...
 
 
+@pytest.mark.skip()
 class TestFlowOfFlows:
     def test_load_yaml(self):
         with open(FLOW_OF_FLOWS_YAML, "r") as file:
