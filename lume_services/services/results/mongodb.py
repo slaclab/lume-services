@@ -205,7 +205,9 @@ class MongodbResultsDB(ResultsDB):
             else:
                 results = db[collection].find(query, projection=fields)
 
-        return list(results)
+            results = list(results)
+
+        return results
 
     def find_all(self, collection: str) -> List[dict]:
         """Find all documents for a collection
