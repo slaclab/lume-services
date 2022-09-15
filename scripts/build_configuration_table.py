@@ -116,16 +116,6 @@ def build_table(info: dict, output_file: TextIO) -> None:
 
     output_file.write("\n\n")
 
-    # environment
-    env_res_writer = MarkdownTableWriter(
-        table_name="Environment Resolution",
-        headers=headers,
-        value_matrix=build_value_matrix(info["environment"]),
-    )
-
-    env_res_writer.dump(output_file, close_after_write=False)
-    output_file.write("\n\n")
-
     # model db
     model_db_writer = MarkdownTableWriter(
         table_name="Model Database",
