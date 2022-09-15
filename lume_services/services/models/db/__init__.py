@@ -5,6 +5,4 @@ from .schema import (
     Deployment,
     Project,
     FlowOfFlows,
-    DependencyType,
-    DeploymentDependency,
 )

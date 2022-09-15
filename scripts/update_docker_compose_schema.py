@@ -1,8 +1,4 @@
-from lume_services.services.models.db.schema import (
-    Base,
-    CondaDependencyTypeInsert,
-    PipDependencyTypeInsert,
-)
+from lume_services.services.models.db.schema import Base
 from lume_services.docker.files import MODEL_DB_INIT
 from sqlalchemy import create_mock_engine, create_engine, insert
 from sqlalchemy import insert
@@ -22,29 +18,7 @@ def build_db_schema() -> str:
 
     Base.metadata.create_all(engine)
 
-    cmds = [str(buf) for buf in buffer]
-
-    # now add insert statements for dependency types
-    conda_stmt = (
-        "\n"
-        + str(
-            CondaDependencyTypeInsert.compile(
-                dialect=engine.dialect, compile_kwargs={"literal_binds": True}
-            )
-        )
-        + ";\n"
-    )
-    pip_stmt = (
-        "\n"
-        + str(
-            PipDependencyTypeInsert.compile(
-                dialect=engine.dialect, compile_kwargs={"literal_binds": True}
-            )
-        )
-        + ";\n"
-    )
-
-    return [str(buf) for buf in buffer] + [conda_stmt, pip_stmt]
+    return [str(buf) for buf in buffer]
 
 
 @click.command()
