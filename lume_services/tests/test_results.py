@@ -150,7 +150,7 @@ class TestMongodbResultsDB:
         )
 
     def test_mongo_results_db_init(self, lume_services_settings):
-        MongodbResultsDB(lume_services_settings.results_db, connect=False)
+        MongodbResultsDB(lume_services_settings.results_db)
 
 
 class TestResultsDBService:
