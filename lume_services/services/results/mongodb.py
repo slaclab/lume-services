@@ -146,6 +146,7 @@ class MongodbResultsDB(ResultsDB):
 
                 if client:
                     self._disconnect()
+                    self._client.set(None)
 
     def insert_one(self, collection: str, **kwargs) -> str:
         """Insert one document into the database.
