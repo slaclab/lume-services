@@ -20,6 +20,6 @@ setup(
     license="SLAC Open",
     install_requires=requirements,
     url="https://github.com/slaclab/lume-services",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     entry_points={"console_scripts": ["lume-services = lume_services.cli.cli:main"]},
 )
