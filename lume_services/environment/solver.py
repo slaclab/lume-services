@@ -278,7 +278,21 @@ class Source(BaseModel):
                 v = model_mod.__version__
                 if v == self.version:
                     logger.info("Version %s of %s already installed.", v, self.name)
+
+                    image_mod = import_module(f"{self.name}._image")
+                    self.image = image_mod.IMAGE
                     return
+                else:
+                    logger.debug("Uninstalling old model")
+                    uninstall_proc = subprocess.check_output(
+                        [sys.executable, "-m", "pip", "uninstall", "-y", self.name]
+                    )
+
+                    output_lines = uninstall_proc.decode("utf-8").split("\n")
+                    for line in output_lines:
+                        logger.debug(line)
+
+                    logger.info("Uninstall complete")
 
         # continue if not found
         except ModuleNotFoundError:
