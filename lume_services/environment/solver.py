@@ -1,4 +1,4 @@
-from importlib import import_module
+from importlib import import_module, reload
 import os
 import urllib
 import subprocess
@@ -265,7 +265,7 @@ class Source(BaseModel):
 
         # get prefix
         prefix = os.environ.get("CONDA_PREFIX")
-
+        model_mod = None
         # if the prefix isn't set
         if not prefix:
             raise NoCondaEnvironmentFoundError()
@@ -370,6 +370,9 @@ class Source(BaseModel):
 
             # confirm import successful and get image from the _image.py module
             # packaged with the template
+            if model_mod is not None:
+                model_mod = reload(model_mod)
+
             image_mod = import_module(f"{self.name}._image")
             self.image = image_mod.IMAGE
 
