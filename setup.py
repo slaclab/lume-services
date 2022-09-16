@@ -13,7 +13,7 @@ setup(
     description="A set of orchestration tools for the LUME project",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    packages=find_packages(exclude="*tests*"),
+    # packages=find_packages(exclude="*tests*"),
     author="Jacqueline Garrahan",
     author_email="jgarra@slac.stanford.edu",
     license="SLAC Open",
