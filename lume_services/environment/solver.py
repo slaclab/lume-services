@@ -1,11 +1,12 @@
-from importlib import import_module, reload
+from importlib import import_module
+from importlib_metadata import version
 import os
-import urllib
 import subprocess
 import sys
 import re
 import yaml
 import hashlib
+from urllib.request import urlretrieve
 from platform import python_version as current_python_version
 from pydantic import BaseModel, root_validator
 from typing import List
@@ -202,7 +203,7 @@ class Source(BaseModel):
                 tar_filename = f"{tmp_dir}/{tmp_filename}"
 
                 try:
-                    urllib.request.urlretrieve(
+                    urlretrieve(
                         path, filename=tar_filename
                     )  # NEED TO HANDLE PRIVATE REPOS
                     logger.info("%s saved to %s", path, tar_filename)
@@ -272,12 +273,13 @@ class Source(BaseModel):
 
         # check that already installed
         try:
-            model_mod = import_module(self.name)
+            pkg_version = version(self.name)
+            if pkg_version is not None:
 
-            if model_mod is not None:
-                v = model_mod.__version__
-                if v == self.version:
-                    logger.info("Version %s of %s already installed.", v, self.name)
+                if pkg_version == self.version:
+                    logger.info(
+                        "Version %s of %s already installed.", pkg_version, self.name
+                    )
 
                     image_mod = import_module(f"{self.name}._image")
                     self.image = image_mod.IMAGE
@@ -290,6 +292,7 @@ class Source(BaseModel):
 
                     output_lines = uninstall_proc.decode("utf-8").split("\n")
                     for line in output_lines:
+                        print(line)
                         logger.debug(line)
 
                     logger.info("Uninstall complete")
@@ -370,8 +373,15 @@ class Source(BaseModel):
 
             # confirm import successful and get image from the _image.py module
             # packaged with the template
-            if model_mod is not None:
-                model_mod = reload(model_mod)
+            model_mod = import_module(self.name)
+
+            if not model_mod.__version__ == self.version:
+
+                raise ValueError(
+                    "Import module verison incorrect. Expected %s got %s.",
+                    self.version,
+                    model_mod.__version__,
+                )
 
             image_mod = import_module(f"{self.name}._image")
             self.image = image_mod.IMAGE
