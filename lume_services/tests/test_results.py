@@ -1,5 +1,6 @@
 from datetime import datetime
 import pytest
+import numpy as np
 from PIL import Image
 from pydantic import ValidationError
 from pymongo.errors import DuplicateKeyError
@@ -53,7 +54,7 @@ def impact_result():
 def generic_result():
     return Result(
         flow_id="test_flow_id",
-        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+        inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
         outputs={
             "output1": 2.0,
             "output2": [1, 2, 3, 4, 5],
