@@ -3,7 +3,8 @@ from pydantic import BaseModel, root_validator, Field, Extra
 from datetime import datetime
 from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
+import numpy as np
 from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
 
@@ -23,8 +24,8 @@ class Result(BaseModel):
 
     # db fields
     flow_id: str
-    inputs: dict
-    outputs: dict
+    inputs: Dict[str, Union[float, str, np.ndarray]]
+    outputs: Dict[str, Union[float, str, np.ndarray]]
     date_modified: datetime = datetime.utcnow()
 
     # set of establishes uniqueness
@@ -39,7 +40,7 @@ class Result(BaseModel):
     result_type_string: str
 
     class Config:
-        allow_arbitrary_types = True
+        arbitrary_types_allowed = True
         json_encoders = JSON_ENCODERS
         allow_population_by_field_name = True
         extra = Extra.forbid
