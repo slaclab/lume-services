@@ -24,8 +24,8 @@ class Result(BaseModel):
 
     # db fields
     flow_id: str
-    inputs: Dict[str, Union[float, str, np.ndarray]]
-    outputs: Dict[str, Union[float, str, np.ndarray]]
+    inputs: Dict[str, Union[float, str, np.ndarray, list]]
+    outputs: Dict[str, Union[float, str, np.ndarray, list]]
     date_modified: datetime = datetime.utcnow()
 
     # set of establishes uniqueness
