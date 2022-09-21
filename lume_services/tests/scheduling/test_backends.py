@@ -202,23 +202,11 @@ class TestLocalBackend:
 
 class TestDockerBackend:
     @pytest.fixture(scope="class")
-    def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem):
-        mounts = [
-            {
-                "target": mounted_filesystem.mount_alias,
-                "source": mounted_filesystem.mount_path,
-                "type": "bind",
-            }
-        ]
-
-        host_config = {"mounts": mounts}
-
+    def run_config(self, prefect_docker_tag):
         return DockerRunConfig(
             image=prefect_docker_tag,
             labels=["lume-services"],
             ports=[3000],
-            env=lume_env,
-            host_config=host_config,
         )
 
     @pytest.mark.usefixtures("scheduling_service")

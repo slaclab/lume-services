@@ -249,7 +249,7 @@ class TestFlowOfFlows:
             flow_of_flows = FlowOfFlows.from_yaml(
                 FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
             )
-            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+            flow_of_flows.compose(image_tag="pytest-flow-of-flows", local=True)
 
     @pytest.mark.skip()
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
@@ -260,7 +260,7 @@ class TestFlowOfFlows:
             flow_of_flows = FlowOfFlows.from_yaml(
                 FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
             )
-            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+            flow_of_flows.compose(image_tag="pytest-flow-of-flows", local=True)
 
             flow_of_flows.prefect_flow.register(
                 project_name=project_name, labels=["lume-services"]
