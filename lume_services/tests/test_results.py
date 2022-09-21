@@ -185,7 +185,8 @@ class TestResultsDBService:
         assert generic_result.inputs == new_generic_obj.inputs
         assert generic_result.outputs == new_generic_obj.outputs
 
-    def test_impact_result_insert_by_service(self, impact_result, results_db_service):
+    @pytest.mark.fixture(scope="class")
+    def impact_result_insert(self, impact_result, results_db_service):
 
         test_impact_result_insert = results_db_service.insert_one(
             impact_result.jsonable_dict()
@@ -198,6 +199,7 @@ class TestResultsDBService:
                 impact_result.jsonable_dict()
             )
 
+    @pytest.mark.usefixtures("impact_result_insert")
     def test_impact_result_query(self, results_db_service, impact_result):
         res = results_db_service.find(
             collection=impact_result.model_type,
