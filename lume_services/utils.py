@@ -45,13 +45,8 @@ def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings) -> dic
     return {key: value for key, value in dictionary.items() if key in in_settings}
 
 
-def fingerprint_dict(dictionary: dict):
-    """Create a hash for a dictionary
-
-    Args:
-        dictionary (dict): Dictionary for which to create a fingerprint hash.
-
-    """
+def get_jsonable_dict(dictionary: dict):
+    """Converts numpy arrays inside a dictionary to list items."""
 
     def convert_array_values(dictionary):
         """Convert array values to list so the dictionary is json serializable."""
@@ -65,7 +60,18 @@ def fingerprint_dict(dictionary: dict):
         }
         return dictionary
 
-    dictionary = convert_array_values(dictionary)
+    return convert_array_values(dictionary)
+
+
+def fingerprint_dict(dictionary: dict):
+    """Create a hash for a dictionary
+
+    Args:
+        dictionary (dict): Dictionary for which to create a fingerprint hash.
+
+    """
+
+    dictionary = get_jsonable_dict(dictionary)
 
     hasher = hashlib.md5()
     hasher.update(json.dumps(dictionary).encode("utf-8"))
