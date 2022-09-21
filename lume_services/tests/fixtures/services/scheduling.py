@@ -25,22 +25,7 @@ def lume_env():
 @pytest.fixture(scope="session", autouse=True)
 def docker_run_config(prefect_docker_tag, file_service, lume_env):
 
-    mounted_filesystems = file_service.get_mounted_filesystems()
-    mounts = []
-    for filesystem in mounted_filesystems.values():
-        mounts.append(
-            {
-                "target": filesystem.mount_alias,
-                "source": filesystem.mount_path,
-                "type": "bind",
-            }
-        )
-
-    host_config = {"mounts": mounts}
-
-    return DockerRunConfig(
-        image=prefect_docker_tag, env=lume_env, host_config=host_config
-    )
+    return DockerRunConfig(image=prefect_docker_tag)
 
 
 @pytest.mark.usefixtures("docker_services")
