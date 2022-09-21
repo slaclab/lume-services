@@ -168,8 +168,9 @@ class TestResultsDBService:
                 generic_result.jsonable_dict()
             )
 
-    @pytest.mark.usefixtures("generic_result_insert")
-    def test_generic_result_query(self, results_db_service, generic_result):
+    def test_generic_result_query(
+        self, results_db_service, generic_result, generic_result_insert
+    ):
         res = results_db_service.find(
             collection=generic_result.model_type,
             query={
@@ -199,8 +200,9 @@ class TestResultsDBService:
                 impact_result.jsonable_dict()
             )
 
-    @pytest.mark.usefixtures("impact_result_insert")
-    def test_impact_result_query(self, results_db_service, impact_result):
+    def test_impact_result_query(
+        self, results_db_service, impact_result, impact_result_insert
+    ):
         res = results_db_service.find(
             collection=impact_result.model_type,
             query={
