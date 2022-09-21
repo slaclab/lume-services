@@ -155,7 +155,7 @@ class TestMongodbResultsDB:
 
 
 class TestResultsDBService:
-    @pytest.mark.fixture(scope="class")
+    @pytest.fixture(scope="class")
     def generic_result_insert(self, generic_result, results_db_service):
         test_generic_result_insert = results_db_service.insert_one(
             generic_result.jsonable_dict()
@@ -186,7 +186,7 @@ class TestResultsDBService:
         assert generic_result.inputs == new_generic_obj.inputs
         assert generic_result.outputs == new_generic_obj.outputs
 
-    @pytest.mark.fixture(scope="class")
+    @pytest.fixture(scope="class")
     def impact_result_insert(self, impact_result, results_db_service):
 
         test_impact_result_insert = results_db_service.insert_one(
