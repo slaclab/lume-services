@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 _BASE_SETUP_COMMAND = "up -d"
 _UI_SETUP_COMMAND = "--profile with_ui up -d"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
+_PERSIST_CLEANUP_COMMANDS = ["down"]
 
 
 def check_mongodb_ready(lume_services_settings: LUMEServicesSettings):
@@ -216,8 +217,9 @@ def run_docker_services(
     lume_services_settings: LUMEServicesSettings,
     timeout: float,
     pause: float,
-    project_name="lume-services",
-    ui=False,
+    project_name: str = "lume-services",
+    ui: bool = False,
+    persist: bool = False,
 ):
     """Context manager for executing dockerized services.
 
@@ -228,8 +230,10 @@ def run_docker_services(
             Docker-compose will exit all services if checks do not succeed within this
             time window.
         pause (float): Pause between checks.
-        project_name (str): Name of docker project
+        project_name (str): Name of docker project.
         ui (bool): Whether to run UI service.
+        persist (bool): Whether to persist resources after shutdown. If you are
+            persisting the volumes, you must manage the artifacts using docker tools.
 
     Yields:
         Services
@@ -248,7 +252,12 @@ def run_docker_services(
     try:
         docker_compose.execute(cmd)
     except Exception as e:
-        for cmd in _CLEANUP_COMMANDS:
+
+        cleanup_commands = _CLEANUP_COMMANDS
+        if persist:
+            cleanup_commands = _PERSIST_CLEANUP_COMMANDS
+
+        for cmd in cleanup_commands:
             logger.debug("Executing cmd %s", cmd)
             try:
                 docker_compose.execute(cmd)
@@ -269,7 +278,6 @@ def run_docker_services(
         except Exception as e:
             logger.exception("Exception when composing services: %s", e)
 
-            # Clean up.
             for cmd in _CLEANUP_COMMANDS:
                 logger.debug("Executing cmd %s", cmd)
                 try:
@@ -285,7 +293,11 @@ def run_docker_services(
     # yield services
     finally:
         # Clean up.
-        for cmd in _CLEANUP_COMMANDS:
+        cleanup_commands = _CLEANUP_COMMANDS
+        if persist:
+            cleanup_commands = _PERSIST_CLEANUP_COMMANDS
+
+        for cmd in cleanup_commands:
             logger.debug("Executing cmd %s", cmd)
             try:
                 docker_compose.execute(cmd)
