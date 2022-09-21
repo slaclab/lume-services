@@ -9,7 +9,7 @@ from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
 
 from lume_services.config import Context
-from lume_services.utils import JSON_ENCODERS, get_jsonable_dict
+from lume_services.utils import JSON_ENCODERS
 
 from prefect import context
 
@@ -95,9 +95,6 @@ class Result(BaseModel):
         query: dict,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
-        # convert query to jsonable dict
-        query = get_jsonable_dict(query)
-
         res = results_db_service.find(
             collection=cls.__fields__["model_type"].default, query=query
         )
