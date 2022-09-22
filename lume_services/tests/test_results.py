@@ -1,6 +1,7 @@
 from datetime import datetime
 import pytest
 import numpy as np
+import pandas as pd
 from PIL import Image
 from pydantic import ValidationError
 from pymongo.errors import DuplicateKeyError
@@ -14,6 +15,84 @@ from lume_services.results import (
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
+from lume_services.utils import get_bson_dict
+
+
+class TestBSON:
+
+    numpy_array = np.array([1, 2, 3, 4, 5])
+    pandas_dataframe = pd.DataFrame({"x": [0, 1, 2], "y": [1, 2, 3]})
+
+    @pytest.fixture(scope="class")
+    def bson_insert_numpy(self, results_db_service):
+
+        result = Result(
+            flow_id="test_flow_id",
+            inputs={"input1": 2.0, "input2": self.numpy_array},
+            outputs={
+                "output1": 2.0,
+                "output2": 3.0,
+            },
+        )
+
+        rep = result.dict(by_alias=True)
+        bson_dict = get_bson_dict(rep)
+        results_db_service.insert_one(bson_dict)
+
+    @pytest.fixture(scope="class")
+    def bson_insert_pandas(self, results_db_service):
+
+        result = Result(
+            flow_id="test_pandas_flow",
+            inputs={"input1": 4.0, "input2": np.array([1, 2, 3, 4, 5])},
+            outputs={
+                "output1": 2.0,
+                "output2": self.pandas_dataframe,
+            },
+        )
+
+        rep = result.dict(by_alias=True)
+        bson_dict = get_bson_dict(rep)
+        results_db_service.insert_one(bson_dict)
+
+    @pytest.mark.usefixtures("bson_insert_numpy")
+    def test_bson_get_numpy(self, results_db_service):
+
+        query = {"inputs.input1": 2.0}
+        selected = results_db_service.find(collection="generic", query=query)
+        assert len(selected)
+
+        assert isinstance(selected[0], np.ndarray)
+
+    @pytest.mark.usefixtures("bson_insert_numpy")
+    def test_numpy_query(self, results_db_service):
+
+        query = {"inputs.input2": self.numpy_array}
+        selected = results_db_service.find(collection="generic", query=query)
+
+        assert len(selected)
+
+        assert isinstance(selected[0], np.ndarray)
+
+    @pytest.mark.usefixtures("bson_insert_pandas")
+    def test_bson_get_pandas(self, results_db_service):
+
+        query = {"flow_id": "test_pandas_flow"}
+        selected = results_db_service.find(collection="generic", query=query)
+
+        assert len(selected)
+
+        assert isinstance(selected[0], pd.DataFrame)
+
+    @pytest.mark.usefixtures("bson_insert_pandas")
+    def test_pandas_query(self, results_db_service):
+
+        query = {"ouputs.output2": self.pandas_dataframe}
+        selected = results_db_service.find(collection="generic", query=query)
+
+        assert len(selected)
+
+        assert isinstance(selected[0], pd.DataFrame)
 
 
 @pytest.mark.parametrize(
@@ -37,10 +116,14 @@ def test_get_result_from_string(string, result_class_target):
 def impact_result():
     return ImpactResult(
         flow_id="test_flow_id",
-        inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
+        inputs={
+            "input1": 2.0,
+            "input2": np.array([1, 2, 3, 4, 5]),
+            "input3": "my_file.txt",
+        },
         outputs={
             "output1": 2.0,
-            "output2": [1, 2, 3, 4, 5],
+            "output2": np.array([1, 2, 3, 4, 5]),
             "output3": "my_file.txt",
         },
         plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
