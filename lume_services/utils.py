@@ -12,6 +12,7 @@ from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
 from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
 from pydantic.generics import GenericModel
+from lume_services.files import File, get_file_from_serializer_string
 
 logger = logging.getLogger(__name__)
 
@@ -502,6 +503,12 @@ def get_bson_dict(dictionary: dict) -> dict:
             for key, value in dictionary.items()
         }
 
+        # create file rep
+        dictionary = {
+            key: value.jsonable_dict() if isinstance(value, (File,)) else value
+            for key, value in dictionary.items()
+        }
+
         dictionary = {
             key: convert_values(value) if isinstance(value, (dict,)) else value
             for key, value in dictionary.items()
@@ -522,12 +529,18 @@ def from_bson_dict(dictionary: dict) -> dict:
 
     def check_and_convert_json_str(string: str):
         try:
-            return json.loads(string)
+
+            loaded_ = json.loads(string)
+            return pd.DataFrame(loaded_)
 
         except json.JSONDecodeError:
             return string
 
     def convert_values(dictionary):
+        if "file_type_string" in dictionary:
+            file_type = get_file_from_serializer_string(dictionary["file_type_string"])
+            return file_type(**dictionary)
+
         # convert numpy arrays from binary format
         dictionary = {
             key: pickle.loads(value) if isinstance(value, (bytes,)) else value
@@ -546,6 +559,7 @@ def from_bson_dict(dictionary: dict) -> dict:
             key: convert_values(value) if isinstance(value, (dict,)) else value
             for key, value in dictionary.items()
         }
+
         return dictionary
 
     return convert_values(dictionary)
