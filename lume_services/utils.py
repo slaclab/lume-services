@@ -4,6 +4,9 @@ import inspect
 import logging
 import docker
 import numpy as np
+import pandas as pd
+from bson import Binary
+import pickle
 from importlib import import_module
 from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
@@ -52,6 +55,11 @@ def get_jsonable_dict(dictionary: dict):
         """Convert array values to list so the dictionary is json serializable."""
         dictionary = {
             key: value.tolist() if isinstance(value, (np.ndarray,)) else value
+            for key, value in dictionary.items()
+        }
+        # convert pandas dataframe to json
+        dictionary = {
+            key: value.to_json() if isinstance(value, (pd.DataFrame,)) else value
             for key, value in dictionary.items()
         }
         dictionary = {
@@ -464,3 +472,80 @@ def select_python_version(version: str) -> str:
         raise ValueError("Cannot parse python version %s", version)
 
     return str(v)
+
+
+def get_bson_dict(dictionary: dict) -> dict:
+    """Recursively converts numpy arrays inside a dictionary to bson encoded items and
+    pandas dataframes to json reps.
+
+    Args:
+        dictionary (dict): Dictionary to load.
+
+    Returns
+        dict
+    """
+
+    def convert_values(dictionary):
+        """Convert values to list so the dictionary can be inserted and loaded."""
+
+        # convert numpy arrays to binary format
+        dictionary = {
+            key: Binary(pickle.dumps(value, protocol=2))
+            if isinstance(value, (np.ndarray,))
+            else value
+            for key, value in dictionary.items()
+        }
+
+        # convert pandas array to json
+        dictionary = {
+            key: value.to_json() if isinstance(value, (pd.DataFrame,)) else value
+            for key, value in dictionary.items()
+        }
+
+        dictionary = {
+            key: convert_values(value) if isinstance(value, (dict,)) else value
+            for key, value in dictionary.items()
+        }
+        return dictionary
+
+    return convert_values(dictionary)
+
+
+def from_bson_dict(dictionary: dict) -> dict:
+    """Loads representation of mongodb dictionary with appropriate python classes.
+    Numpy arrays are loaded from binary objects and pandas dataframes from json blobs.
+
+    Args:
+        dictionary (dict): Dictionary to load.
+
+    """
+
+    def check_and_convert_json_str(string: str):
+        try:
+            return json.loads(string)
+
+        except json.JSONDecodeError:
+            return string
+
+    def convert_values(dictionary):
+        # convert numpy arrays from binary format
+        dictionary = {
+            key: pickle.loads(value) if isinstance(value, (bytes,)) else value
+            for key, value in dictionary.items()
+        }
+
+        # convert pandas array to json
+        dictionary = {
+            key: check_and_convert_json_str(value)
+            if isinstance(value, (str,))
+            else value
+            for key, value in dictionary.items()
+        }
+
+        dictionary = {
+            key: convert_values(value) if isinstance(value, (dict,)) else value
+            for key, value in dictionary.items()
+        }
+        return dictionary
+
+    return convert_values(dictionary)
