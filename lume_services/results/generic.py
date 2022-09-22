@@ -5,6 +5,7 @@ from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
 from typing import List, Optional, Union, Dict
 import numpy as np
+import pandas as pd
 from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
 
@@ -24,8 +25,8 @@ class Result(BaseModel):
 
     # db fields
     flow_id: str
-    inputs: Dict[str, Union[float, str, np.ndarray, list]]
-    outputs: Dict[str, Union[float, str, np.ndarray, list]]
+    inputs: Dict[str, Union[float, str, np.ndarray, list, pd.DataFrame]]
+    outputs: Dict[str, Union[float, str, np.ndarray, list, pd.DataFrame]]
     date_modified: datetime = datetime.utcnow()
 
     # set of establishes uniqueness
@@ -85,7 +86,7 @@ class Result(BaseModel):
     ):
 
         # must convert to jsonable dict
-        rep = self.jsonable_dict()
+        rep = self.dict(by_alias=True)
         return results_db_service.insert_one(rep)
 
     @classmethod
