@@ -57,7 +57,7 @@ def generic_result():
         inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
         outputs={
             "output1": 2.0,
-            "output2": [1, 2, 3, 4, 5],
+            "output2": np.array([1, 2, 3, 4, 5]),
         },
     )
 
