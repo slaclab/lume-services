@@ -13,6 +13,8 @@ from lume_services.services.results.db import (
     ResultsDB,
 )
 
+from lume_services.utils import get_bson_dict, from_bson_dict
+
 import logging
 
 
@@ -159,6 +161,8 @@ class MongodbResultsDB(ResultsDB):
             str: saved document id
 
         """
+        # conver to bson
+        kwargs = get_bson_dict(kwargs)
         with self.client() as client:
             db = client[self.config.database]
             inserted_id = db[collection].insert_one(kwargs).inserted_id
@@ -175,7 +179,11 @@ class MongodbResultsDB(ResultsDB):
         Returns:
             List[str]: List of saved document ids.
 
+
         """
+        # make items bsonable
+        items = [get_bson_dict(item) for item in items]
+
         with self.client() as client:
             db = client[self.config.database]
             inserted_ids = db[collection].insert_many(items).inserted_ids
@@ -206,6 +214,9 @@ class MongodbResultsDB(ResultsDB):
                 results = db[collection].find(query, projection=fields)
 
             results = list(results)
+
+        # convert types to python
+        results = [from_bson_dict(res) for res in results]
 
         return results
 
