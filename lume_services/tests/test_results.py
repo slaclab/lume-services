@@ -12,10 +12,10 @@ from lume_services.results import (
     get_result_from_string,
     get_collections,
 )
+from lume_services.results.Result import get_bson_dict
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
-from lume_services.utils import get_bson_dict
 
 
 class TestBSON:
