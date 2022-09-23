@@ -90,8 +90,7 @@ class Result(BaseModel):
     ):
 
         # must convert to jsonable dict
-        rep = self.dict(by_alias=True)
-        rep = get_bson_dict(rep)
+        rep = self.get_db_dict()
         return results_db_service.insert_one(rep)
 
     @classmethod
@@ -120,6 +119,10 @@ class Result(BaseModel):
             "result_type_string": self.result_type_string,
             "query": self.get_unique_result_index(),
         }
+
+    def get_db_dict(self) -> dict:
+        rep = self.dict(by_alias=True)
+        return get_bson_dict(rep)
 
 
 def get_bson_dict(dictionary: dict) -> dict:
