@@ -59,7 +59,7 @@ class TestBSON:
         selected = results_db_service.find(collection="generic", query=query)
         assert len(selected)
 
-        assert isinstance(selected[0], np.ndarray)
+        assert isinstance(selected[0]["inputs"]["input2"], np.ndarray)
 
     @pytest.mark.usefixtures("bson_insert_numpy")
     def test_numpy_query(self, results_db_service):
@@ -69,7 +69,7 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0], np.ndarray)
+        assert isinstance(selected[0]["inputs"]["input2"], np.ndarray)
 
     @pytest.mark.usefixtures("bson_insert_pandas")
     def test_bson_get_pandas(self, results_db_service):
@@ -79,7 +79,7 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0], pd.DataFrame)
+        assert isinstance(selected[0]["outputs"]["output2"], pd.DataFrame)
 
     @pytest.mark.usefixtures("bson_insert_pandas")
     def test_pandas_query(self, results_db_service):
@@ -89,7 +89,7 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0], pd.DataFrame)
+        assert isinstance(selected[0]["outputs"]["output2"], pd.DataFrame)
 
 
 @pytest.mark.parametrize(
