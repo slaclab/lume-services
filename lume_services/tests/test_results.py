@@ -74,7 +74,7 @@ class TestBSON:
         assert len(selected)
 
         # load types
-        db_dict = load_db_dict(selected)
+        db_dict = load_db_dict(selected[0])
 
         assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
@@ -87,7 +87,7 @@ class TestBSON:
         assert len(selected)
 
         # load types
-        db_dict = load_db_dict(selected)
+        db_dict = load_db_dict(selected[0])
 
         assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
@@ -97,10 +97,10 @@ class TestBSON:
         query = {"ouputs.output2": self.pandas_dataframe}
         selected = results_db_service.find(collection="generic", query=query)
 
-        assert len(selected)
+        assert len(selected[0])
 
         # load types
-        db_dict = load_db_dict(selected)
+        db_dict = load_db_dict(selected[0])
 
         assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
