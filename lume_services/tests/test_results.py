@@ -12,6 +12,7 @@ from lume_services.results import (
     get_result_from_string,
     get_collections,
 )
+from lume_services.results.generic import load_db_dict
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
@@ -59,7 +60,10 @@ class TestBSON:
         selected = results_db_service.find(collection="generic", query=query)
         assert len(selected)
 
-        assert isinstance(selected[0]["inputs"]["input2"], np.ndarray)
+        # load types
+        db_dict = load_db_dict(selected)
+
+        assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
     @pytest.mark.usefixtures("bson_insert_numpy")
     def test_numpy_query(self, results_db_service):
@@ -69,7 +73,10 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0]["inputs"]["input2"], np.ndarray)
+        # load types
+        db_dict = load_db_dict(selected)
+
+        assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
     @pytest.mark.usefixtures("bson_insert_pandas")
     def test_bson_get_pandas(self, results_db_service):
@@ -79,7 +86,10 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0]["outputs"]["output2"], pd.DataFrame)
+        # load types
+        db_dict = load_db_dict(selected)
+
+        assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
     @pytest.mark.usefixtures("bson_insert_pandas")
     def test_pandas_query(self, results_db_service):
@@ -89,7 +99,10 @@ class TestBSON:
 
         assert len(selected)
 
-        assert isinstance(selected[0]["outputs"]["output2"], pd.DataFrame)
+        # load types
+        db_dict = load_db_dict(selected)
+
+        assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
 
 @pytest.mark.parametrize(
