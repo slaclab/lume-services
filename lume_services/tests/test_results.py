@@ -266,13 +266,15 @@ class TestResultsDBService:
     def test_generic_result_query(
         self, results_db_service, generic_result, generic_result_insert
     ):
+        query = {
+            "flow_id": generic_result.flow_id,
+            "inputs": generic_result.inputs,
+            "outputs": generic_result.outputs,
+        }
+
         res = results_db_service.find(
             collection=generic_result.model_type,
-            query={
-                "flow_id": generic_result.flow_id,
-                "inputs": generic_result.inputs,
-                "outputs": generic_result.outputs,
-            },
+            query=get_bson_dict(query),
         )
 
         new_generic_obj = Result(**res[0])
@@ -295,16 +297,21 @@ class TestResultsDBService:
                 impact_result.get_db_dict()
             )
 
+    @pytest.mark.usefixtures("impact_result_insert")
     def test_impact_result_query(
         self, results_db_service, impact_result, impact_result_insert
     ):
-        res = results_db_service.find(
-            collection=impact_result.model_type,
-            query={
+
+        query = (
+            {
                 "flow_id": impact_result.flow_id,
                 "inputs": impact_result.inputs,
                 "outputs": impact_result.outputs,
             },
+        )
+        res = results_db_service.find(
+            collection=impact_result.model_type,
+            query=get_bson_dict(query),
         )
 
         new_impact_obj = ImpactResult(**res[0])
@@ -325,13 +332,15 @@ class TestResultsDBService:
 
 
 class TestResultsInsertMethods:
-    def test_generic_result_insert_by_method(self, generic_result, results_db_service):
+    @pytest.fixture(scope="class")
+    def generic_result_insert_by_method(self, generic_result, results_db_service):
         generic_result.insert(results_db_service=results_db_service)
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             generic_result.insert(results_db_service=results_db_service)
 
+    @pytest.mark.usefixtures("generic_result_insert_by_method")
     def test_load_generic_result(self, generic_result, results_db_service):
         new_generic_result = Result.load_from_query(
             {
@@ -346,13 +355,15 @@ class TestResultsInsertMethods:
         assert generic_result.inputs == new_generic_result.inputs
         assert generic_result.outputs == new_generic_result.outputs
 
-    def test_impact_result_insert_by_method(self, impact_result, results_db_service):
+    @pytest.fixture(scope="class")
+    def impact_result_insert_by_method(self, impact_result, results_db_service):
         impact_result.insert(results_db_service=results_db_service)
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             impact_result.insert(results_db_service=results_db_service)
 
+    @pytest.mark.usefixtures("impact_result_insert_by_method")
     def test_load_impact_result(self, impact_result, results_db_service):
         new_impact_obj = ImpactResult.load_from_query(
             {
