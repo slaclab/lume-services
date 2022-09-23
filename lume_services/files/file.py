@@ -34,7 +34,7 @@ class File(
     # Object to-be-serialized/result of deserialization
     obj: Any = Field(None, exclude=True)
 
-    loader: Optional[ObjLoader[ObjType]]
+    loader: Optional[ObjLoader[ObjType]] = Field(exclude=True)
     serializer: ObjType = Field(exclude=True)
     filesystem_identifier: str = "local"
     file_type_string: str
