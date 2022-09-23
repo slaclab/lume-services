@@ -73,8 +73,8 @@ class Result(BaseModel):
             )
 
         if values.get("_id"):
-            id = values["_id"]
-            if isinstance(id, (ObjectId,)):
+            _id = values["_id"]
+            if isinstance(_id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
 
         values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
