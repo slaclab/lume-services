@@ -60,6 +60,7 @@ def flow3_id(project_name, lume_services_settings):
         return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
+@pytest.mark.skip("Skip until formatted flow packages")
 class TestFlowExecution:
     text1 = "hey"
     text2 = " you"
