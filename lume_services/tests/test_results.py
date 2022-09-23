@@ -161,9 +161,9 @@ class TestResult:
         json_rep = generic_result.json()
         Result.parse_raw(json_rep)
 
-    def test_from_jsonable_dict(self, generic_result):
-        jsonable_dict = generic_result.jsonable_dict()
-        Result(**jsonable_dict)
+    def test_from_dict(self, generic_result):
+        dictionary = generic_result.dict(by_alias=True)
+        Result(**dictionary)
 
 
 class TestImpactResult:
@@ -193,9 +193,9 @@ class TestImpactResult:
         json_rep = impact_result.json()
         ImpactResult.parse_raw(json_rep)
 
-    def test_from_jsonable_dict(self, impact_result):
-        jsonable_dict = impact_result.jsonable_dict()
-        ImpactResult(**jsonable_dict)
+    def test_from_bson_dict(self, impact_result):
+        dict_rep = get_bson_dict(impact_result)
+        ImpactResult(**dict_rep)
 
     def test_load_image(self, impact_result, file_service):
         image = impact_result.plot_file.read(file_service=file_service)
@@ -241,14 +241,14 @@ class TestResultsDBService:
     @pytest.fixture(scope="class")
     def generic_result_insert(self, generic_result, results_db_service):
         test_generic_result_insert = results_db_service.insert_one(
-            generic_result.jsonable_dict()
+            get_bson_dict(generic_result)
         )
         assert test_generic_result_insert is not None
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             test_generic_result_insert = results_db_service.insert_one(
-                generic_result.jsonable_dict()
+                get_bson_dict(generic_result)
             )
 
     def test_generic_result_query(
@@ -273,14 +273,14 @@ class TestResultsDBService:
     def impact_result_insert(self, impact_result, results_db_service):
 
         test_impact_result_insert = results_db_service.insert_one(
-            impact_result.jsonable_dict()
+            get_bson_dict(impact_result)
         )
         assert test_impact_result_insert is not None
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             test_impact_result_insert = results_db_service.insert_one(
-                impact_result.jsonable_dict()
+                get_bson_dict(impact_result)
             )
 
     def test_impact_result_query(
