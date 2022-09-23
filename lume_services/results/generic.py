@@ -1,5 +1,5 @@
 import json
-from pydantic import BaseModel, root_validator, Field, Extra
+from pydantic import BaseModel, root_validator, Field, Extra, validator
 from datetime import datetime
 from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
@@ -49,6 +49,14 @@ class Result(BaseModel):
         json_encoders = JSON_ENCODERS
         allow_population_by_field_name = True
         extra = Extra.forbid
+
+    @validator("inputs", pre=True)
+    def validate_inputs(cls, v):
+        return load_db_dict(v)
+
+    @validator("outputs", pre=True)
+    def validate_outputs(cls, v):
+        return load_db_dict(v)
 
     @root_validator(pre=True)
     def validate_all(cls, values):
