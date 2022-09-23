@@ -12,7 +12,6 @@ from lume_services.results import (
     get_result_from_string,
     get_collections,
 )
-from lume_services.results.generic import get_bson_dict
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
@@ -35,9 +34,8 @@ class TestBSON:
             },
         )
 
-        rep = result.dict(by_alias=True)
-        bson_dict = get_bson_dict(rep)
-        results_db_service.insert_one(bson_dict)
+        rep = result.get_db_dict()
+        results_db_service.insert_one(rep)
 
     @pytest.fixture(scope="class")
     def bson_insert_pandas(self, results_db_service):
@@ -51,9 +49,8 @@ class TestBSON:
             },
         )
 
-        rep = result.dict(by_alias=True)
-        bson_dict = get_bson_dict(rep)
-        results_db_service.insert_one(bson_dict)
+        rep = result.get_db_dict()
+        results_db_service.insert_one(rep)
 
     @pytest.mark.usefixtures("bson_insert_numpy")
     def test_bson_get_numpy(self, results_db_service):
@@ -193,9 +190,8 @@ class TestImpactResult:
         json_rep = impact_result.json()
         ImpactResult.parse_raw(json_rep)
 
-    def test_from_bson_dict(self, impact_result):
-        dict_rep = get_bson_dict(impact_result)
-        ImpactResult(**dict_rep)
+    def test_from_dict(self, impact_result):
+        ImpactResult(**impact_result.get_db_dict())
 
     def test_load_image(self, impact_result, file_service):
         image = impact_result.plot_file.read(file_service=file_service)
@@ -241,14 +237,14 @@ class TestResultsDBService:
     @pytest.fixture(scope="class")
     def generic_result_insert(self, generic_result, results_db_service):
         test_generic_result_insert = results_db_service.insert_one(
-            get_bson_dict(generic_result)
+            generic_result.get_db_dict()
         )
         assert test_generic_result_insert is not None
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             test_generic_result_insert = results_db_service.insert_one(
-                get_bson_dict(generic_result)
+                generic_result.get_db_dict()
             )
 
     def test_generic_result_query(
@@ -273,14 +269,14 @@ class TestResultsDBService:
     def impact_result_insert(self, impact_result, results_db_service):
 
         test_impact_result_insert = results_db_service.insert_one(
-            get_bson_dict(impact_result)
+            impact_result.get_db_dict()
         )
         assert test_impact_result_insert is not None
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
             test_impact_result_insert = results_db_service.insert_one(
-                get_bson_dict(impact_result)
+                impact_result.get_db_dict()
             )
 
     def test_impact_result_query(
