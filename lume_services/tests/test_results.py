@@ -12,7 +12,7 @@ from lume_services.results import (
     get_result_from_string,
     get_collections,
 )
-from lume_services.results.generic import load_db_dict
+from lume_services.results.generic import load_db_dict, get_bson_dict
 from lume_services.files import HDF5File, ImageFile
 from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
@@ -57,6 +57,7 @@ class TestBSON:
     def test_bson_get_numpy(self, results_db_service):
 
         query = {"inputs.input1": 2.0}
+        query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
         assert len(selected)
 
@@ -69,6 +70,7 @@ class TestBSON:
     def test_numpy_query(self, results_db_service):
 
         query = {"inputs.input2": self.numpy_array}
+        query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
@@ -95,6 +97,7 @@ class TestBSON:
     def test_pandas_query(self, results_db_service):
 
         query = {"ouputs.output2": self.pandas_dataframe}
+        query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
