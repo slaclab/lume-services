@@ -30,14 +30,14 @@ class File(
     allow_population_by_field_name=True,
 ):
     filename: str
+    file_type_string: str
+    filesystem_identifier: str = "local"
 
     # Object to-be-serialized/result of deserialization
     obj: Any = Field(None, exclude=True)
 
     loader: Optional[ObjLoader[ObjType]] = Field(exclude=True)
     serializer: ObjType = Field(exclude=True)
-    filesystem_identifier: str = "local"
-    file_type_string: str
 
     load: bool = Field(False, exclude=True)
 
@@ -69,6 +69,10 @@ class File(
             # if filesystem_identifier in values, need to remove
             if "filesystem_identifier" in loader_values:
                 loader_values.pop("filesystem_identifier")
+
+            # if filesystem_identifier in values, need to remove
+            if "file_type_string" in loader_values:
+                loader_values.pop("file_type_string")
 
             # if obj in values, need to remove
             if "obj" in loader_values:

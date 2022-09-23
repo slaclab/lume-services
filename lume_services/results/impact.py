@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import Field, validator
 from lume_services.results.generic import Result
-from lume_services.files import HDF5File, ImageFile, get_file_from_serializer_string
+from lume_services.files import HDF5File, ImageFile
 
 
 class ImpactResult(Result):
@@ -16,12 +16,20 @@ class ImpactResult(Result):
     pv_collection_isotime: datetime
     config: dict
 
-    @validator("plot_file", "archive", pre=True)
-    def validate_file(cls, v):
+    @validator("plot_file", pre=True)
+    def validate_plot_file(cls, v):
 
-        # if the plot file isinstance of dictionary, load file using file_type_string
+        # if the plot file isinstance of dictionary, load file type
         if isinstance(v, dict):
-            file_type = get_file_from_serializer_string(v["file_type_string"])
-            return file_type(**v)
+            return ImageFile(**v)
+
+        return v
+
+    @validator("archive", pre=True)
+    def validate_archive_file(cls, v):
+
+        # if the plot file isinstance of dictionary, load file type
+        if isinstance(v, dict):
+            return HDF5File(**v)
 
         return v
