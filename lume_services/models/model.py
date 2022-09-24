@@ -17,7 +17,6 @@ from lume_services.flows.flow import Flow
 from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.results import Result
 from lume_services.results.utils import get_result_from_string
-from lume_services.utils import get_callable_from_string
 from lume_services.services.models.service import ModelDBService
 from lume_services.services.models.db.schema import (
     Model as ModelSchema,
@@ -397,12 +396,13 @@ class Model(BaseModel):
         """
 
         Args:
-            author (str):
-            laboratory (str):
-            facility (str):
-            beampath (str):
-            description (str):
-            model_db_service (ModelDBService):
+            author (str): Model author
+            laboratory (str): Laboratory name
+            facility (str): Laboratory facility name
+            beampath (str): Beampath identifier
+            description (str): Brief description of model
+            model_db_service (ModelDBService): Model database service. This will be
+                injected if not passed.
 
         """
 
@@ -420,128 +420,88 @@ class Model(BaseModel):
         self,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
+        all_deployments: bool = False,
+        query: Optional[dict] = None,
     ):
+        """Query model results.
 
-        # self.metadata.model_id
+        Args:
+            model_db_service (ModelDBService): Model database service. Injected if
+                not provided.
+            results_db_service (ResultsDBService): Results database service. Injected
+                if not provided.
+            all_deployments (bool): The default behavior is to
+                load the active deployment. If True is passed, the results from all
+                deployments will be returned.
+            query (Optional[dict]): Query formatted using pymongo convention
 
-        ...
-        # result_type = get_result_from_string  entrypoint???
-        # result_type.load_from_query(
+        """
 
+        if query is None:
+            query = {}
 
-"""
-    @inject
-    def install(self, deployment_id: str = None, model_db_service:
-        ModelDBService = Provide[Context.model_db_service]):
-        global _model_registry
-
-        if deployment_id is None:
-            deployment = model_db_service.get_latest_deployment()
-
-        else:
-            deployment = model_db_service.get_deployment(deployment_id=deployment_id)
-
-
-        # check if the package is installed...
-
-
-        # check if this is in the registry
-        if deployment.model_id not in _model_registry:
-
-            model_loader = find_loader(deployment.package_name)
-
-            if model_loader is not None:
-                # install the deployment
-                self._install(deployment)
-                self._register_deployment(deployment)
-
-
-            # loader found but missing from registry
-            else:
-                self._register_deployment(deployment)
-                # check if correct version
-                version = getattr(import_module(deployment.package_name), "__version__")
-                if f"v{version}" != deployment.version:
-                    self._install_deployment(deployment)
-
-
-
-        return self._model_registry[deployment.model_id]
-
-
-    def _install(deployment):
-        # move to remote conda tarball
-
-        env_url = deployment.url.replace("github", "raw.githubusercontent")
-
-        version_url = deployment.url + f".git@{deployment.version}"
-        env_url = deployment.url.replace("github", "raw.githubusercontent")
-        env_url = env_url + f"/{deployment.version}/environment.yml"
-
-        # get active env name
-        env_name = os.environ["CONDA_DEFAULT_ENV"]
-
-        # try install of environment
-        try:
-            output = subprocess.check_call(["conda", "env", "update",
-            "--name",  env_name, "--file", env_url])
-
-        except:
-            print(f"Unable to install environment for {deployment.package_name}")
-            sys.exit()
-
-        # try install of package
-        try:
-            output = subprocess.check_call([sys.executable, '-m', 'pip',
-            'install', f"git+{version_url}"])
-
-        except:
-            print(f"Unable to install {deployment.package_name}")
-            sys.exit()
-
-
-    def run_flow_and_return(self):
-        ...
-
-
-
-    # local methods
-    def predict(self, *, model_id: int, input_variables):
-        model = self.get_latest_model(model_id)
-        return model.evaluate(input_variables)
-
-    @staticmethod
-    def _check_installed(...):
-        return model_class()
-
-    def get_latest_flow(self, model_id: int):
-        # add function to get old deployment
-
-        if self._model_registry.get(model_id) is not None:
-            pass
+        if not all_deployments:
+            query.update({"flow_id": self.deployment.flow.flow_id})
 
         else:
-            deployment = self._model_db.get_latest_deployment(model_id)
-            model_info = self._get_model_info(deployment)
+            # require all flows
+            # these queries are bad. A join should be used instead, but going
+            # with it because of time constraints.
+            flow_ids = []
+            deployments = model_db_service.get_deployments(
+                model_id=self.metadata.model_id
+            )
+            for deployment in deployments:
+                flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
+                flow_ids.append(flow.flow_id)
 
-        return self._load_flow_from_entrypoint(model_info["flow_entrypoint"])
+        results = results_db_service.find_all(query=query)
+        res_objs = []
+        for res in results:
+            result_type_string = res.pop("result_type_string")
+            res_type = get_result_from_string(result_type_string)
+            res_objs.append(res_type(**res))
 
+        return res_objs
 
-    def build_flow(self):
-        ...
+    def get_result_df(
+        self,
+        results_db_service: ResultsDBService = Provide[Context.results_db_service],
+        model_db_service: ModelDBService = Provide[Context.model_db_service],
+        all_deployments: bool = False,
+        query: Optional[dict] = None,
+    ):
+        """Get results and format into a dataframe.
 
-    # remote methods
-    def predict(self, *, model_id, data):
+        Args:
+            query: Query formatted using Pymongo convention
+            model_db_service (ModelDBService): Model database service. Injected if
+                not provided.
+            results_db_service (ResultsDBService): Results database service. Injected
+                if not provided.
+            deployments (bool): The default behavior is to
+                load the active deployment. If True is passed, the results from all
+                deployments will be returned.
 
-        #only using latest for now
-        flow_id = self._model_db.get_latest_model_flow(model_id)
-        flow_run_id = self._scheduler.schedule_run(flow_id=flow_id, data=data)
-        print(f"Run scheduled for model {model_id} with flow_run_id = {flow_run_id}")
+        """
 
+        if query is None:
+            query = {}
 
-    def save_model(self):
-        ...
+        if not all_deployments:
+            query.update({"flow_id": self.deployment.flow.flow_id})
 
-    def load_model(self):
-        ...
-"""
+        else:
+            # require all flows
+            # these queries are bad. A join should be used instead, but going
+            # with it because of time constraints.
+            flow_ids = []
+            deployments = model_db_service.get_deployments(
+                model_id=self.metadata.model_id
+            )
+            for deployment in deployments:
+                flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
+                flow_ids.append(flow.flow_id)
+
+        df = results_db_service.load_dataframe(query=query)
+        return df
