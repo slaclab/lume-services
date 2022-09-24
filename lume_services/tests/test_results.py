@@ -280,8 +280,8 @@ class TestResultsDBService:
         new_generic_obj = Result(**res[0])
 
         assert generic_result.flow_id == new_generic_obj.flow_id
-        assert generic_result.inputs == new_generic_obj.inputs
-        assert generic_result.outputs == new_generic_obj.outputs
+        assert np.array_equal(generic_result.inputs, new_generic_obj.inputs)
+        assert np.array_equal(generic_result.outputs, new_generic_obj.outputs)
 
     @pytest.fixture(scope="class")
     def impact_result_insert(self, impact_result, results_db_service):
@@ -302,13 +302,11 @@ class TestResultsDBService:
         self, results_db_service, impact_result, impact_result_insert
     ):
 
-        query = (
-            {
-                "flow_id": impact_result.flow_id,
-                "inputs": impact_result.inputs,
-                "outputs": impact_result.outputs,
-            },
-        )
+        query = {
+            "flow_id": impact_result.flow_id,
+            "inputs": impact_result.inputs,
+            "outputs": impact_result.outputs,
+        }
         res = results_db_service.find(
             collection=impact_result.model_type,
             query=get_bson_dict(query),

@@ -108,6 +108,7 @@ class Result(BaseModel):
         query: dict,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
+        query = get_bson_dict(query)
         res = results_db_service.find(
             collection=cls.__fields__["model_type"].default, query=query
         )
