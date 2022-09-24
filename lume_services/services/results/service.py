@@ -69,7 +69,7 @@ class ResultsDBService:
         return self._results_db.find_all(**kwargs)
 
     def load_dataframe(
-        self, *, query={}, fields: List[str] = None, **kwargs
+        self, *, query: dict, fields: List[str] = None, **kwargs
     ) -> pd.DataFrame:
         """Load dataframe from result database query.
         Args:
