@@ -294,7 +294,7 @@ class TestResultsInsertMethods:
             },
             outputs={
                 "output1": 2.0,
-                "output2": 4.0,
+                "output2": np.array([1, 2, 9, 40, 5]),
                 "output3": "my_file.txt",
             },
             plot_file=ImageFile(
