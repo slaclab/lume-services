@@ -200,7 +200,7 @@ class TestResultServiceInjection:
     @pytest.fixture()
     def generic_result(self):
         return Result(
-            flow_id="test_flow_id",
+            flow_id="test_inject",
             inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
             outputs={
                 "output1": 2.0,

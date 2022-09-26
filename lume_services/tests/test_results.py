@@ -10,7 +10,6 @@ from lume_services.results import (
     Result,
     ImpactResult,
     get_result_from_string,
-    get_collections,
 )
 from lume_services.results.generic import load_db_dict, get_bson_dict
 from lume_services.files import HDF5File, ImageFile
@@ -195,17 +194,6 @@ class TestMongodbResultsDBConfig:
 
 
 class TestMongodbResultsDB:
-    def test_collections(self, results_db_service):
-        _ = results_db_service._results_db.client()
-        # check collections represented in results service db
-        collections = get_collections()
-        assert all(
-            [
-                collection_name in results_db_service._results_db._collections.get()
-                for collection_name in collections.keys()
-            ]
-        )
-
     def test_mongo_results_db_init(self, lume_services_settings):
         MongodbResultsDB(lume_services_settings.results_db)
 
