@@ -19,14 +19,14 @@ from lume_services.files import File, get_file_from_serializer_string
 from prefect import context
 
 
-def round_datetime_to_milliseconds(time: datetime) -> datetime:
+def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
     """Mongodb rounds datetime to milliseconds so round on assignment for
     consistency.
 
     """
-
-    s = time.isoformat(timespec="milliseconds")
-    return s
+    if isinstance(time, datetime):
+        time = time.isoformat(timespec="milliseconds")
+    return time
 
 
 class Result(BaseModel):
