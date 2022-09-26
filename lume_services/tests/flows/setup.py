@@ -9,7 +9,7 @@ with open(path.join(cur_dir, "requirements.txt"), "r") as f:
 
 setup(
     name="lume-services-test-flows",
-    description="Test flows for the lume-servicces project",
+    description="Test flows for the lume-services project",
     packages=find_packages(),
     author="Jacqueline Garrahan",
     author_email="jgarra@slac.stanford.edu",

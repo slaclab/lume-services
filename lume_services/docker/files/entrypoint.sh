@@ -7,7 +7,7 @@ prefect backend server
 if [ -n "$EXTRA_CONDA_PACKAGES" ]; then
   echo "+conda install --yes $EXTRA_CONDA_PACKAGES"
   conda install --yes $EXTRA_CONDA_PACKAGES
-file
+fi
 
 # need to handle pip offline...
 if [ ! -z "$EXTRA_PIP_PACKAGES" ]; then
