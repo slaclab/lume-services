@@ -93,22 +93,10 @@ def check_generic_result_equal(generic_result, new_generic_obj):
 
 
 class TestBSON:
-    def test_query_by_numpy_array(self, results_db_service, generic_result):
+    def test_numpy_query(self, results_db_service, generic_result):
 
-        query = {"inputs.input2": generic_result.inputs["input2"]}
+        query = {"inputs.input1": generic_result["input1"]}
         query = get_bson_dict(query)
-        selected = results_db_service.find(collection="generic", query=query)
-
-        assert len(selected)
-
-        # load types
-        db_dict = load_db_dict(selected[0])
-
-        assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
-
-    def test_query(self, results_db_service, generic_result):
-
-        query = {"flow_id": "test_flow_id"}
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
@@ -208,6 +196,7 @@ class TestMongodbResultsDBConfig:
 
 class TestMongodbResultsDB:
     def test_collections(self, results_db_service):
+        _ = results_db_service.client()
         # check collections represented in results service db
         collections = get_collections()
         assert all(
