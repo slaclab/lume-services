@@ -38,7 +38,7 @@ def impact_result(results_db_service):
         config={"config1": 1, "config2": 2},
     )
 
-    rep = impact_result.get_db_dict()
+    rep = result.get_db_dict()
     insert_rep = results_db_service.insert_one(rep)
     assert insert_rep is not None
     return result
