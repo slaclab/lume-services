@@ -79,7 +79,7 @@ class TestFlowExecution:
     def test_flow1_run(
         self,
         flow1_id,
-        docker_run_config,
+        docker_run_config_local,
         flow1_filename,
         mounted_filesystem,
         lume_services_settings,
@@ -97,7 +97,7 @@ class TestFlowExecution:
                     "filename": flow1_filename,
                     "filesystem_identifier": mounted_filesystem.identifier,
                 },
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config_local.build(),  # convert to prefect
             )
 
             # watch and block
@@ -141,7 +141,7 @@ class TestFlowExecution:
     def test_flow2_run(
         self,
         flow2_id,
-        docker_run_config,
+        docker_run_config_local,
         test_flow1_run,
         results_db_service,
         lume_services_settings,
@@ -154,7 +154,7 @@ class TestFlowExecution:
             flow_run_id = client.create_flow_run(
                 flow_id=flow2_id,
                 parameters={"file_rep": test_flow1_run},
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config_local.build(),  # convert to prefect
             )
 
             # watch and block
@@ -190,7 +190,7 @@ class TestFlowExecution:
     def test_flow3_run(
         self,
         flow3_id,
-        docker_run_config,
+        docker_run_config_local,
         test_flow2_run,
         results_db_service,
         lume_services_settings,
@@ -210,7 +210,7 @@ class TestFlowExecution:
             flow_run_id = client.create_flow_run(
                 flow_id=flow3_id,
                 parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config_local.build(),  # convert to prefect
             )
 
             # watch and block

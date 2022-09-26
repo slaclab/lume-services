@@ -118,7 +118,7 @@ def base_mysql_uri(mysql_user, mysql_password, mysql_host, mysql_port):
 @pytest.fixture(scope="session")
 def server_tag(request):
     tag = request.config.getini("server_tag")
-    os.environ["LUME_PREFECT__SERVER__TAG"] = tag
+    os.environ["LUME_PREFECT__SERVER__TAG"] = tagDih
     return tag
 
 
@@ -212,8 +212,12 @@ def mounted_filesystem(mount_path):
     os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS"] = "/User/my_user/data"
+    os.environo["LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE"] = "DirectoryOrCreate"
     return MountedFilesystem(
-        mount_path=mount_path, mount_alias="/User/my_user/data", identifier="mounted"
+        mount_path=mount_path,
+        mount_alias="/User/my_user/data",
+        identifier="mounted",
+        mount_type="DirectoryOrCreate",
     )
 
 
@@ -229,6 +233,12 @@ def prefect_docker_tag():
 @pytest.fixture(scope="session", autouse=True)
 def dockerfile(rootdir):
     return f"{rootdir}/Dockerfile"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def prefect_debug():
+    os.environ["LUME_PREFECT__DEBUG"] = "true"
+    return "true"
 
 
 ## ENVIRONMENT VARIABLES:
@@ -260,6 +270,8 @@ def lume_services_settings(
     prefect_backend,
     lume_backend,
     mounted_filesystem,
+    prefect_debug,
+    prefect_docker_tag,
 ):
     model_db_config = ModelDBConfig(
         host=mysql_host,
