@@ -42,12 +42,30 @@ def pytest_addoption(parser):
         name="server_host_port", help="Prefect server apollo api port", default=4200
     )
     parser.addini(
-        name="server_host", help="Prefect server apollo host IP", default="127.0.0.1"
+        name="server_host",
+        help="Prefect server apollo host IP",
+        default="http://localhost",
     )
-    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
+    parser.addini(
+        name="agent_host", help="Prefect agent host", default="http://localhost"
+    )
     parser.addini(
         name="agent_host_port", help="Prefect agent port for comms", default=5000
     )
+
+
+@pytest.fixture(scope="session")
+def agent_host(request):
+    host = request.config.getini("agent_host")
+    os.environ["LUME_PREFECT__AGENT__HOST"] = host
+    return host
+
+
+@pytest.fixture(scope="session")
+def agent_host_port(request):
+    port = request.config.getini("agent_host_port")
+    os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
+    return port
 
 
 @pytest.fixture(scope="session", autouse=True)
