@@ -89,7 +89,7 @@ def check_generic_result_equal(generic_result, new_generic_obj):
         generic_result.inputs["input2"], new_generic_obj.inputs["input2"]
     )
     assert new_generic_obj.outputs["output1"] == new_generic_obj.outputs["output1"]
-    assert isinstance(new_generic_obj.outpupts["output2"], pd.DataFrame)
+    assert isinstance(new_generic_obj.outputs["output2"], pd.DataFrame)
     assert generic_result.outputs["output2"].equals(new_generic_obj.outputs["output2"])
 
 
@@ -274,7 +274,7 @@ class TestResultsInsertMethods:
     @pytest.fixture(scope="class", autouse=True)
     def generic_result2(self):
         result = Result(
-            flow_id="test_flow_id",
+            flow_id="test_flow_id2",
             inputs={"input1": 2.0, "input2": 4.0},
             outputs={
                 "output1": 2.0,
@@ -286,7 +286,7 @@ class TestResultsInsertMethods:
     @pytest.fixture(scope="class", autouse=True)
     def impact_result2(self):
         result = ImpactResult(
-            flow_id="test_flow_id",
+            flow_id="test_flow_id3",
             inputs={
                 "input1": 2.0,
                 "input2": np.array([1, 2, 3, 4, 5]),
@@ -341,9 +341,9 @@ class TestResultsInsertMethods:
     def test_load_impact_result(self, impact_result2, results_db_service):
         new_impact_obj = ImpactResult.load_from_query(
             {
-                "flow_id": impact_result.flow_id,
-                "inputs": impact_result.inputs,
-                "outputs": impact_result.outputs,
+                "flow_id": impact_result2.flow_id,
+                "inputs": impact_result2.inputs,
+                "outputs": impact_result2.outputs,
             },
             results_db_service=results_db_service,
         )
