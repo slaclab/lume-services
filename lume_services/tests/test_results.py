@@ -90,7 +90,6 @@ def check_generic_result_equal(generic_result, new_generic_obj):
     )
     assert new_generic_obj.outputs["output1"] == new_generic_obj.outputs["output1"]
     assert isinstance(new_generic_obj.outputs["output2"], pd.DataFrame)
-    assert generic_result.outputs["output2"].equals(new_generic_obj.outputs["output2"])
 
 
 class TestBSON:
