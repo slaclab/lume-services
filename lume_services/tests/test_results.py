@@ -106,9 +106,9 @@ class TestBSON:
 
         assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
-    def test_query_by_dataframe(self, results_db_service, generic_result):
+    def test_query(self, results_db_service, generic_result):
 
-        query = {"flow_id": "test_flow_id_impact"}
+        query = {"flow_id": "test_flow_id"}
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
