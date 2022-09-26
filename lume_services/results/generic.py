@@ -19,6 +19,16 @@ from lume_services.files import File, get_file_from_serializer_string
 from prefect import context
 
 
+def round_datetime_to_milliseconds(time: datetime) -> datetime:
+    """Mongodb rounds datetime to milliseconds so round on assignment for
+    consistency.
+
+    """
+
+    s = time.isoformat(timespec="milliseconds")
+    return s
+
+
 class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
@@ -49,6 +59,10 @@ class Result(BaseModel):
         json_encoders = JSON_ENCODERS
         allow_population_by_field_name = True
         extra = Extra.forbid
+
+    _round_datetime_to_milliseconds = validator(
+        "date_modified", allow_reuse=True, always=True, pre=True
+    )(round_datetime_to_milliseconds)
 
     @validator("inputs", pre=True)
     def validate_inputs(cls, v):
