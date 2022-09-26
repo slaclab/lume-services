@@ -21,8 +21,10 @@ from lume_services.errors import (
     TaskNotInFlowError,
 )
 from lume_services.utils import docker_api_version as docker_api_version_util
-from lume_services.tests.files.flows.flow1 import flow
-from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+from lume_services.tests.flows.lume_services_test_flows.flow1 import flow
+from lume_services.tests.flows.lume_services_test_flows.failure_flow import (
+    flow as failure_flow,
+)
 from lume_services import config
 
 import logging

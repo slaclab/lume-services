@@ -9,9 +9,12 @@ from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
 
 from lume_services.tasks.db import LoadDBResult
-from lume_services.tests.files.flows.flow1 import flow as flow1, append_text
-from lume_services.tests.files.flows.flow2 import flow as flow2
-from lume_services.tests.files.flows.flow3 import flow as flow3
+from lume_services.tests.flows.lume_services_test_flows.flow1 import (
+    flow as flow1,
+    append_text,
+)
+from lume_services.tests.flows.lume_services_test_flows.flow2 import flow as flow2
+from lume_services.tests.flows.lume_services_test_flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
@@ -60,7 +63,6 @@ def flow3_id(project_name, lume_services_settings):
         return flow3.register(project_name=project_name, labels=["lume-services"])
 
 
-@pytest.mark.skip("Skip until formatted flow packages")
 class TestFlowExecution:
     text1 = "hey"
     text2 = " you"
