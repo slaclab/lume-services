@@ -94,7 +94,6 @@ def check_generic_result_equal(generic_result, new_generic_obj):
 
 
 class TestBSON:
-    @pytest.mark.usefixtures("bson_insert")
     def test_query_by_numpy_array(self, results_db_service, generic_result):
 
         query = {"inputs.input2": generic_result.inputs["input2"]}
@@ -108,7 +107,6 @@ class TestBSON:
 
         assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
-    @pytest.mark.usefixtures("bson_insert")
     def test_query_by_dataframe(self, results_db_service, generic_result):
 
         query = {"flow_id": "test_flow_id"}
@@ -121,7 +119,6 @@ class TestBSON:
 
         assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
-    @pytest.mark.usefixtures("bson_insert")
     def test_pandas_query(self, results_db_service, generic_result):
 
         query = {"outputs.output2": generic_result.outputs["output2"]}
@@ -301,7 +298,7 @@ class TestResultsInsertMethods:
             },
             outputs={
                 "output1": 2.0,
-                "output2": np.array([1, 2, 3, 4, 5]),
+                "output2": 4.0,
                 "output3": "my_file.txt",
             },
             plot_file=ImageFile(
