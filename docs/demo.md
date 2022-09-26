@@ -86,7 +86,6 @@ cookiecutter.project_slug
 |  ├─ tests/
 |  |  ├─ test_flow.py
 |  ├─ __init__.py
-|  ├─ config.py
 |  ├─ model.py
 |  ├─ flow.py
 ├─ _entrypoint.sh
@@ -201,6 +200,16 @@ def format_file(output_variables):
     text = str(output_variables["output2"].value + output_variables["output3"].value)
     return text
 
+```
+
+As part of our model output, let's log the sum of our scalar output variables.
+Replace the `format_file` task with:
+
+```python
+@task(log_stdout=True)
+def format_file(output_variables):
+    sum = output_variables["output2"].value + output_variables["output3"].value
+    return str(sum)
 ```
 
 ### 6. Create development environment
@@ -330,6 +339,3 @@ Open the demo notebook and continue the remainder of the demo by running each ce
 ```
 jupyter notebook docs/examples/Demo.ipynb
 ```
-
-
-## Isolated cluster...

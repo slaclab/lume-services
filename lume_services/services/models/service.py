@@ -218,6 +218,24 @@ class ModelDBService:
         else:
             raise DeploymentNotFoundError(query)
 
+    def get_deployments(self, **kwargs) -> List[Deployment]:
+        """Get a set of deployments based on criteria
+
+        Returns:
+            List[Deployment]
+        """
+
+        query = select(Deployment).filter_by(**kwargs)
+        result = self._model_db.select(query)
+
+        if len(result):
+            return result
+
+        else:
+            raise DeploymentNotFoundError(query)
+
+        ...
+
     @validate_kwargs_exist(Deployment)
     def get_latest_deployment(self, **kwargs) -> Deployment:
         """Get the latest deployment

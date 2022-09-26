@@ -1,16 +1,32 @@
 import json
-from pydantic import BaseModel, root_validator, Field, Extra
+from pydantic import BaseModel, root_validator, Field, Extra, validator
 from datetime import datetime
 from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
+import numpy as np
+import pandas as pd
+import pickle
+
 from dependency_injector.wiring import Provide, inject
 from bson.objectid import ObjectId
+from bson import Binary
 
 from lume_services.config import Context
 from lume_services.utils import JSON_ENCODERS
+from lume_services.files import File, get_file_from_serializer_string
 
 from prefect import context
+
+
+def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
+    """Mongodb rounds datetime to milliseconds so round on assignment for
+    consistency.
+
+    """
+    if isinstance(time, datetime):
+        time = time.isoformat(timespec="milliseconds")
+    return time
 
 
 class Result(BaseModel):
@@ -23,8 +39,8 @@ class Result(BaseModel):
 
     # db fields
     flow_id: str
-    inputs: dict
-    outputs: dict
+    inputs: Dict[str, Union[float, str, np.ndarray, list, pd.DataFrame]]
+    outputs: Dict[str, Union[float, str, np.ndarray, list, pd.DataFrame]]
     date_modified: datetime = datetime.utcnow()
 
     # set of establishes uniqueness
@@ -39,10 +55,22 @@ class Result(BaseModel):
     result_type_string: str
 
     class Config:
-        allow_arbitrary_types = True
+        arbitrary_types_allowed = True
         json_encoders = JSON_ENCODERS
         allow_population_by_field_name = True
         extra = Extra.forbid
+
+    _round_datetime_to_milliseconds = validator(
+        "date_modified", allow_reuse=True, always=True, pre=True
+    )(round_datetime_to_milliseconds)
+
+    @validator("inputs", pre=True)
+    def validate_inputs(cls, v):
+        return load_db_dict(v)
+
+    @validator("outputs", pre=True)
+    def validate_outputs(cls, v):
+        return load_db_dict(v)
 
     @root_validator(pre=True)
     def validate_all(cls, values):
@@ -67,8 +95,8 @@ class Result(BaseModel):
             )
 
         if values.get("_id"):
-            id = values["_id"]
-            if isinstance(id, (ObjectId,)):
+            _id = values["_id"]
+            if isinstance(_id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
 
         values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
@@ -84,16 +112,17 @@ class Result(BaseModel):
     ):
 
         # must convert to jsonable dict
-        rep = self.jsonable_dict()
+        rep = self.get_db_dict()
         return results_db_service.insert_one(rep)
 
     @classmethod
     @inject
     def load_from_query(
         cls,
-        query,
+        query: dict,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
+        query = get_bson_dict(query)
         res = results_db_service.find(
             collection=cls.__fields__["model_type"].default, query=query
         )
@@ -104,10 +133,8 @@ class Result(BaseModel):
         elif len(res) > 1:
             raise ValueError("Provided query returned multiple results. %s", query)
 
-        return cls(**res[0])
-
-    def jsonable_dict(self) -> dict:
-        return json.loads(self.json(by_alias=True))
+        values = load_db_dict(res[0])
+        return cls(**values)
 
     def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
@@ -115,3 +142,97 @@ class Result(BaseModel):
             "result_type_string": self.result_type_string,
             "query": self.get_unique_result_index(),
         }
+
+    def get_db_dict(self) -> dict:
+        rep = self.dict(by_alias=True)
+        return get_bson_dict(rep)
+
+
+def get_bson_dict(dictionary: dict) -> dict:
+    """Recursively converts numpy arrays inside a dictionary to bson encoded items and
+    pandas dataframes to json reps.
+
+    Args:
+        dictionary (dict): Dictionary to load.
+
+    Returns
+        dict
+    """
+
+    def convert_values(dictionary):
+        """Convert values to list so the dictionary can be inserted and loaded."""
+
+        # convert numpy arrays to binary format
+        dictionary = {
+            key: Binary(pickle.dumps(value, protocol=2))
+            if isinstance(value, (np.ndarray,))
+            else value
+            for key, value in dictionary.items()
+        }
+
+        # convert pandas array to json
+        dictionary = {
+            key: value.to_json() if isinstance(value, (pd.DataFrame,)) else value
+            for key, value in dictionary.items()
+        }
+
+        # create file rep
+        dictionary = {
+            key: value.jsonable_dict() if isinstance(value, (File,)) else value
+            for key, value in dictionary.items()
+        }
+
+        dictionary = {
+            key: convert_values(value) if isinstance(value, (dict,)) else value
+            for key, value in dictionary.items()
+        }
+        return dictionary
+
+    return convert_values(dictionary)
+
+
+def load_db_dict(dictionary: dict):
+    """Loads representation of mongodb dictionary with appropriate python classes.
+    Numpy arrays are loaded from binary objects and pandas dataframes from json blobs.
+
+    Args:
+        dictionary (dict): Dictionary to load.
+
+    """
+
+    def check_and_convert_json_str(string: str):
+        try:
+
+            loaded_ = json.loads(string)
+            return pd.DataFrame(loaded_)
+
+        except json.JSONDecodeError:
+            return string
+
+    def convert_values(dictionary):
+        if "file_type_string" in dictionary:
+            file_type = get_file_from_serializer_string(dictionary["file_type_string"])
+            return file_type(**dictionary)
+
+        # convert numpy arrays from binary format
+        dictionary = {
+            key: pickle.loads(value) if isinstance(value, (bytes,)) else value
+            for key, value in dictionary.items()
+        }
+
+        # convert pandas array to json
+        dictionary = {
+            key: check_and_convert_json_str(value)
+            if isinstance(value, (str,))
+            else value
+            for key, value in dictionary.items()
+        }
+
+        dictionary = {
+            key: convert_values(value) if isinstance(value, (dict,)) else value
+            for key, value in dictionary.items()
+        }
+
+        return dictionary
+
+    return convert_values(dictionary)

@@ -30,7 +30,12 @@ def wait():
     default=1.0,
     help="Pause between successive polls of docker-compose services.",
 )
-def start_services(project_name, timeout, pause):
+@click.option(
+    "--persist",
+    default=False,
+    help="Persist data between sessions.",
+)
+def start_services(project_name, timeout, pause, persist: bool):
     """CLI utility for spinning up LUME-services with docker-compose. Services will
     exit on KeyboardInterrupt (Ctrl+C).
 
@@ -42,7 +47,12 @@ def start_services(project_name, timeout, pause):
 
     try:
         with run_docker_services(
-            lume_services_settings, timeout, pause, project_name=project_name, ui=True
+            lume_services_settings,
+            timeout,
+            pause,
+            project_name=project_name,
+            ui=True,
+            persist=persist,
         ):
             print("All services started and passing health checks.")
             while True:

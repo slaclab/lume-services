@@ -21,8 +21,10 @@ from lume_services.errors import (
     TaskNotInFlowError,
 )
 from lume_services.utils import docker_api_version as docker_api_version_util
-from lume_services.tests.files.flows.flow1 import flow
-from lume_services.tests.files.flows.failure_flow import flow as failure_flow
+from lume_services.tests.flows.lume_services_test_flows.flow1 import flow
+from lume_services.tests.flows.lume_services_test_flows.failure_flow import (
+    flow as failure_flow,
+)
 from lume_services import config
 
 import logging
@@ -66,7 +68,7 @@ class TestRunConfigs:
         "cpu_rt_period": 100,
         "cpu_rt_runtime": 1000,
     }
-    # from https://github.com/docker/docker-py/blob/a48a5a9647761406d66e8271f19fab7fa0c5f582/tests/unit/dockertypes_test.py#L15 # noqa
+    # from https://github.com/docker/docker-py/blob/a48a5a9647761406d66e8271f19fab7fa0c5f582/tests/ unit/dockertypes_test.py#L15 # noqa
     broken_docker_host_config = {
         "shm_size": ["test"],
         "mem_reservation": ["test"],
@@ -201,26 +203,6 @@ class TestLocalBackend:
 
 
 class TestDockerBackend:
-    @pytest.fixture(scope="class")
-    def run_config(self, prefect_docker_tag, lume_env, mounted_filesystem):
-        mounts = [
-            {
-                "target": mounted_filesystem.mount_alias,
-                "source": mounted_filesystem.mount_path,
-                "type": "bind",
-            }
-        ]
-
-        host_config = {"mounts": mounts}
-
-        return DockerRunConfig(
-            image=prefect_docker_tag,
-            labels=["lume-services"],
-            ports=[3000],
-            env=lume_env,
-            host_config=host_config,
-        )
-
     @pytest.mark.usefixtures("scheduling_service")
     @pytest.fixture(scope="class")
     def backend(self, lume_services_settings):
@@ -262,41 +244,43 @@ class TestDockerBackend:
             "filesystem_identifier": mounted_filesystem.identifier,
         }
 
-    def test_run_flow_type_error(self, backend, parameters, run_config):
+    def test_run_flow_type_error(self, backend, parameters, docker_run_config):
         with pytest.raises(TypeError):
-            backend.run(parameters, run_config, flow_id=flow)
+            backend.run(parameters, docker_run_config, flow_id=flow)
 
-    def test_run_flow(self, backend, parameters, run_config, flow_id):
-        backend.run(parameters, run_config, flow_id=flow_id)
+    def test_run_flow(self, backend, parameters, docker_run_config, flow_id):
+        backend.run(parameters, docker_run_config, flow_id=flow_id)
 
-    def test_run_flow_and_return(self, backend, parameters, run_config, flow_id):
+    def test_run_flow_and_return(self, backend, parameters, docker_run_config, flow_id):
         # get all results
-        res = backend.run_and_return(parameters, run_config, flow_id=flow_id)
+        res = backend.run_and_return(parameters, docker_run_config, flow_id=flow_id)
         assert isinstance(res, (dict,))
 
         res = backend.run_and_return(
-            parameters, run_config, flow_id=flow_id, task_name="save_text_file"
+            parameters, docker_run_config, flow_id=flow_id, task_name="save_text_file"
         )
         assert isinstance(res, (dict,))
 
-    def test_task_not_in_flow_error(self, backend, parameters, flow_id, run_config):
+    def test_task_not_in_flow_error(
+        self, backend, parameters, flow_id, docker_run_config
+    ):
         with pytest.raises(TaskNotInFlowError):
             backend.run_and_return(
-                parameters, run_config, flow_id=flow_id, task_name="missing_task"
+                parameters, docker_run_config, flow_id=flow_id, task_name="missing_task"
             )
 
-    def test_empty_result_error(self, backend, parameters, flow_id, run_config):
+    def test_empty_result_error(self, backend, parameters, flow_id, docker_run_config):
         with pytest.raises(EmptyResultError):
             backend.run_and_return(
                 parameters,
-                run_config,
+                docker_run_config,
                 flow_id=flow_id,
                 task_name="configure_lume_services",
             )
 
-    def test_failure_check(self, backend, run_config, failure_flow_id):
+    def test_failure_check(self, backend, docker_run_config, failure_flow_id):
         with pytest.raises(FlowFailedError):
-            backend.run_and_return(None, run_config, flow_id=failure_flow_id)
+            backend.run_and_return(None, docker_run_config, flow_id=failure_flow_id)
 
 
 @pytest.mark.skip()

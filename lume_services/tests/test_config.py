@@ -1,5 +1,6 @@
 import pytest
 import os
+import numpy as np
 
 import prefect
 from prefect.utilities.backend import load_backend, save_backend
@@ -198,33 +199,29 @@ class TestResultServiceInjection:
         config.configure(lume_services_settings)
 
     @pytest.fixture()
-    def generic_result(self):
+    def inserted_generic_result(self):
         return Result(
-            flow_id="test_flow_id",
-            inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+            flow_id="test_inject",
+            inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
             outputs={
                 "output1": 2.0,
-                "output2": [1, 2, 3, 4, 5],
+                "output2": np.array([1, 2, 3, 4, 5]),
             },
         )
 
     @pytest.mark.usefixtures("_prepare")
-    def test_result_insert_by_method(self, generic_result):
-        generic_result.insert()
+    def test_result_insert_by_method(self, inserted_generic_result):
+        inserted_generic_result.insert()
 
     @pytest.mark.usefixtures("_prepare")
-    def test_result_load_from_query(self, generic_result):
-        new_generic_result = Result.load_from_query(
+    def test_result_load_from_query(self, inserted_generic_result):
+        Result.load_from_query(
             {
-                "flow_id": generic_result.flow_id,
-                "inputs": generic_result.inputs,
-                "outputs": generic_result.outputs,
+                "flow_id": inserted_generic_result.flow_id,
+                "inputs": inserted_generic_result.inputs,
+                "outputs": inserted_generic_result.outputs,
             },
         )
-
-        assert generic_result.flow_id == new_generic_result.flow_id
-        assert generic_result.inputs == new_generic_result.inputs
-        assert generic_result.outputs == new_generic_result.outputs
 
 
 class TestPrefectConfig:

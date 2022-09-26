@@ -9,9 +9,12 @@ from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
 
 from lume_services.tasks.db import LoadDBResult
-from lume_services.tests.files.flows.flow1 import flow as flow1, append_text
-from lume_services.tests.files.flows.flow2 import flow as flow2
-from lume_services.tests.files.flows.flow3 import flow as flow3
+from lume_services.tests.flows.lume_services_test_flows.flow1 import (
+    flow as flow1,
+    append_text,
+)
+from lume_services.tests.flows.lume_services_test_flows.flow2 import flow as flow2
+from lume_services.tests.flows.lume_services_test_flows.flow3 import flow as flow3
 
 from lume_services.files import TextFile
 from lume_services.results import get_result_from_string
@@ -94,7 +97,7 @@ class TestFlowExecution:
                     "filename": flow1_filename,
                     "filesystem_identifier": mounted_filesystem.identifier,
                 },
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config.build(),  # convert to prefect
             )
 
             # watch and block
@@ -151,7 +154,7 @@ class TestFlowExecution:
             flow_run_id = client.create_flow_run(
                 flow_id=flow2_id,
                 parameters={"file_rep": test_flow1_run},
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config.build(),  # convert to prefect
             )
 
             # watch and block
@@ -207,7 +210,7 @@ class TestFlowExecution:
             flow_run_id = client.create_flow_run(
                 flow_id=flow3_id,
                 parameters={"text1": db_result, "text2": f"{self.text1}{self.text2}"},
-                run_config=docker_run_config.build(),  # convert to prefect RunConfig
+                run_config=docker_run_config.build(),  # convert to prefect
             )
 
             # watch and block
@@ -249,7 +252,7 @@ class TestFlowOfFlows:
             flow_of_flows = FlowOfFlows.from_yaml(
                 FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
             )
-            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+            flow_of_flows.compose(image_tag="pytest-flow-of-flows", local=True)
 
     @pytest.mark.skip()
     @pytest.mark.usefixtures("flow1_id", "flow2_id", "flow3_id")
@@ -260,7 +263,7 @@ class TestFlowOfFlows:
             flow_of_flows = FlowOfFlows.from_yaml(
                 FLOW_OF_FLOWS_YAML, scheduling_service=scheduling_service
             )
-            flow_of_flows.compose(image_name="pytest-flow-of-flows", local=True)
+            flow_of_flows.compose(image_tag="pytest-flow-of-flows", local=True)
 
             flow_of_flows.prefect_flow.register(
                 project_name=project_name, labels=["lume-services"]

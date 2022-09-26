@@ -13,33 +13,26 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
-def lume_env():
-    lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
-    # Need to convert to docker network hostnames
-    lume_env["LUME_RESULTS_DB__HOST"] = "mongodb"
-    lume_env["LUME_MODEL_DB__HOST"] = "mysql"
-    return lume_env
+def lume_env(lume_services_settings):
+    return {name: val for name, val in os.environ.items() if "LUME" in name}
 
 
 @pytest.mark.usefixtures("prefect_job_docker")
 @pytest.fixture(scope="session", autouse=True)
-def docker_run_config(prefect_docker_tag, file_service, lume_env):
-
-    mounted_filesystems = file_service.get_mounted_filesystems()
-    mounts = []
-    for filesystem in mounted_filesystems.values():
-        mounts.append(
-            {
-                "target": filesystem.mount_alias,
-                "source": filesystem.mount_path,
-                "type": "bind",
-            }
-        )
-
-    host_config = {"mounts": mounts}
+def docker_run_config(prefect_docker_tag, rootdir):
 
     return DockerRunConfig(
-        image=prefect_docker_tag, env=lume_env, host_config=host_config
+        image=prefect_docker_tag,
+        env={"EXTRA_PIP_PACKAGES": "/lume/flows"},  # installation of test packages
+        host_config={
+            "mounts": [
+                {
+                    "type": "bind",
+                    "target": "/lume/flows",
+                    "source": f"{rootdir}/lume_services/tests/flows",  # noqa
+                }
+            ]
+        },
     )
 
 

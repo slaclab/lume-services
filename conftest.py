@@ -42,9 +42,13 @@ def pytest_addoption(parser):
         name="server_host_port", help="Prefect server apollo api port", default=4200
     )
     parser.addini(
-        name="server_host", help="Prefect server apollo host IP", default="127.0.0.1"
+        name="server_host",
+        help="Prefect server apollo host IP",
+        default="http://localhost",
     )
-    parser.addini(name="agent_host", help="Prefect agent host", default="127.0.0.1")
+    parser.addini(
+        name="agent_host", help="Prefect agent host", default="http://localhost"
+    )
     parser.addini(
         name="agent_host_port", help="Prefect agent port for comms", default=5000
     )
@@ -119,13 +123,6 @@ def server_tag(request):
 
 
 @pytest.fixture(scope="session")
-def prefect_backend(request):
-    backend = request.config.getini("prefect_backend")
-    os.environ["LUME_PREFECT__SERVER__BACKEND"] = backend
-    return backend
-
-
-@pytest.fixture(scope="session")
 def server_host_port(request):
     port = request.config.getini("server_host_port")
     os.environ["LUME_PREFECT__SERVER__HOST_PORT"] = port
@@ -151,6 +148,12 @@ def agent_host_port(request):
     port = request.config.getini("agent_host_port")
     os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
     return port
+
+
+@pytest.fixture(scope="session")
+def prefect_backend(request):
+    os.environ["LUME_PREFECT__BACKEND"] = "server"
+    return "server"
 
 
 ## mongodb
@@ -209,8 +212,12 @@ def mounted_filesystem(mount_path):
     os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS"] = "/User/my_user/data"
+    os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE"] = "DirectoryOrCreate"
     return MountedFilesystem(
-        mount_path=mount_path, mount_alias="/User/my_user/data", identifier="mounted"
+        mount_path=mount_path,
+        mount_alias="/User/my_user/data",
+        identifier="mounted",
+        mount_type="DirectoryOrCreate",
     )
 
 
@@ -219,6 +226,7 @@ def mounted_filesystem(mount_path):
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_docker_tag():
+    os.environ["LUME_PREFECT__IMAGE"] = "lume_services:pytest"
     return "lume_services:pytest"
 
 
@@ -227,10 +235,16 @@ def dockerfile(rootdir):
     return f"{rootdir}/Dockerfile"
 
 
+@pytest.fixture(scope="session", autouse=True)
+def prefect_debug():
+    os.environ["LUME_PREFECT__DEBUG"] = "true"
+    return "true"
+
+
 ## ENVIRONMENT VARIABLES:
 # @pytest.fixture(autouse=True)
 # def mock_settings_env_vars():
-#    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
+#    with mock.patch.dict(os.environ, {"LUME_BACKEND": "DOCKER"}):
 #        yield
 
 # Full configuration
@@ -256,6 +270,8 @@ def lume_services_settings(
     prefect_backend,
     lume_backend,
     mounted_filesystem,
+    prefect_debug,
+    prefect_docker_tag,
 ):
     model_db_config = ModelDBConfig(
         host=mysql_host,
@@ -279,6 +295,8 @@ def lume_services_settings(
         ),
         agent=PrefectAgentConfig(host=agent_host, host_port=agent_host_port),
         backend=prefect_backend,
+        default_image=prefect_docker_tag,
+        debug=prefect_debug,
     )
 
     settings = config.LUMEServicesSettings(

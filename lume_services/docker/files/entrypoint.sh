@@ -1,23 +1,12 @@
 #!/bin/bash
 set -e
 
+source /venv/bin/activate
 prefect backend server
 
-if [ -n "$EXTRA_CONDA_PACKAGES" ] && [ "$LOCAL_CHANNEL_ONLY" = "true" ]; then
-
-  if [ ! -d "$LOCAL_CONDA_CHANNEL" ]; then
-    echo "Must mount conda channel to $LOCAL_CONDA_CHANNEL"
-    exit 1
-    fi
-
-  echo "+conda install --yes -c file://$LOCAL_CONDA_CHANNEL $EXTRA_CONDA_PACKAGES --offline"
-  conda install --yes -c "file://$LOCAL_CONDA_CHANNEL" $EXTRA_CONDA_PACKAGES --offline
-else
-  if [ -n "$EXTRA_CONDA_PACKAGES" ]; then
-    echo "+conda install --yes $EXTRA_CONDA_PACKAGES"
-    conda install --yes $EXTRA_CONDA_PACKAGES
-  fi
-
+if [ -n "$EXTRA_CONDA_PACKAGES" ]; then
+  echo "+conda install --yes $EXTRA_CONDA_PACKAGES"
+  conda install --yes $EXTRA_CONDA_PACKAGES
 fi
 
 # need to handle pip offline...

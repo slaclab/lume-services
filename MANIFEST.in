@@ -2,6 +2,7 @@ include versioneer.py
 include lume_services/_version.py
 recursive-include lume_services/services/scheduling/files *
 recursive-include lume_services/docker/files *
+recursive-exclude lume_services/tests
 include README.md
 include LICENSE
 include requirements.txt

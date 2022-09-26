@@ -3,7 +3,7 @@ from .db import ResultsDB
 from typing import List
 import logging
 
-from lume_services.utils import flatten_dict
+from lume_services.utils import flatten_dict, get_jsonable_dict
 
 import pandas as pd
 
@@ -57,6 +57,7 @@ class ResultsDBService:
             List[dict]: List of dict reps of found items.
 
         """
+        query = get_jsonable_dict(query)
         return self._results_db.find(query=query, fields=fields, **kwargs)
 
     def find_all(self, **kwargs) -> List[dict]:
@@ -68,7 +69,7 @@ class ResultsDBService:
         return self._results_db.find_all(**kwargs)
 
     def load_dataframe(
-        self, *, query={}, fields: List[str] = None, **kwargs
+        self, *, query: dict, fields: List[str] = None, **kwargs
     ) -> pd.DataFrame:
         """Load dataframe from result database query.
         Args:

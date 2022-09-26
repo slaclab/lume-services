@@ -4,8 +4,10 @@ import inspect
 import logging
 import docker
 import numpy as np
+import pandas as pd
+
 from importlib import import_module
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Dict
+from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
 from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
 from pydantic.generics import GenericModel
@@ -45,7 +47,38 @@ def filter_keys_in_settings(dictionary: dict, settings_obj: BaseSettings) -> dic
     return {key: value for key, value in dictionary.items() if key in in_settings}
 
 
+def get_jsonable_dict(dictionary: dict):
+    """Converts numpy arrays inside a dictionary to list items."""
+
+    def convert_array_values(dictionary):
+        """Convert array values to list so the dictionary is json serializable."""
+        dictionary = {
+            key: value.tolist() if isinstance(value, (np.ndarray,)) else value
+            for key, value in dictionary.items()
+        }
+        # convert pandas dataframe to json
+        dictionary = {
+            key: value.to_json() if isinstance(value, (pd.DataFrame,)) else value
+            for key, value in dictionary.items()
+        }
+        dictionary = {
+            key: convert_array_values(value) if isinstance(value, (dict,)) else value
+            for key, value in dictionary.items()
+        }
+        return dictionary
+
+    return convert_array_values(dictionary)
+
+
 def fingerprint_dict(dictionary: dict):
+    """Create a hash for a dictionary
+
+    Args:
+        dictionary (dict): Dictionary for which to create a fingerprint hash.
+
+    """
+
+    dictionary = get_jsonable_dict(dictionary)
 
     hasher = hashlib.md5()
     hasher.update(json.dumps(dictionary).encode("utf-8"))
@@ -77,20 +110,19 @@ JSON_ENCODERS = {
     # for encoding instances of the ObjType}
     ObjType: lambda x: f"{x.__module__}.{x.__class__.__qualname__}",
     np.ndarray: lambda x: json.dumps(x.tolist()),
-    Dict[str, Any]: lambda x: {
+    dict: lambda x: {
         key: (
-            value
-            if not isinstance(value, (np.ndarray))
-            else json.dumps(value.to_list())
+            value if not isinstance(value, (np.ndarray)) else json.dumps(value.tolist())
         )
         for key, value in x.items()
     },
+    pd.DataFrame: lambda x: x.to_json(),
 }
 
 
 def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
-    """Get callable from a string. In the case that the callable points to a bound method,
-    the function returns a callable taking the bind instance as the first arg.
+    """Get callable from a string. In the case that the callable points to a bound
+    method, the function returns a callable taking the bind instance as the first arg.
 
     Args:
         callable: String representation of callable abiding convention

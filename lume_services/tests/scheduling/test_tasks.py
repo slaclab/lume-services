@@ -25,7 +25,7 @@ from lume_services import config
 @pytest.fixture(scope="module", autouse=True)
 def impact_result():
     return ImpactResult(
-        flow_id="test_flow_id",
+        flow_id="test_tasks_impact",
         inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
         outputs={
             "output1": 2.0,
@@ -40,9 +40,9 @@ def impact_result():
 
 
 @pytest.fixture(scope="module", autouse=True)
-def generic_result():
+def task_generic_result():
     return Result(
-        flow_id="test_flow_id",
+        flow_id="test_tasks_generic",
         inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
         outputs={
             "output1": 2.0,
@@ -52,26 +52,26 @@ def generic_result():
 
 
 class TestDBTaskResults:
-    def test_save_db_result_task(self, results_db_service, generic_result):
+    def test_save_db_result_task(self, results_db_service, task_generic_result):
 
         save_db_result = SaveDBResult()
 
         with Flow("save_db_result_task_flow") as flow:
             my_task = save_db_result(
-                generic_result, results_db_service=results_db_service
+                task_generic_result, results_db_service=results_db_service
             )
 
         flow_run = flow.run()
 
         assert flow_run.is_successful()
         assert flow_run.result[my_task].is_successful()
-        assert flow_run.result[my_task].result == generic_result.unique_rep()
+        assert flow_run.result[my_task].result == task_generic_result.unique_rep()
 
-    def test_load_db_result_task(self, results_db_service, generic_result):
+    def test_load_db_result_task(self, results_db_service, task_generic_result):
 
         load_db_result = LoadDBResult()
 
-        result_rep = generic_result.unique_rep()
+        result_rep = task_generic_result.unique_rep()
 
         with Flow("load_db_result_task_flow") as flow:
             my_task = load_db_result(
@@ -84,11 +84,11 @@ class TestDBTaskResults:
 
         assert flow_run.is_successful()
         assert flow_run.result[my_task].is_successful()
-        assert flow_run.result[my_task].result == generic_result.inputs["input1"]
+        assert flow_run.result[my_task].result == task_generic_result.inputs["input1"]
 
-    def test_db_result_propogation(self, results_db_service, generic_result):
+    def test_db_result_propogation(self, results_db_service, task_generic_result):
 
-        result_rep = generic_result.unique_rep()
+        result_rep = task_generic_result.unique_rep()
 
         load_db_result = LoadDBResult()
 
@@ -110,7 +110,8 @@ class TestDBTaskResults:
         assert flow_run.result[my_task].is_successful()
         assert flow_run.result[downstream_task].is_successful()
         assert (
-            flow_run.result[downstream_task].result == generic_result.inputs["input1"]
+            flow_run.result[downstream_task].result
+            == task_generic_result.inputs["input1"]
         )
 
 

@@ -16,7 +16,9 @@ def append_text(text1, text2):
 
 save_file = SaveFile(name="save_text_file", task_run_name="save_text_file")
 
-with Flow("flow1", storage=Module(__name__)) as flow:
+with Flow(
+    "flow1", storage=Module(__name__.replace("lume_services.tests.flows.", ""))
+) as flow:
     text1 = Parameter("text1")
     text2 = Parameter("text2")
     filename = Parameter("filename")
