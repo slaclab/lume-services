@@ -114,10 +114,6 @@ class Project(Base):
 
 ### FlowOfFlows
 
-### DependencyType
-
-### DeploymentDependency
-
 
 ## Updating the model schema
 On any changes to the schema, the database init script for the docker-compose must be updated.
@@ -181,9 +177,6 @@ This means all dependencies must be provided in the environment.yml of the proje
 
 with the appropriate `PKG-INFO` file in the project root.
 
-TODO:
-- Add requirements table to model database
-
 
 MUST BE SDIST OR BDIST!
 https://docs.python.org/3/distutils/sourcedist.html
@@ -197,6 +190,4 @@ The template includes environment.yml in the MANIFEST.in
 
 At present, LUME-services does not take advantage of all the features of sqlalchemy, most notably the ability to do joined loads to link data between tables using [relationships](https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html).
 
-```
-deployment.model
-```
+All queries could be adjusted to do things like joined loads for table relationships, etc.

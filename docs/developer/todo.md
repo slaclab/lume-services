@@ -1,11 +1,13 @@
 # TODO:
 ## Repo setup
 - TODO:
+    - [ ] Persist volumes for databases
     - [ ] Docs for injection and container
     - [x] Remove tests in pip installation
     - [ ] Docs!
     - [ ] Set up all loggers
     - [ ] Move environments, flows, tasks, and results under model directory
+    - [ ] Fix the workflow tests to use templated repos with docker build
     - [x] Fix image issue... Build a designated image in deployment using a lume-services base image
 - Done:
     - [x] Versioneer
@@ -85,7 +87,6 @@ TODO:
 ## Misc
 - TODO:
     - [ ] Separate template into own repo and use git submodule
-    - [ ] Could abstract docker compose versions
     - [ ] Use environment variable fixture in tests instead of modifying env
 - Done:
     - [x] Rename file.systems to file.filesystems and all files names service.py
@@ -103,5 +104,3 @@ TODO:
 - TODO:
     - [x] Create model interface with injected services
     - [x] Add utility for loading flow objects
-    - [ ] Preprocessing structure
-    - [ ] Registration of preprocessing flows
