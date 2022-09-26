@@ -29,7 +29,7 @@ def mongodb_results_db(
 
 
 @pytest.mark.usefixtures("docker_services")
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def results_db_service(mongodb_results_db, mongodb_database):
 
     collections = get_collections()
