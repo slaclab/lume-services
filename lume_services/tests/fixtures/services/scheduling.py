@@ -33,7 +33,7 @@ def docker_run_config(prefect_docker_tag, rootdir):
                 {
                     "type": "bind",
                     "target": "/lume/flows",
-                    "source": f"{rootdir}/lume-services/lume_services/tests/flows",  # noqa
+                    "source": f"{rootdir}/lume_services/tests/flows",  # noqa
                 }
             ]
         },
