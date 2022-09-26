@@ -1,5 +1,6 @@
 import pytest
 import os
+import numpy as np
 
 import prefect
 from prefect.utilities.backend import load_backend, save_backend
@@ -201,10 +202,10 @@ class TestResultServiceInjection:
     def inserted_generic_result(self):
         return Result(
             flow_id="test_inject",
-            inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
+            inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
             outputs={
                 "output1": 2.0,
-                "output2": [1, 2, 3, 4, 5],
+                "output2": np.array([1, 2, 3, 4, 5]),
             },
         )
 

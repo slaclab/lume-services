@@ -118,7 +118,7 @@ def base_mysql_uri(mysql_user, mysql_password, mysql_host, mysql_port):
 @pytest.fixture(scope="session")
 def server_tag(request):
     tag = request.config.getini("server_tag")
-    os.environ["LUME_PREFECT__SERVER__TAG"] = tagDih
+    os.environ["LUME_PREFECT__SERVER__TAG"] = tag
     return tag
 
 
@@ -212,7 +212,7 @@ def mounted_filesystem(mount_path):
     os.environ["LUME_MOUNTED_FILESYSTEM__IDENTIFIER"] = "mounted"
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_PATH"] = mount_path
     os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS"] = "/User/my_user/data"
-    os.environo["LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE"] = "DirectoryOrCreate"
+    os.environ["LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE"] = "DirectoryOrCreate"
     return MountedFilesystem(
         mount_path=mount_path,
         mount_alias="/User/my_user/data",
