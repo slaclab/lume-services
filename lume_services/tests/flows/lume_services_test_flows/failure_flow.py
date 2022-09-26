@@ -12,5 +12,7 @@ def failure_task():
     assert 1 == 2
 
 
-with Flow("failure_flow", storage=Module(__name__)) as flow:
+with Flow(
+    "failure_flow", storage=Module(__name__.replace("lume_services.tests.flows.", ""))
+) as flow:
     failure_task()

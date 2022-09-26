@@ -27,7 +27,9 @@ def format_result(text):
 load_file = LoadFile()
 save_db_result = SaveDBResult()
 
-with Flow("flow2", storage=Module(__name__)) as flow:
+with Flow(
+    "flow2", storage=Module(__name__.replace("lume_services.tests.flows.", ""))
+) as flow:
     file_rep = Parameter("file_rep")
     # load file
     configure = configure_lume_services()
