@@ -21,7 +21,7 @@ from lume_services.services.results import MongodbResultsDBConfig, MongodbResult
 @pytest.fixture(scope="module", autouse=True)
 def impact_result(results_db_service):
     result = ImpactResult(
-        flow_id="test_flow_id",
+        flow_id="test_flow_id_impact",
         inputs={
             "input1": 2.0,
             "input2": np.array([1, 2, 3, 4, 5]),
@@ -67,7 +67,7 @@ def check_impact_result_equal(impact_result, new_impact_obj):
 @pytest.fixture(scope="module", autouse=True)
 def generic_result(results_db_service):
     result = Result(
-        flow_id="test_flow_id_impact",
+        flow_id="test_flow_id",
         inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
         outputs={
             "output1": 2.0,
@@ -275,7 +275,7 @@ class TestResultsInsertMethods:
     def generic_result2(self):
         result = Result(
             flow_id="test_flow_id2",
-            inputs={"input1": 2.0, "input2": 4.0},
+            inputs={"input1": 2.0, "input2": np.array([1, 2, 9, 4, 5])},
             outputs={
                 "output1": 2.0,
                 "output2": pd.DataFrame({"x": [0, 1, 2], "y": [1, 2, 3]}),
