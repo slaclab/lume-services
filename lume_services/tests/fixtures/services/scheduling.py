@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session", autouse=True)
-def lume_env():
+def lume_env(lume_services_settings):
     lume_env = {name: val for name, val in os.environ.items() if "LUME" in name}
     # Need to convert to docker network hostnames
     lume_env["LUME_RESULTS_DB__HOST"] = "mongodb"
@@ -43,9 +43,10 @@ def docker_run_config(prefect_docker_tag, rootdir):
 # has lume env vars
 @pytest.fixture(scope="session")
 def docker_run_config_local(lume_env, prefect_docker_tag, rootdir):
+    env = lume_env.update({"EXTRA_PIP_PACKAGES": "/lume/flows"})
     return DockerRunConfig(
         image=prefect_docker_tag,
-        env={"EXTRA_PIP_PACKAGES": "/lume/flows"}.update(lume_env),
+        env=env,
         host_config={
             "mounts": [
                 {
