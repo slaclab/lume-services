@@ -67,7 +67,7 @@ def check_impact_result_equal(impact_result, new_impact_obj):
 @pytest.fixture(scope="module", autouse=True)
 def generic_result(results_db_service):
     result = Result(
-        flow_id="test_flow_id",
+        flow_id="test_flow_id_impact",
         inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
         outputs={
             "output1": 2.0,
@@ -109,7 +109,7 @@ class TestBSON:
 
     def test_query_by_dataframe(self, results_db_service, generic_result):
 
-        query = {"flow_id": "test_flow_id"}
+        query = {"flow_id": "test_flow_id_impact"}
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
@@ -286,7 +286,7 @@ class TestResultsInsertMethods:
     @pytest.fixture(scope="class", autouse=True)
     def impact_result2(self):
         result = ImpactResult(
-            flow_id="test_flow_id3",
+            flow_id="test_flow_impact_id2",
             inputs={
                 "input1": 2.0,
                 "input2": np.array([1, 2, 3, 4, 5]),
