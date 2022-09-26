@@ -230,7 +230,7 @@ def dockerfile(rootdir):
 ## ENVIRONMENT VARIABLES:
 # @pytest.fixture(autouse=True)
 # def mock_settings_env_vars():
-#    with mock.patch.dict(os.environ, {"FROBNICATION_COLOUR": "ROUGE"}):
+#    with mock.patch.dict(os.environ, {"LUME_BACKEND": "DOCKER"}):
 #        yield
 
 # Full configuration
