@@ -116,6 +116,7 @@ JSON_ENCODERS = {
         )
         for key, value in x.items()
     },
+    pd.DataFrame: lambda x: x.to_json(),
 }
 
 
