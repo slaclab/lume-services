@@ -94,7 +94,10 @@ def check_generic_result_equal(generic_result, new_generic_obj):
 class TestBSON:
     def test_numpy_query(self, results_db_service, generic_result):
 
-        query = {"inputs.input2": generic_result.inputs["input2"]}
+        query = {
+            "inputs.input2": generic_result.inputs["input2"],
+            "flow_id": generic_result.flow_id,
+        }
         query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
 
