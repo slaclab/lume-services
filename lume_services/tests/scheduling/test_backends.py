@@ -68,7 +68,7 @@ class TestRunConfigs:
         "cpu_rt_period": 100,
         "cpu_rt_runtime": 1000,
     }
-    # from https://github.com/docker/docker-py/blob/a48a5a9647761406d66e8271f19fab7fa0c5f582/tests/unit/dockertypes_test.py#L15 # noqa
+    # from https://github.com/docker/docker-py/blob/a48a5a9647761406d66e8271f19fab7fa0c5f582/tests/ unit/dockertypes_test.py#L15 # noqa
     broken_docker_host_config = {
         "shm_size": ["test"],
         "mem_reservation": ["test"],
@@ -209,6 +209,16 @@ class TestDockerBackend:
             image=prefect_docker_tag,
             labels=["lume-services"],
             ports=[3000],
+            env={"EXTRA_PIP_PACKAGES": "/lume/flows"},
+            host_config={
+                "mounts": [
+                    {
+                        "type": "bind",
+                        "target": "/lume/flows",
+                        "source": "/Users/jacquelinegarrahan/sandbox/lume-services/lume_services/tests/flows",  # noqa
+                    }
+                ]
+            },
         )
 
     @pytest.mark.usefixtures("scheduling_service")
