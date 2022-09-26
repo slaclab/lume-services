@@ -54,20 +54,6 @@ def pytest_addoption(parser):
     )
 
 
-@pytest.fixture(scope="session")
-def agent_host(request):
-    host = request.config.getini("agent_host")
-    os.environ["LUME_PREFECT__AGENT__HOST"] = host
-    return host
-
-
-@pytest.fixture(scope="session")
-def agent_host_port(request):
-    port = request.config.getini("agent_host_port")
-    os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
-    return port
-
-
 @pytest.fixture(scope="session", autouse=True)
 def rootdir(request):
     rootdir = request.config.rootpath
@@ -137,13 +123,6 @@ def server_tag(request):
 
 
 @pytest.fixture(scope="session")
-def prefect_backend(request):
-    backend = request.config.getini("prefect_backend")
-    os.environ["LUME_PREFECT__SERVER__BACKEND"] = backend
-    return backend
-
-
-@pytest.fixture(scope="session")
 def server_host_port(request):
     port = request.config.getini("server_host_port")
     os.environ["LUME_PREFECT__SERVER__HOST_PORT"] = port
@@ -169,6 +148,12 @@ def agent_host_port(request):
     port = request.config.getini("agent_host_port")
     os.environ["LUME_PREFECT__AGENT__HOST_PORT"] = port
     return port
+
+
+@pytest.fixture(scope="session")
+def prefect_backend(request):
+    os.environ["LUME_PREFECT__BACKEND"] = "server"
+    return "server"
 
 
 ## mongodb
@@ -237,6 +222,7 @@ def mounted_filesystem(mount_path):
 
 @pytest.fixture(scope="session", autouse=True)
 def prefect_docker_tag():
+    os.environ["LUME_PREFECT__IMAGE"] = "lume_services:pytest"
     return "lume_services:pytest"
 
 
