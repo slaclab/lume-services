@@ -233,9 +233,7 @@ class TestResultsDBService:
         with pytest.raises(DuplicateKeyError):
             results_db_service.insert_one(impact_result.get_db_dict())
 
-    def test_generic_result_query(
-        self, results_db_service, generic_result, generic_result_insert
-    ):
+    def test_generic_result_query(self, results_db_service, generic_result):
         query = {
             "flow_id": generic_result.flow_id,
             "inputs": generic_result.inputs,
@@ -251,9 +249,7 @@ class TestResultsDBService:
 
         check_generic_result_equal(generic_result, new_generic_obj)
 
-    def test_impact_result_query(
-        self, results_db_service, impact_result, impact_result_insert
-    ):
+    def test_impact_result_query(self, results_db_service, impact_result):
 
         query = {
             "flow_id": impact_result.flow_id,
