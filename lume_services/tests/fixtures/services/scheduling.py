@@ -36,25 +36,6 @@ def docker_run_config(prefect_docker_tag, rootdir):
     )
 
 
-# has lume env vars
-@pytest.fixture(scope="session")
-def docker_run_config_local(lume_env, prefect_docker_tag, rootdir):
-    # env = lume_env.update({"EXTRA_PIP_PACKAGES": "/lume/flows"})
-    return DockerRunConfig(
-        image=prefect_docker_tag,
-        env={"EXTRA_PIP_PACKAGES": "/lume/flows"},
-        host_config={
-            "mounts": [
-                {
-                    "type": "bind",
-                    "target": "/lume/flows",
-                    "source": f"{rootdir}/lume_services/tests/flows",  # noqa
-                }
-            ]
-        },
-    )
-
-
 @pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="class", autouse=True)
 def docker_backend(lume_services_settings):
