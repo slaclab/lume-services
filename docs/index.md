@@ -10,7 +10,7 @@
 [![Issues][issues-shield]][issues-url]
 [![Issues Closed][issues-closed-shield]][issues-closed-url]
 [![Tests][tests-workflow]][tests-workflow-url]
-![Coverage][coverage]
+[![Coverage]][coverage]
 [![Docs][docs-workflow]][docs-workflow-url]
 </div>
 <br />
