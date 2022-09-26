@@ -295,6 +295,8 @@ def lume_services_settings(
         ),
         agent=PrefectAgentConfig(host=agent_host, host_port=agent_host_port),
         backend=prefect_backend,
+        default_image=prefect_docker_tag,
+        debug=prefect_debug,
     )
 
     settings = config.LUMEServicesSettings(
