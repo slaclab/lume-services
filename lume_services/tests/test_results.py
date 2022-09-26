@@ -18,58 +18,86 @@ from lume_services.tests.files import SAMPLE_IMPACT_ARCHIVE, SAMPLE_IMAGE_FILE
 from lume_services.services.results import MongodbResultsDBConfig, MongodbResultsDB
 
 
+@pytest.fixture(scope="module", autouse=True)
+def impact_result(results_db_service):
+    result = ImpactResult(
+        flow_id="test_flow_id",
+        inputs={
+            "input1": 2.0,
+            "input2": np.array([1, 2, 3, 4, 5]),
+            "input3": "my_file.txt",
+        },
+        outputs={
+            "output1": 2.0,
+            "output2": np.array([1, 2, 3, 4, 5]),
+            "output3": "my_file.txt",
+        },
+        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
+        archive=HDF5File(filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"),
+        pv_collection_isotime=datetime.now(),
+        config={"config1": 1, "config2": 2},
+    )
+
+    rep = impact_result.get_db_dict()
+    insert_rep = results_db_service.insert_one(rep)
+    assert insert_rep is not None
+    return result
+
+
+def check_impact_result_equal(impact_result, new_impact_obj):
+    assert impact_result.flow_id == new_impact_obj.flow_id
+    assert impact_result.inputs["input1"] == new_impact_obj.inputs["input1"]
+    assert isinstance(new_impact_obj.inputs["input2"], np.ndarray)
+    assert np.array_equal(
+        impact_result.inputs["input2"], new_impact_obj.inputs["input2"]
+    )
+    assert impact_result.inputs["input3"] == new_impact_obj.inputs["input3"]
+    assert impact_result.outputs["output1"] == new_impact_obj.outputs["output1"]
+    assert isinstance(new_impact_obj.outputs["output2"], np.ndarray)
+    assert np.array_equal(
+        impact_result.outputs["output2"], new_impact_obj.outputs["output2"]
+    )
+    assert impact_result.outputs["output3"] == new_impact_obj.outputs["output3"]
+    assert impact_result.archive == new_impact_obj.archive
+    assert impact_result.plot_file == new_impact_obj.plot_file
+    assert impact_result.pv_collection_isotime == new_impact_obj.pv_collection_isotime
+    assert impact_result.config == new_impact_obj.config
+
+
+@pytest.fixture(scope="module", autouse=True)
+def generic_result(results_db_service):
+    result = Result(
+        flow_id="test_flow_id",
+        inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
+        outputs={
+            "output1": 2.0,
+            "output2": pd.DataFrame({"x": [0, 1, 2], "y": [1, 2, 3]}),
+        },
+    )
+
+    rep = result.get_db_dict()
+    insert_rep = results_db_service.insert_one(rep)
+    assert insert_rep is not None
+    return result
+
+
+def check_generic_result_equal(generic_result, new_generic_obj):
+    assert generic_result.flow_id == new_generic_obj.flow_id
+    assert generic_result.inputs["input1"] == new_generic_obj.inputs["input1"]
+    assert isinstance(new_generic_obj.inputs["input2"], np.ndarray)
+    assert np.array_equal(
+        generic_result.inputs["input2"], new_generic_obj.inputs["input2"]
+    )
+    assert new_generic_obj.outputs["output1"] == new_generic_obj.outputs["output1"]
+    assert isinstance(new_generic_obj.outpupts["output2"], pd.DataFrame)
+    assert generic_result.outputs["output2"].equals(new_generic_obj.outputs["output2"])
+
+
 class TestBSON:
+    @pytest.mark.usefixtures("bson_insert")
+    def test_query_by_numpy_array(self, results_db_service, generic_result):
 
-    numpy_array = np.array([1, 2, 3, 4, 5])
-    pandas_dataframe = pd.DataFrame({"x": [0, 1, 2], "y": [1, 2, 3]})
-
-    @pytest.fixture(scope="class")
-    def bson_insert_numpy(self, results_db_service):
-
-        result = Result(
-            flow_id="test_flow_id",
-            inputs={"input1": 2.0, "input2": self.numpy_array},
-            outputs={
-                "output1": 2.0,
-                "output2": 3.0,
-            },
-        )
-
-        rep = result.get_db_dict()
-        results_db_service.insert_one(rep)
-
-    @pytest.fixture(scope="class")
-    def bson_insert_pandas(self, results_db_service):
-
-        result = Result(
-            flow_id="test_pandas_flow",
-            inputs={"input1": 4.0, "input2": np.array([1, 2, 3, 4, 5])},
-            outputs={
-                "output1": 2.0,
-                "output2": self.pandas_dataframe,
-            },
-        )
-
-        rep = result.get_db_dict()
-        results_db_service.insert_one(rep)
-
-    @pytest.mark.usefixtures("bson_insert_numpy")
-    def test_bson_get_numpy(self, results_db_service):
-
-        query = {"inputs.input1": 2.0}
-        query = get_bson_dict(query)
-        selected = results_db_service.find(collection="generic", query=query)
-        assert len(selected)
-
-        # load types
-        db_dict = load_db_dict(selected[0])
-
-        assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
-
-    @pytest.mark.usefixtures("bson_insert_numpy")
-    def test_numpy_query(self, results_db_service):
-
-        query = {"inputs.input2": self.numpy_array}
+        query = {"inputs.input2": generic_result.inputs["input2"]}
         query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
 
@@ -80,10 +108,10 @@ class TestBSON:
 
         assert isinstance(db_dict["inputs"]["input2"], np.ndarray)
 
-    @pytest.mark.usefixtures("bson_insert_pandas")
-    def test_bson_get_pandas(self, results_db_service):
+    @pytest.mark.usefixtures("bson_insert")
+    def test_query_by_dataframe(self, results_db_service, generic_result):
 
-        query = {"flow_id": "test_pandas_flow"}
+        query = {"flow_id": "test_flow_id"}
         selected = results_db_service.find(collection="generic", query=query)
 
         assert len(selected)
@@ -93,10 +121,10 @@ class TestBSON:
 
         assert isinstance(db_dict["outputs"]["output2"], pd.DataFrame)
 
-    @pytest.mark.usefixtures("bson_insert_pandas")
-    def test_pandas_query(self, results_db_service):
+    @pytest.mark.usefixtures("bson_insert")
+    def test_pandas_query(self, results_db_service, generic_result):
 
-        query = {"ouputs.output2": self.pandas_dataframe}
+        query = {"outputs.output2": generic_result.outputs["output2"]}
         query = get_bson_dict(query)
         selected = results_db_service.find(collection="generic", query=query)
 
@@ -125,40 +153,7 @@ def test_get_result_from_string(string, result_class_target):
     assert result_type == result_class_target
 
 
-@pytest.fixture(scope="module", autouse=True)
-def impact_result():
-    return ImpactResult(
-        flow_id="test_flow_id",
-        inputs={
-            "input1": 2.0,
-            "input2": np.array([1, 2, 3, 4, 5]),
-            "input3": "my_file.txt",
-        },
-        outputs={
-            "output1": 2.0,
-            "output2": np.array([1, 2, 3, 4, 5]),
-            "output3": "my_file.txt",
-        },
-        plot_file=ImageFile(filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"),
-        archive=HDF5File(filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"),
-        pv_collection_isotime=datetime.now(),
-        config={"config1": 1, "config2": 2},
-    )
-
-
-@pytest.fixture(scope="module", autouse=True)
-def generic_result():
-    return Result(
-        flow_id="test_flow_id",
-        inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
-        outputs={
-            "output1": 2.0,
-            "output2": np.array([1, 2, 3, 4, 5]),
-        },
-    )
-
-
-class TestResult:
+class TestGenericResult:
     def test_create_generic_result_from_alias(self):
         Result(
             collection="generic",
@@ -180,25 +175,6 @@ class TestResult:
 
 
 class TestImpactResult:
-    def create_impact_result_from_alias(self):
-        """Impact result fixture"""
-        return ImpactResult(
-            collection="impact",
-            flow_id="test_flow_id",
-            inputs={"input1": 4, "input2": 3},
-            outputs={"output1": 1},
-            archive={
-                "filename": SAMPLE_IMPACT_ARCHIVE,
-                "filesystem_identifier": "local",
-            },
-            plot_file={
-                "filename": SAMPLE_IMAGE_FILE,
-                "filesystem_identifier": "local",
-            },
-            pv_collection_isotime=datetime.utcnow(),
-            config={"example_config": 1},
-        )
-
     def test_to_json(self, impact_result):
         impact_result.json()
 
@@ -250,18 +226,15 @@ class TestMongodbResultsDB:
 
 
 class TestResultsDBService:
-    @pytest.fixture(scope="class")
-    def generic_result_insert(self, generic_result, results_db_service):
-        test_generic_result_insert = results_db_service.insert_one(
-            generic_result.get_db_dict()
-        )
-        assert test_generic_result_insert is not None
-
+    def test_duplicate_generic_insert_fail(self, generic_result, results_db_service):
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
-            test_generic_result_insert = results_db_service.insert_one(
-                generic_result.get_db_dict()
-            )
+            results_db_service.insert_one(generic_result.get_db_dict())
+
+    def test_duplicate_impact_insert_fail(self, impact_result, results_db_service):
+        # confirm duplicate raises error
+        with pytest.raises(DuplicateKeyError):
+            results_db_service.insert_one(impact_result.get_db_dict())
 
     def test_generic_result_query(
         self, results_db_service, generic_result, generic_result_insert
@@ -279,25 +252,8 @@ class TestResultsDBService:
 
         new_generic_obj = Result(**res[0])
 
-        assert generic_result.flow_id == new_generic_obj.flow_id
-        assert np.array_equal(generic_result.inputs, new_generic_obj.inputs)
-        assert np.array_equal(generic_result.outputs, new_generic_obj.outputs)
+        check_generic_result_equal(generic_result, new_generic_obj)
 
-    @pytest.fixture(scope="class")
-    def impact_result_insert(self, impact_result, results_db_service):
-
-        test_impact_result_insert = results_db_service.insert_one(
-            impact_result.get_db_dict()
-        )
-        assert test_impact_result_insert is not None
-
-        # confirm duplicate raises error
-        with pytest.raises(DuplicateKeyError):
-            test_impact_result_insert = results_db_service.insert_one(
-                impact_result.get_db_dict()
-            )
-
-    @pytest.mark.usefixtures("impact_result_insert")
     def test_impact_result_query(
         self, results_db_service, impact_result, impact_result_insert
     ):
@@ -314,15 +270,7 @@ class TestResultsDBService:
 
         new_impact_obj = ImpactResult(**res[0])
 
-        assert impact_result.flow_id == new_impact_obj.flow_id
-        assert impact_result.inputs == new_impact_obj.inputs
-        assert impact_result.outputs == new_impact_obj.outputs
-        assert impact_result.archive == new_impact_obj.archive
-        assert impact_result.plot_file == new_impact_obj.plot_file
-        assert (
-            impact_result.pv_collection_isotime == new_impact_obj.pv_collection_isotime
-        )
-        assert impact_result.config == new_impact_obj.config
+        check_impact_result_equal(impact_result, new_impact_obj)
 
     def test_find_all(self, generic_result, results_db_service):
         res = results_db_service.find_all(collection=generic_result.model_type)
@@ -330,39 +278,74 @@ class TestResultsDBService:
 
 
 class TestResultsInsertMethods:
+    @pytest.fixture(scope="class", autouse=True)
+    def generic_result2(self):
+        result = Result(
+            flow_id="test_flow_id",
+            inputs={"input1": 2.0, "input2": 4.0},
+            outputs={
+                "output1": 2.0,
+                "output2": pd.DataFrame({"x": [0, 1, 2], "y": [1, 2, 3]}),
+            },
+        )
+        return result
+
+    @pytest.fixture(scope="class", autouse=True)
+    def impact_result2(self):
+        result = ImpactResult(
+            flow_id="test_flow_id",
+            inputs={
+                "input1": 2.0,
+                "input2": np.array([1, 2, 3, 4, 5]),
+                "input3": "my_file.txt",
+            },
+            outputs={
+                "output1": 2.0,
+                "output2": np.array([1, 2, 3, 4, 5]),
+                "output3": "my_file.txt",
+            },
+            plot_file=ImageFile(
+                filename=SAMPLE_IMAGE_FILE, filesystem_identifier="local"
+            ),
+            archive=HDF5File(
+                filename=SAMPLE_IMPACT_ARCHIVE, filesystem_identifier="local"
+            ),
+            pv_collection_isotime=datetime.now(),
+            config={"config1": 1, "config2": 2},
+        )
+        return result
+
     @pytest.fixture(scope="class")
-    def generic_result_insert_by_method(self, generic_result, results_db_service):
-        generic_result.insert(results_db_service=results_db_service)
+    def generic_result_insert_by_method(self, generic_result2, results_db_service):
+        generic_result2.insert(results_db_service=results_db_service)
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
-            generic_result.insert(results_db_service=results_db_service)
+            generic_result2.insert(results_db_service=results_db_service)
 
     @pytest.mark.usefixtures("generic_result_insert_by_method")
-    def test_load_generic_result(self, generic_result, results_db_service):
-        new_generic_result = Result.load_from_query(
+    def test_load_generic_result(self, generic_result2, results_db_service):
+        new_generic_obj = Result.load_from_query(
             {
-                "flow_id": generic_result.flow_id,
-                "inputs": generic_result.inputs,
-                "outputs": generic_result.outputs,
+                "flow_id": generic_result2.flow_id,
+                "inputs": generic_result2.inputs,
+                "outputs": generic_result2.outputs,
             },
             results_db_service=results_db_service,
         )
 
-        assert generic_result.flow_id == new_generic_result.flow_id
-        assert generic_result.inputs == new_generic_result.inputs
-        assert generic_result.outputs == new_generic_result.outputs
+        check_generic_result_equal(generic_result2, new_generic_obj)
 
     @pytest.fixture(scope="class")
-    def impact_result_insert_by_method(self, impact_result, results_db_service):
-        impact_result.insert(results_db_service=results_db_service)
+    def impact_result_insert_by_method(self, impact_result2, results_db_service):
+        impact_result2.insert(results_db_service=results_db_service)
 
         # confirm duplicate raises error
         with pytest.raises(DuplicateKeyError):
-            impact_result.insert(results_db_service=results_db_service)
+            impact_result2.insert(results_db_service=results_db_service)
 
     @pytest.mark.usefixtures("impact_result_insert_by_method")
-    def test_load_impact_result(self, impact_result, results_db_service):
+    def test_load_impact_result(self, impact_result2, results_db_service):
         new_impact_obj = ImpactResult.load_from_query(
             {
                 "flow_id": impact_result.flow_id,
@@ -371,13 +354,4 @@ class TestResultsInsertMethods:
             },
             results_db_service=results_db_service,
         )
-
-        assert impact_result.flow_id == new_impact_obj.flow_id
-        assert impact_result.inputs == new_impact_obj.inputs
-        assert impact_result.outputs == new_impact_obj.outputs
-        assert impact_result.archive == new_impact_obj.archive
-        assert impact_result.plot_file == new_impact_obj.plot_file
-        assert (
-            impact_result.pv_collection_isotime == new_impact_obj.pv_collection_isotime
-        )
-        assert impact_result.config == new_impact_obj.config
+        check_impact_result_equal(impact_result2, new_impact_obj)
