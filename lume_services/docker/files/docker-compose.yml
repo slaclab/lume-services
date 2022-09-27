@@ -169,7 +169,7 @@ services:
       --env LUME_PREFECT__HOME_DIR=~/.prefect
       --env LUME_PREFECT__DEBUG=${LUME_PREFECT__DEBUG:-false}
       --env LUME_PREFECT__BACKEND=server
-      --volume ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}:${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}"
+      --volume ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}:${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}"
     volumes:
         - type: bind
           source: ./config.toml
@@ -180,12 +180,12 @@ services:
           target: /var/run/docker.sock
           read_only: true
         - type: bind
-          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-${PWD}}
+          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
           target: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
           read_only: false
     environment:
       LUME_MOUNTED_FILESYSTEM__IDENTIFIER: ${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
-      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-${PWD}}
+      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
       LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
       LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE: ${LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE:-DirectoryOrCreate}
       LUME_MODEL_DB__HOST: mysql
