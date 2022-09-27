@@ -1,5 +1,6 @@
 import logging
-from typing import Optional, Any
+import json
+from typing import Optional, Any, Union
 from dependency_injector.wiring import Provide, inject
 
 from lume_services.config import Context
@@ -387,15 +388,16 @@ class LoadDBResult(Task):
 
     def run(
         self,
-        result_rep: dict,
+        result_rep: Union[dict, str],
         attribute_index: Optional[list],
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ) -> Any:
         """Load a result from the database using a lume_services.Result represention.
 
         Args:
-            result_rep (dict): Result representation containing result_type_string and
-                query for selection.
+            result_rep (Union[dict, str]): Result representation containing
+                result_type_string and query for selection. If string passed,
+                will perform json loads to get dictionary.
             attribute_index (Optional[list]): Selection instructions from query.
                 For example, selecting the first `toyota` from a dictionary of form:
                 `{"vehicle": {"car":  ["toyota", "mini"], "boat": ["sail", "motor"]}}`
@@ -408,6 +410,9 @@ class LoadDBResult(Task):
                 otherwise returns Result object.
 
         """
+        if isinstance(result_rep, str):
+            result_rep = json.loads(result_rep)
+
         result_type = get_result_from_string(result_rep["result_type_string"])
         result = result_type.load_from_query(
             result_rep["query"], results_db_service=results_db_service
