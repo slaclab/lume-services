@@ -180,12 +180,12 @@ services:
           target: /var/run/docker.sock
           read_only: true
         - type: bind
-          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}
+          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-${PWD}}
           target: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
           read_only: false
     environment:
       LUME_MOUNTED_FILESYSTEM__IDENTIFIER: ${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
-      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}
+      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-${PWD}}
       LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
       LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE: ${LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE:-DirectoryOrCreate}
       LUME_MODEL_DB__HOST: mysql
