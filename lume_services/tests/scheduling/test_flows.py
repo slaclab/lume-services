@@ -104,18 +104,20 @@ class TestFlowExecution:
             stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
             configure_task = flow1.get_tasks(name="configure_lume_services")[0]
+            configure_slug = flow1.slugs[configure_task]
 
             # check config task run
             config_task_run = TaskRunView.from_task_slug(
-                configure_task.slug,
+                configure_slug,
                 flow_run_id,
             )
             assert config_task_run.state.is_successful()
 
-            file_task = flow1.get_tasks(name="save_text_file")[0]
-
+            # check text result
+            task = flow1.get_tasks(name="save_text_file")[0]
+            slug = flow1.slugs[task]
             task_run = TaskRunView.from_task_slug(
-                file_task.slug,
+                slug,
                 flow_run_id,
             )
 
@@ -162,16 +164,20 @@ class TestFlowExecution:
 
             # check config task run
             configure_task = flow2.get_tasks(name="configure_lume_services")[0]
+            configure_slug = flow2.slugs[configure_task]
+
+            # check config task run
             config_task_run = TaskRunView.from_task_slug(
-                configure_task.slug,
+                configure_slug,
                 flow_run_id,
             )
             assert config_task_run.state.is_successful()
 
             # check db result
-            save_db_result = flow2.get_tasks(name="save_db_result")[0]
+            task = flow2.get_tasks(name="save_db_result")[0]
+            slug = flow2.slugs[task]
             task_run = TaskRunView.from_task_slug(
-                save_db_result.slug,
+                slug,
                 flow_run_id,
             )
             result_rep = task_run.get_result()
@@ -217,9 +223,10 @@ class TestFlowExecution:
             stream_flow_run_logs(flow_run_id, max_duration=timedelta(minutes=1))
 
             # check equivalence result
-            check_text_equivalence = flow3.get_tasks(name="check_text_equivalence")[0]
+            task = flow3.get_tasks(name="check_text_equivalence")[0]
+            slug = flow3.slugs[task]
             task_run = TaskRunView.from_task_slug(
-                check_text_equivalence.slug,
+                slug,
                 flow_run_id,
             )
             result = task_run.get_result()
