@@ -151,7 +151,7 @@ services:
       bash -c "prefect server create-tenant --name default --slug default &>/dev/null ;
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net --env LUME_BACKEND=$LUME_BACKEND
       --env LUME_MOUNTED_FILESYSTEM__IDENTIFIER=${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
-      --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-${PWD}}
+      --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
       --env LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS=${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
       --env LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE=${LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE:-DirectoryOrCreate}
       --env LUME_MODEL_DB__HOST=mysql
