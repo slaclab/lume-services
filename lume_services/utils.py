@@ -472,3 +472,23 @@ def select_python_version(version: str) -> str:
         raise ValueError("Cannot parse python version %s", version)
 
     return str(v)
+
+
+def flatten_dict_for_query(dictionary: dict, level_key: str = None):
+    """Flatten a dictionary of values for pymongo query"""
+
+    flattened_dict = {}
+
+    for key, value in dictionary.items():
+
+        if level_key is not None:
+            key = f"{level_key}.{key}"
+
+        if isinstance(value, dict):
+            value_dict = flatten_dict_for_query(value, level_key=key)
+            flattened_dict.update(value_dict)
+
+        else:
+            flattened_dict[key] = value
+
+    return flattened_dict
