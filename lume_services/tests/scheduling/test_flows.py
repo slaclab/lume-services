@@ -7,6 +7,7 @@ import prefect
 import yaml
 from prefect.backend import TaskRunView
 from prefect.backend.flow_run import stream_flow_run_logs
+from prefect.tasks.prefect import get_task_run_result
 
 from lume_services.tasks.db import LoadDBResult
 from lume_services.tests.flows.lume_services_test_flows.flow1 import (
@@ -206,9 +207,11 @@ class TestFlowExecution:
 
             client = Client()
 
+            result_rep = get_task_run_result.run(test_flow2_run, "save_db_result-1")
+
             # want to bind our task kwargs to flow2 outputs
             db_result = LoadDBResult().run(
-                test_flow2_run,
+                result_rep,
                 attribute_index=["outputs", "output1"],
                 results_db_service=results_db_service,
             )
