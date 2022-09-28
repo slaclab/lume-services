@@ -29,7 +29,7 @@ class MongodbResultsDBConfig(ResultsDBConfig):
         username (str): Username string.
         password (SecretStr): Password stored as a Pydantic secret string. https://pydantic-docs.helpmanual.io/usage/types/#secret-types
         port (int): Host port of mongodb service endpoint.
-        authMechanism (): Auth mechanism supported by PyMongo driver. See https://pymongo.readthedocs.io/en/stable/api/pymongo/database.html#pymongo.auth.MECHANISMS.
+        authMechanism (str): Auth mechanism supported by PyMongo driver. See https://pymongo.readthedocs.io/en/stable/api/pymongo/database.html#pymongo.auth.MECHANISMS.
         options (dict): Dictionary of additional connection options for MongoClient. https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
 
     """  # noqa
@@ -164,6 +164,13 @@ class MongodbResultsDB(ResultsDB):
         with self.client() as client:
             db = client[self.config.database]
             inserted_id = db[collection].insert_one(kwargs).inserted_id
+
+            if inserted_id is None:
+                raise ValueError(
+                    "Unable to insert database object %s into collection %s",
+                    kwargs,
+                    collection,
+                )
 
         return inserted_id
 

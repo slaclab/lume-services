@@ -47,8 +47,8 @@ class SchedulingService:
         image: Optional[str],
         labels: Optional[List[str]],
     ) -> str:
-        """Register a flow with Prefect. Backend implementations without server connecton
-        should raise errors when this method is called.
+        """Register a flow with Prefect. Backend implementations without server
+        connecton should raise errors when this method is called.
 
         Args:
             flow (Flow): Prefect flow to register.
@@ -86,13 +86,13 @@ class SchedulingService:
         return self.backend.load_flow(flow_name, project_name)
 
     def run(
-        self, parameters: Optional[Dict[str, Any]], run_config=None, **kwargs
+        self, parameters: Dict[str, Any], run_config=None, **kwargs
     ) -> Union[str, None]:
-        """Run a flow. Does not return result. Implementations should cover instantiation
-        of run_config from kwargs as well as backend-specific kwargs.
+        """Run a flow. Does not return result. Implementations should cover
+        instantiation of run_config from kwargs as well as backend-specific kwargs.
 
         Args:
-            parameters (Optional[Dict[str, Any]]): Dictionary mapping flow parameter
+            parameters (Dict[str, Any]): Dictionary mapping flow parameter
                 name to value
             **kwargs: Keyword arguments for RunConfig init and backend-specific
                 execution.
@@ -113,8 +113,8 @@ class SchedulingService:
     def run_and_return(
         self,
         parameters: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig],
-        task_name: Optional[str],
+        run_config: Optional[RunConfig] = None,
+        task_name: Optional[str] = None,
         **kwargs
     ) -> Any:
         """Run a flow and return result. Implementations should cover instantiation of

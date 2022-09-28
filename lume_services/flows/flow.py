@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, validator, Field, root_validator
+from pydantic import BaseModel, validator, Field
 from prefect import Parameter
 from prefect.run_configs import RunConfig
 from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
-from lume_services.utils import get_callable_from_string
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.services.scheduling.backends.local import LocalBackend
@@ -252,7 +251,7 @@ class Flow(BaseModel):
             if self.prefect_flow is None:
                 self.load_flow()
 
-            scheduling_service.run_and_return(
+            return scheduling_service.run_and_return(
                 parameters=parameters,
                 flow=self.prefect_flow,
                 task_name=task_name,
@@ -261,7 +260,7 @@ class Flow(BaseModel):
             )
 
         elif isinstance(scheduling_service.backend, (ServerBackend,)):
-            scheduling_service.run_and_return(
+            return scheduling_service.run_and_return(
                 parameters=parameters,
                 flow_id=self.flow_id,
                 task_name=task_name,

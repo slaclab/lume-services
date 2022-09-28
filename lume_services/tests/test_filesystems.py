@@ -1,10 +1,7 @@
 import pytest
-from lume_services.services.files.filesystems import (
-    MountedFilesystem,
-    LocalFilesystem,
-    PathNotInMount,
-)
+from lume_services.services.files.filesystems import MountedFilesystem, LocalFilesystem
 from lume_services.files.serializers.text import TextSerializer
+from lume_services.errors import PathNotInMount
 
 
 @pytest.fixture(scope="module", autouse=True)

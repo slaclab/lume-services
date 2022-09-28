@@ -38,22 +38,6 @@ Configuration of the job environment must respect hostnames available to their o
 
 
 ```yaml
-model:
-  author: Jaqueline Garrhan
-  laboratory: SLAC
-  facility: LCLS
-  beampath: cu_hxr
-  description: Example model
-
-
-deployment:
-  version: v0.0
-  source: https://github.com/jacquelinegarrahan/my-model-repo
-  variables: my-model-repo/my_model_repo/files/variables.yaml
-  flow_name: example_cu_hxr_0.0
-```
-
-```yaml
 input_variables:
   input_variable_1:
     type: array

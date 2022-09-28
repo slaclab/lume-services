@@ -144,35 +144,32 @@ services:
 
   # agent
   agent:
-    image: prefecthq/prefect:1.2.3-python3.10
+    image: prefecthq/prefect:1.4.0-python3.10
     # The environment variables are passed from agent to job pods
     # This configures access to services
     command: >
       bash -c "prefect server create-tenant --name default --slug default &>/dev/null ;
-      prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net
-      --env LUME_BACKEND=$LUME_BACKEND
-      --env LUME_MOUNTED_FILESYSTEM__IDENTIFIER=$LUME_MOUNTED_FILESYSTEM__IDENTIFIER
-      --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=$LUME_MOUNTED_FILESYSTEM__MOUNT_PATH
-      --env LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS=$LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS
-      --env LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE=$LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE
-      --env LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY=$LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY
-      --env LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY=$LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY
-      --env LUME_MODEL_DB__HOST=$LUME_MODEL_DB__HOST
-      --env LUME_MODEL_DB__PORT=$LUME_MODEL_DB__PORT
-      --env LUME_MODEL_DB__USER=$LUME_MODEL_DB__USER
-      --env LUME_MODEL_DB__PASSWORD=$LUME_MODEL_DB__PASSWORD
-      --env LUME_MODEL_DB__DATABASE=$LUME_MODEL_DB__DATABASE
-      --env LUME_RESULTS_DB__USERNAME=$LUME_RESULTS_DB__USERNAME
-      --env LUME_RESULTS_DB__PASSWORD=$LUME_RESULTS_DB__PASSWORD
-      --env LUME_RESULTS_DB__PORT=$LUME_RESULTS_DB__PORT
-      --env LUME_RESULTS_DB__HOST=$LUME_RESULTS_DB__HOST
-      --env LUME_RESULTS_DB__DATABASE=$LUME_RESULTS_DB__DATABASE
-      --env LUME_PREFECT__SERVER__HOST=$LUME_PREFECT__SERVER__HOST
-      --env LUME_PREFECT__SERVER__HOST_PORT=$LUME_PREFECT__SERVER__HOST_PORT
-      --env LUME_PREFECT__HOME_DIR=$LUME_PREFECT__HOME_DIR
-      --env LUME_PREFECT__DEBUG=$LUME_PREFECT__DEBUG
-      --env LUME_PREFECT__BACKEND=$LUME_PREFECT__BACKEND
-      --volume ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}:${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}"
+      prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net --env LUME_BACKEND=$LUME_BACKEND
+      --env LUME_MOUNTED_FILESYSTEM__IDENTIFIER=${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
+      --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
+      --env LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS=${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
+      --env LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE=${LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE:-DirectoryOrCreate}
+      --env LUME_MODEL_DB__HOST=mysql
+      --env LUME_MODEL_DB__PORT=3306
+      --env LUME_MODEL_DB__USER=${LUME_MODEL_DB__USER:-root}
+      --env LUME_MODEL_DB__PASSWORD=${LUME_MODEL_DB__PASSWORD:-password}
+      --env LUME_MODEL_DB__DATABASE=${LUME_MODEL_DB__DATABASE:-lume_services_models}
+      --env LUME_RESULTS_DB__USERNAME=${LUME_RESULTS_DB__USERNAME:-root}
+      --env LUME_RESULTS_DB__PASSWORD=${LUME_RESULTS_DB__PASSWORD:-password}
+      --env LUME_RESULTS_DB__PORT=27017
+      --env LUME_RESULTS_DB__HOST=mongodb
+      --env LUME_RESULTS_DB__DATABASE=${LUME_RESULTS_DB__DATABASE:-lume_services_results}
+      --env LUME_PREFECT__SERVER__HOST=http://apollo
+      --env LUME_PREFECT__SERVER__HOST_PORT=4200
+      --env LUME_PREFECT__HOME_DIR=~/.prefect
+      --env LUME_PREFECT__DEBUG=${LUME_PREFECT__DEBUG:-false}
+      --env LUME_PREFECT__BACKEND=server
+      --volume ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}:${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}"
     volumes:
         - type: bind
           source: ./config.toml
@@ -183,25 +180,22 @@ services:
           target: /var/run/docker.sock
           read_only: true
         - type: bind
-          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}
+          source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
           target: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
           read_only: false
     environment:
       LUME_MOUNTED_FILESYSTEM__IDENTIFIER: ${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
-      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH:-PWD}
+      LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
       LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
       LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE: ${LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE:-DirectoryOrCreate}
-      LOCAL_CHANNEL_ONLY: ${LUME_PREFECT__ISOLATED:-false}
-      LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY: ${LUME_EVIRONMENT__LOCAL_PIP_REPOSITORY}
-      LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY: ${LUME_EVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY}
-      LUME_MODEL_DB__HOST: http://mysql
+      LUME_MODEL_DB__HOST: mysql
       LUME_MODEL_DB__PORT: 3306
       LUME_MODEL_DB__USER: ${LUME_MODEL_DB__USER:-root}
       LUME_MODEL_DB__PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       LUME_MODEL_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_services_models}
-      LUME_RESULTS_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-results}
+      LUME_RESULTS_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_service_results}
       LUME_RESULTS_DB__USERNAME: ${LUME_RESULTS_DB__USERNAME:-root}
-      LUME_RESULTS_DB__HOST: http://mongodb
+      LUME_RESULTS_DB__HOST: mongodb
       LUME_RESULTS_DB__PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
       LUME_RESULTS_DB__PORT: 27017
       LUME_PREFECT__SERVER__HOST: http://apollo

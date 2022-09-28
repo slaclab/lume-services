@@ -1,6 +1,6 @@
 from .filesystem import Filesystem
 from .local import LocalFilesystem
-from .mounted import MountedFilesystem, PathNotInMount
+from .mounted import MountedFilesystem
 
 
 # create map of type import path to type

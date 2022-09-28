@@ -138,9 +138,10 @@ class Result(BaseModel):
 
     def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
+
         return {
             "result_type_string": self.result_type_string,
-            "query": self.get_unique_result_index(),
+            "query": {"unique_hash": self.unique_hash},
         }
 
     def get_db_dict(self) -> dict:

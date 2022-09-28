@@ -4,6 +4,7 @@ import os
 import logging
 
 from .local import LocalFilesystem
+from lume_services.errors import PathNotInMount
 from lume.serializers.base import SerializerBase
 
 logger = logging.getLogger(__name__)
@@ -18,25 +19,6 @@ _HostMountLiteral = Literal[
     # "CharDevice",
     # "BlockDevice",
 ]
-
-
-class PathNotInMount(Exception):
-    def __init__(
-        self, filesystem_identifier: str, path: str, mount_path: str, mount_alias: str
-    ):
-        self.filesystem_identifier = filesystem_identifier
-        self.path = (path,)
-        self.mount_path = mount_path
-        self.mount_alias = mount_alias
-        self.message = "Path %s not in mount for mounted filesystem identifier: %s, \
-            Mount path: %s, Mount alias: %s"
-        super().__init__(
-            self.message,
-            self.path,
-            self.filesystem_identifier,
-            self.mount_path,
-            self.mount_alias,
-        )
 
 
 class MountedFilesystem(LocalFilesystem):

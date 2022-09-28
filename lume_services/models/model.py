@@ -1,5 +1,6 @@
 from pydantic import BaseModel, root_validator
 from typing import Optional, List
+import pandas as pd
 from importlib_metadata import distribution
 from dependency_injector.wiring import Provide
 
@@ -9,13 +10,16 @@ from lume_services.errors import (
     FlowOfFlowsNotFoundError,
     DeploymentNotFoundError,
     DeploymentNotRegisteredError,
-    NoFlowFoundError,
+    NoFlowFoundInPackageError,
+    FlowNotFoundError,
+    ModelNotFoundError,
 )
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.flows.flow import Flow
 from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.results import Result
+from lume_services.files import get_file_from_serializer_string
 from lume_services.results.utils import get_result_from_string
 from lume_services.services.models.service import ModelDBService
 from lume_services.services.models.db.schema import (
@@ -24,7 +28,7 @@ from lume_services.services.models.db.schema import (
     Project as ProjectSchema,
 )
 from lume_services.services.results import ResultsDBService
-
+from lume_services.utils import flatten_dict
 
 import logging
 
@@ -136,27 +140,6 @@ class Model(BaseModel):
 
         return new_values
 
-    @classmethod
-    def register_model(
-        cls,
-        author,
-        laboratory,
-        facility,
-        beampath,
-        description,
-        model_db_service: ModelDBService = Provide[Context.model_db_service],
-    ):
-        model_id = model_db_service.store_model(
-            author=author,
-            laboratory=laboratory,
-            facility=facility,
-            beampath=beampath,
-            description=description,
-        )
-        # load model from service
-        model = model_db_service.get_model(model_id=model_id)
-        return cls(metadata=model)
-
     def load_deployment(
         self,
         deployment_id: int = None,
@@ -253,7 +236,7 @@ class Model(BaseModel):
                 flow.prefect_flow = flow_entrypoint[0].load()
 
             else:
-                raise NoFlowFoundError(deployment.package_import_name)
+                raise NoFlowFoundInPackageError(deployment.package_import_name)
 
         self.deployment = Deployment(
             metadata=deployment,
@@ -295,7 +278,7 @@ class Model(BaseModel):
             prefect_flow = flow_entrypoint[0].load()
 
         else:
-            raise NoFlowFoundError(source_path)
+            raise NoFlowFoundInPackageError(source_path)
 
         flow = Flow(
             prefect_flow=prefect_flow,
@@ -304,25 +287,37 @@ class Model(BaseModel):
             image=source.image,
         )
 
-        deployment_id = model_db_service.store_deployment(
-            model_id=self.metadata.model_id,
-            version=source.version,
-            source=source.path,
-            is_live=is_live,
-            sha256=source.checksum,
-            image=source.image,
-            package_import_name=source.name,
-        )
+        # check whether deployment already registered with service
+        try:
+            deployment = model_db_service.get_deployment(
+                model_id=self.metadata.model_id, version=source.version
+            )
+            deployment_id = deployment.deployment_id
+
+        except DeploymentNotFoundError:
+            deployment_id = model_db_service.store_deployment(
+                model_id=self.metadata.model_id,
+                version=source.version,
+                source=source.path,
+                is_live=is_live,
+                sha256=source.checksum,
+                image=source.image,
+                package_import_name=source.name,
+            )
 
         # register flow
-        prefect_flow_id = flow.register(scheduling_service=scheduling_service)
+        try:
+            prefect_flow_id = model_db_service.get_flow(deployment_id=deployment_id)
 
-        _ = model_db_service.store_flow(
-            deployment_id=deployment_id,
-            flow_id=prefect_flow_id,
-            flow_name=prefect_flow.name,
-            project_name=project_name,
-        )
+        except FlowNotFoundError:
+            prefect_flow_id = flow.register(scheduling_service=scheduling_service)
+
+            _ = model_db_service.store_flow(
+                deployment_id=deployment_id,
+                flow_id=prefect_flow_id,
+                flow_name=prefect_flow.name,
+                project_name=project_name,
+            )
 
         logger.info("Loading deployment %s", deployment_id)
 
@@ -357,9 +352,11 @@ class Model(BaseModel):
 
     def run_and_return(
         self,
+        collection,
         parameters: dict,
         task_name: str = None,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        results_db_service: ResultsDBService = Provide[Context.results_db_service],
         **kwargs,
     ):
         """
@@ -374,14 +371,40 @@ class Model(BaseModel):
 
         """
 
+        def parse_result(res, collection):
+
+            result_type_string = res.get("result_type_string")
+            if result_type_string is not None:
+                res = self.get_results(collection=collection, query=res["query"])[0]
+
+                return res
+
+            file_type_string = res.get("file_type_string")
+            if file_type_string is not None:
+                file_type = get_file_from_serializer_string(file_type_string)
+                return file_type(**res)
+
+            return res
+
         if self.deployment is None:
             self.load_deployment()
 
-        return self.deployment.flow.run_and_return(
+        res = self.deployment.flow.run_and_return(
             parameters,
             task_name=task_name,
             scheduling_service=scheduling_service,
         )
+
+        if isinstance(res, dict):
+
+            if "result_type_string" in res or "file_type_string" in res:
+                return parse_result(res, collection)
+
+            else:
+                return {key: parse_result(value) for key, value in res.items()}
+
+        else:
+            return res
 
     @classmethod
     def create_model(
@@ -405,19 +428,30 @@ class Model(BaseModel):
                 injected if not passed.
 
         """
+        try:
+            metadata = model_db_service.get_model(
+                author=author,
+                laboratory=laboratory,
+                facility=facility,
+                beampath=beampath,
+                description=description,
+            )
+            model_id = metadata.model_id
 
-        model_id = model_db_service.store_model(
-            author=author,
-            laboratory=laboratory,
-            facility=facility,
-            beampath=beampath,
-            description=description,
-        )
+        except ModelNotFoundError:
+            model_id = model_db_service.store_model(
+                author=author,
+                laboratory=laboratory,
+                facility=facility,
+                beampath=beampath,
+                description=description,
+            )
 
         return cls(model_id=model_id, model_db_service=model_db_service)
 
     def get_results(
         self,
+        collection: str,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
         all_deployments: bool = False,
@@ -426,6 +460,7 @@ class Model(BaseModel):
         """Query model results.
 
         Args:
+            collection (str): Collection to query.
             model_db_service (ModelDBService): Model database service. Injected if
                 not provided.
             results_db_service (ResultsDBService): Results database service. Injected
@@ -455,7 +490,9 @@ class Model(BaseModel):
                 flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
                 flow_ids.append(flow.flow_id)
 
-        results = results_db_service.find_all(query=query)
+            query["flow_id"] = flow_ids
+
+        results = results_db_service.find(collection=collection, query=query)
         res_objs = []
         for res in results:
             result_type_string = res.pop("result_type_string")
@@ -464,8 +501,9 @@ class Model(BaseModel):
 
         return res_objs
 
-    def get_result_df(
+    def get_results_df(
         self,
+        collection: str,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
         all_deployments: bool = False,
@@ -488,20 +526,19 @@ class Model(BaseModel):
         if query is None:
             query = {}
 
-        if not all_deployments:
-            query.update({"flow_id": self.deployment.flow.flow_id})
+        results = self.get_results(
+            collection,
+            results_db_service=results_db_service,
+            model_db_service=model_db_service,
+            all_deployments=all_deployments,
+            query=query,
+        )
 
-        else:
-            # require all flows
-            # these queries are bad. A join should be used instead, but going
-            # with it because of time constraints.
-            flow_ids = []
-            deployments = model_db_service.get_deployments(
-                model_id=self.metadata.model_id
-            )
-            for deployment in deployments:
-                flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
-                flow_ids.append(flow.flow_id)
+        flattened = [flatten_dict(res.dict()) for res in results]
+        df = pd.DataFrame(flattened)
 
-        df = results_db_service.load_dataframe(query=query)
+        # Load DataFrame
+        # df["date"] = pd.to_datetime(df["pv_collection_isotime"])
+        #  df["_id"] = df["_id"].astype(str)
+
         return df

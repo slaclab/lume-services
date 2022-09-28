@@ -394,8 +394,9 @@ class LoadDBResult(Task):
         """Load a result from the database using a lume_services.Result represention.
 
         Args:
-            result_rep (dict): Result representation containing result_type_string and
-                query for selection.
+            result_rep (Union[dict, str]): Result representation containing
+                result_type_string and query for selection. If string passed,
+                will perform json loads to get dictionary.
             attribute_index (Optional[list]): Selection instructions from query.
                 For example, selecting the first `toyota` from a dictionary of form:
                 `{"vehicle": {"car":  ["toyota", "mini"], "boat": ["sail", "motor"]}}`

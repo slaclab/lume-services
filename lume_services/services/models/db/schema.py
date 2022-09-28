@@ -19,14 +19,26 @@ class Model(Base):
     __tablename__ = "model"
     model_id = Column("model_id", Integer, primary_key=True, autoincrement=True)
     created = Column("created", DateTime(timezone=True), server_default=func.now())
-    author = Column("author", String(255), nullable=False)
-    laboratory = Column("laboratory", String(255), nullable=False)
-    facility = Column("facility", String(255), nullable=False)
-    beampath = Column("beampath", String(255), nullable=False)
+    author = Column("author", String(50), nullable=False)
+    laboratory = Column("laboratory", String(50), nullable=False)
+    facility = Column("facility", String(50), nullable=False)
+    beampath = Column("beampath", String(50), nullable=False)
     description = Column("description", String(255), nullable=False)
 
     # one to many relationship with deployment
     deployments = relationship("Deployment", back_populates="model")
+
+    # constraints
+    __table_args__ = (
+        UniqueConstraint(
+            "author",
+            "laboratory",
+            "facility",
+            "beampath",
+            "description",
+            name="_model_entry",
+        ),
+    )
 
     def __repr__(self):
         return f"Model( \
@@ -47,15 +59,15 @@ class Deployment(Base):
     deployment_id = Column(
         "deployment_id", Integer, primary_key=True, autoincrement=True
     )
-    version = Column("version", String(255), nullable=False)
+    version = Column("version", String(10), nullable=False)
     deploy_date = Column(
         "deploy_date", DateTime(timezone=True), server_default=func.now()
     )
-    package_import_name = Column("package_import_name", String(255), nullable=False)
+    package_import_name = Column("package_import_name", String(50), nullable=False)
     asset_dir = Column("asset_dir", String(255), nullable=True)
     source = Column("source", String(255), nullable=False)
-    sha_256 = Column("sha256", String(255), nullable=False)
-    image = Column("image", String(255), nullable=True)
+    sha_256 = Column("sha256", String(64), nullable=False)
+    image = Column("image", String(100), nullable=True)
     is_live = Column("is_live", Boolean, nullable=False)
 
     # if model deleted from models table, all deployments will be deleted
@@ -91,7 +103,7 @@ class Project(Base):
     __tablename__ = "project"
 
     # columns
-    project_name = Column("project_name", String(255), primary_key=True)
+    project_name = Column("project_name", String(50), primary_key=True)
     description = Column("description", String(255), nullable=False)
 
     # relationships
@@ -109,7 +121,7 @@ class Flow(Base):
 
     # columns
     flow_id = Column("flow_id", String(255), primary_key=True, nullable=False)
-    flow_name = Column("flow_name", String(255), nullable=False)
+    flow_name = Column("flow_name", String(50), nullable=False)
     project_name = Column(
         "project_name",
         ForeignKey("project.project_name"),
