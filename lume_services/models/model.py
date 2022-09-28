@@ -9,7 +9,9 @@ from lume_services.errors import (
     FlowOfFlowsNotFoundError,
     DeploymentNotFoundError,
     DeploymentNotRegisteredError,
-    NoFlowFoundError,
+    NoFlowFoundInPackageError,
+    FlowNotFoundError,
+    ModelNotFoundError,
 )
 
 from lume_services.services.scheduling import SchedulingService
@@ -136,27 +138,6 @@ class Model(BaseModel):
 
         return new_values
 
-    @classmethod
-    def register_model(
-        cls,
-        author,
-        laboratory,
-        facility,
-        beampath,
-        description,
-        model_db_service: ModelDBService = Provide[Context.model_db_service],
-    ):
-        model_id = model_db_service.store_model(
-            author=author,
-            laboratory=laboratory,
-            facility=facility,
-            beampath=beampath,
-            description=description,
-        )
-        # load model from service
-        model = model_db_service.get_model(model_id=model_id)
-        return cls(metadata=model)
-
     def load_deployment(
         self,
         deployment_id: int = None,
@@ -253,7 +234,7 @@ class Model(BaseModel):
                 flow.prefect_flow = flow_entrypoint[0].load()
 
             else:
-                raise NoFlowFoundError(deployment.package_import_name)
+                raise NoFlowFoundInPackageError(deployment.package_import_name)
 
         self.deployment = Deployment(
             metadata=deployment,
@@ -295,7 +276,7 @@ class Model(BaseModel):
             prefect_flow = flow_entrypoint[0].load()
 
         else:
-            raise NoFlowFoundError(source_path)
+            raise NoFlowFoundInPackageError(source_path)
 
         flow = Flow(
             prefect_flow=prefect_flow,
@@ -304,25 +285,36 @@ class Model(BaseModel):
             image=source.image,
         )
 
-        deployment_id = model_db_service.store_deployment(
-            model_id=self.metadata.model_id,
-            version=source.version,
-            source=source.path,
-            is_live=is_live,
-            sha256=source.checksum,
-            image=source.image,
-            package_import_name=source.name,
-        )
+        # check whether deployment already registered with service
+        try:
+            deployment_id = model_db_service.get_deployment(
+                model_id=self.metadata.model_id, version=source.version
+            )
+
+        except DeploymentNotFoundError:
+            deployment_id = model_db_service.store_deployment(
+                model_id=self.metadata.model_id,
+                version=source.version,
+                source=source.path,
+                is_live=is_live,
+                sha256=source.checksum,
+                image=source.image,
+                package_import_name=source.name,
+            )
 
         # register flow
-        prefect_flow_id = flow.register(scheduling_service=scheduling_service)
+        try:
+            prefect_flow_id = model_db_service.get_flow(deployment_id=deployment_id)
 
-        _ = model_db_service.store_flow(
-            deployment_id=deployment_id,
-            flow_id=prefect_flow_id,
-            flow_name=prefect_flow.name,
-            project_name=project_name,
-        )
+        except FlowNotFoundError:
+            prefect_flow_id = flow.register(scheduling_service=scheduling_service)
+
+            _ = model_db_service.store_flow(
+                deployment_id=deployment_id,
+                flow_id=prefect_flow_id,
+                flow_name=prefect_flow.name,
+                project_name=project_name,
+            )
 
         logger.info("Loading deployment %s", deployment_id)
 
@@ -405,14 +397,24 @@ class Model(BaseModel):
                 injected if not passed.
 
         """
+        try:
+            metadata = model_db_service.get_model(
+                author=author,
+                laboratory=laboratory,
+                facility=facility,
+                beampath=beampath,
+                description=description,
+            )
+            model_id = metadata.model_id
 
-        model_id = model_db_service.store_model(
-            author=author,
-            laboratory=laboratory,
-            facility=facility,
-            beampath=beampath,
-            description=description,
-        )
+        except ModelNotFoundError:
+            model_id = model_db_service.store_model(
+                author=author,
+                laboratory=laboratory,
+                facility=facility,
+                beampath=beampath,
+                description=description,
+            )
 
         return cls(model_id=model_id, model_db_service=model_db_service)
 
