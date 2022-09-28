@@ -6,6 +6,7 @@
     - [x] Remove tests in pip installation
     - [ ] Docs!
     - [ ] Set up all loggers
+    - [ ] Set collection at the system level.
     - [ ] Move environments, flows, tasks, and results under model directory
     - [ ] Fix the workflow tests to use templated repos with docker build
     - [x] Fix image issue... Build a designated image in deployment using a lume-services base image

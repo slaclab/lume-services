@@ -11,7 +11,7 @@ This demo walks through the creation of a model compatible with [LUME-services](
 Requirements:
 * [Docker desktop](https://www.docker.com/products/docker-desktop/) for launching the development environment
 * [Conda installation](https://docs.conda.io/en/latest/miniconda.html) for the management of  Python environments
-* Either a [DockerHub](https://hub.docker.com/) account or Stanford account to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort
+* Either a [DockerHub](https://hub.docker.com/) account or Stanford account to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort.
 
 
 ## Package a model
@@ -308,7 +308,7 @@ The release will trigger a GitHub action workflow for your project, which you ca
 The below steps mimic a production deployment workflow.
 
 
-### 14. Start services with docker-compose
+### 12. Start services with docker-compose
 
 LUME-services is packaged with a command line utility for launching the development environment, a docker-compose application with all services packaged and configurable via environment variables.
 
@@ -331,9 +331,12 @@ Once the console logs a message about passed health checks, you've started all s
 
 And access the UI using your browser at http://localhost:8080.
 
+## 13. Pull image (Stanford Container Registry)
+If using the Stanford Container Registry, you'll have to pull the image before kicking off workflows so that Docker can find the image.
 
 
-### 15. Run the notebook and register your model
+
+### 14. Run the notebook and register your model
 
 Create a new console window. Activate lume-services-dev and configure the environment variables:
 ```
