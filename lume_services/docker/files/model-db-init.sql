@@ -2,28 +2,28 @@
 CREATE TABLE model (
 	model_id INTEGER NOT NULL AUTO_INCREMENT,
 	created DATETIME DEFAULT now(),
-	author VARCHAR(255) NOT NULL,
-	laboratory VARCHAR(255) NOT NULL,
-	facility VARCHAR(255) NOT NULL,
-	beampath VARCHAR(255) NOT NULL,
+	author VARCHAR(50) NOT NULL,
+	laboratory VARCHAR(50) NOT NULL,
+	facility VARCHAR(50) NOT NULL,
+	beampath VARCHAR(50) NOT NULL,
 	description VARCHAR(255) NOT NULL,
 	PRIMARY KEY (model_id),
 	CONSTRAINT _model_entry UNIQUE (author, laboratory, facility, beampath, description)
 );
 CREATE TABLE project (
-	project_name VARCHAR(255) NOT NULL,
+	project_name VARCHAR(50) NOT NULL,
 	description VARCHAR(255) NOT NULL,
 	PRIMARY KEY (project_name)
 );
 CREATE TABLE deployment (
 	deployment_id INTEGER NOT NULL AUTO_INCREMENT,
-	version VARCHAR(255) NOT NULL,
+	version VARCHAR(10) NOT NULL,
 	deploy_date DATETIME DEFAULT now(),
-	package_import_name VARCHAR(255) NOT NULL,
+	package_import_name VARCHAR(50) NOT NULL,
 	asset_dir VARCHAR(255),
 	source VARCHAR(255) NOT NULL,
-	sha256 VARCHAR(255) NOT NULL,
-	image VARCHAR(255),
+	sha256 VARCHAR(64) NOT NULL,
+	image VARCHAR(100),
 	is_live BOOL NOT NULL,
 	model_id INTEGER NOT NULL,
 	PRIMARY KEY (deployment_id),
@@ -32,8 +32,8 @@ CREATE TABLE deployment (
 );
 CREATE TABLE flow (
 	flow_id VARCHAR(255) NOT NULL,
-	flow_name VARCHAR(255) NOT NULL,
-	project_name VARCHAR(255) NOT NULL,
+	flow_name VARCHAR(50) NOT NULL,
+	project_name VARCHAR(50) NOT NULL,
 	deployment_id INTEGER NOT NULL,
 	PRIMARY KEY (flow_id),
 	FOREIGN KEY(project_name) REFERENCES project (project_name),
