@@ -3,9 +3,7 @@ from .db import ResultsDB
 from typing import List
 import logging
 
-from lume_services.utils import flatten_dict, get_jsonable_dict
-
-import pandas as pd
+from lume_services.utils import get_jsonable_dict
 
 logger = logging.getLogger(__name__)
 
@@ -67,25 +65,3 @@ class ResultsDBService:
             List[dict]: List of result items represented as dict.
         """
         return self._results_db.find_all(**kwargs)
-
-    def load_dataframe(
-        self, *, query: dict, fields: List[str] = None, **kwargs
-    ) -> pd.DataFrame:
-        """Load dataframe from result database query.
-        Args:
-            query (dict): Field values for constructing query
-            fields List[str]: Subset of fields to return
-            **kwargs (dict): DB implementation specific fields
-        Returns:
-            pd.DataFrame
-        """
-        # flattens results and returns dataframe
-        results = self.find(query=query, fields=fields, **kwargs)
-        flattened = [flatten_dict(res) for res in results]
-        df = pd.DataFrame(flattened)
-
-        # Load DataFrame
-        # df["date"] = pd.to_datetime(df["pv_collection_isotime"])
-        #  df["_id"] = df["_id"].astype(str)
-
-        return df
