@@ -7,7 +7,8 @@ CREATE TABLE model (
 	facility VARCHAR(255) NOT NULL,
 	beampath VARCHAR(255) NOT NULL,
 	description VARCHAR(255) NOT NULL,
-	PRIMARY KEY (model_id)
+	PRIMARY KEY (model_id),
+	CONSTRAINT _model_entry UNIQUE (author, laboratory, facility, beampath, description)
 );
 CREATE TABLE project (
 	project_name VARCHAR(255) NOT NULL,
