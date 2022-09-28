@@ -292,9 +292,27 @@ class NoCondaEnvironmentFoundError(Exception):
         super().__init__("CONDA_PREFIX environment variabe is not set.")
 
 
-class NoFlowFoundError(Exception):
-
+class NoFlowFoundInPackageError(Exception):
     def __init__(self, source_path):
         self.source_path = source_path
         self.message = "No flow entrypoint found for the distribution at %s"
         super().__init__(self.message, self.source_path)
+
+
+class PathNotInMount(Exception):
+    def __init__(
+        self, filesystem_identifier: str, path: str, mount_path: str, mount_alias: str
+    ):
+        self.filesystem_identifier = filesystem_identifier
+        self.path = (path,)
+        self.mount_path = mount_path
+        self.mount_alias = mount_alias
+        self.message = "Path %s not in mount for mounted filesystem identifier: %s, \
+            Mount path: %s, Mount alias: %s"
+        super().__init__(
+            self.message,
+            self.path,
+            self.filesystem_identifier,
+            self.mount_path,
+            self.mount_alias,
+        )
