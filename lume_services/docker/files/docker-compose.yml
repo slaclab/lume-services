@@ -163,7 +163,7 @@ services:
       --env LUME_RESULTS_DB__PASSWORD=${LUME_RESULTS_DB__PASSWORD:-password}
       --env LUME_RESULTS_DB__PORT=27017
       --env LUME_RESULTS_DB__HOST=mongodb
-      --env LUME_RESULTS_DB__DATABASE=${LUME_RESULTS_DB__PASSWORD:-lume-results}
+      --env LUME_RESULTS_DB__DATABASE=${LUME_RESULTS_DB__DATABASE:-lume_services_results}
       --env LUME_PREFECT__SERVER__HOST=http://apollo
       --env LUME_PREFECT__SERVER__HOST_PORT=4200
       --env LUME_PREFECT__HOME_DIR=~/.prefect
@@ -193,7 +193,7 @@ services:
       LUME_MODEL_DB__USER: ${LUME_MODEL_DB__USER:-root}
       LUME_MODEL_DB__PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       LUME_MODEL_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_services_models}
-      LUME_RESULTS_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-results}
+      LUME_RESULTS_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_service_results}
       LUME_RESULTS_DB__USERNAME: ${LUME_RESULTS_DB__USERNAME:-root}
       LUME_RESULTS_DB__HOST: mongodb
       LUME_RESULTS_DB__PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
