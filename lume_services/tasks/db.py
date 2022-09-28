@@ -208,7 +208,7 @@ class SaveDBResult(Task):
         """
 
         result.insert(results_db_service=results_db_service)
-        return result.unique_rep()
+        return result.get_db_dict()
 
 
 class LoadDBResult(Task):
