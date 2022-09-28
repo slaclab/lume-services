@@ -165,6 +165,13 @@ class MongodbResultsDB(ResultsDB):
             db = client[self.config.database]
             inserted_id = db[collection].insert_one(kwargs).inserted_id
 
+            if inserted_id is None:
+                raise ValueError(
+                    "Unable to insert database object %s into collection %s",
+                    kwargs,
+                    collection,
+                )
+
         return inserted_id
 
     def insert_many(self, collection: str, items: List[dict]) -> List[str]:
