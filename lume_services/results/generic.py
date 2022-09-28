@@ -2,7 +2,7 @@ import json
 from pydantic import BaseModel, root_validator, Field, Extra, validator
 from datetime import datetime
 from lume_services.services.results import ResultsDB
-from lume_services.utils import fingerprint_dict, flatten_dict_for_query
+from lume_services.utils import fingerprint_dict
 from typing import List, Optional, Union, Dict
 import numpy as np
 import pandas as pd
@@ -138,11 +138,10 @@ class Result(BaseModel):
 
     def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
-        unique_rep_ = self.get_unique_result_index()
 
         return {
             "result_type_string": self.result_type_string,
-            "query": flatten_dict_for_query(unique_rep_),
+            "query": {"unique_hash": self.unique_hash},
         }
 
     def get_db_dict(self) -> dict:
