@@ -1,13 +1,16 @@
 # Demo
 
 This demo walks through the creation of a model compatible with [LUME-services](https://slaclab.github.io/lume-services/) tooling. You will:
-1. Create a GitHub repository for the demo model.
+1. Create a GitHub repository for the demo model
 2. Build a templated project using [`lume-services-model-template`](https://github.com/slaclab/lume-services-model-template)
-3. Register your model using the LUME-services API to Prefect orchestration tools, the MySQL model registry, and store results in a MongoDB service
+3. Register your model using the LUME-services API and store deployment information into a MySQL database.
+4. Run your model, storing results in MongoDB database
+5. Retrieve model results using LUME-services
 
 
-prerequisites:
-- dockerhub or stanford container registry
+Requirements:
+* [Docker desktop](https://www.docker.com/products/docker-desktop/) for launching the development environment
+* [Conda installation](https://docs.conda.io/en/latest/miniconda.html) for the management of  Python environments
 
 
 ## Package a model
