@@ -9,6 +9,7 @@ This demo walks through the creation of a model compatible with [LUME-services](
 
 
 Requirements:
+* [GitHub](https://github.com/) account and [SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) installed according to their instructions.
 * [Docker desktop](https://www.docker.com/products/docker-desktop/) for launching the development environment
 * [Conda installation](https://docs.conda.io/en/latest/miniconda.html) for the management of  Python environments
 * Either a [DockerHub](https://hub.docker.com/) account or Stanford account to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort.
@@ -18,7 +19,7 @@ Requirements:
 
 
 ### 1. Create a repository for your project on GitHub
-Using your GitHub account, create an repository named `my-model` (feel free to sub this with whatever you'd like).
+Using your GitHub account, create an empty repository named `my-model` (feel free to sub this with whatever you'd like).
 
 ### 2: Create project
 
@@ -76,14 +77,13 @@ model_config_file: /full/path/to/lume-services-model-template/examples/variables
 Cookiecutter will render a repository using the template with the structure:
 
 ```
-cookiecutter.project_slug
+my-model
 ├─ .github/
 |  ├─ workflows/
 |  |  ├─ build_image.yaml
-|  |  ├─ build_image_scr.yml
 │  │  ├─ tests.yaml
 │  │  ├─ build.yaml
-├─ cookiecutter.package
+├─ my_model
 |  ├─ files/
 |  |  ├─ __init__.py
 |  |  ├─ variables.yaml
@@ -94,19 +94,20 @@ cookiecutter.project_slug
 |  ├─ flow.py
 ├─ _entrypoint.sh
 ├─ .gitignore
+├─ .git
+├─ .gitattributes
 ├─ conftest.py
 ├─ dev-environment.yml
 ├─ Dockerfile
 ├─ environment.yml
 ├─ MANIFEST.in
+├─ README.md
 ├─ pytest.ini
 ├─ requirements.txt
 ├─ setup.cfg
 ├─ setup.py
-
+├─ versioneer.py
 ```
-
-
 
 Now, navigate to the directory where you've created your repository:
 ```
@@ -118,7 +119,12 @@ cd my-model
 Replace username and brackets in the below command:
 ```
 git remote add origin git@github.com:{YOUR_GITHUB_USERNAME}/my-model.git
-git push --set-upstream origin main
+git push --set-upstream -f origin main
+```
+
+Note: If your local git configuration defaults to creating a branch with name `master`, you'll have to rename the local branch to main using:
+```
+git branch -m master main
 ```
 
 ### 4. Set up model
