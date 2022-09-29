@@ -269,7 +269,7 @@ SLAC users can take advantage of the [Stanford Container Registry](https://itcom
 
 ![project](files/scr_project.png)
 
-**9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value.
+**9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value. Repeat this process to set a secret named `STANFORD_USERNAME` to your Stanford username.
 
 
 #### DockerHub
