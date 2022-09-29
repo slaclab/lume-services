@@ -8,6 +8,8 @@ dependencies:
   - python-dotenv
   - sqlalchemy>=1.4
   - pymysql
+  - graphviz
+  - python-graphviz
   - prefect[viz]<2.0
   - pandas
   - pymongo
@@ -15,7 +17,6 @@ dependencies:
   - dependency_injector
   - h5py
   - sqlalchemy_schemadisplay
-  - graphviz
   - pyyaml
   - docker-py>=5.0
   - lume-base>=0.2.2
