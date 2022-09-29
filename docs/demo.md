@@ -301,7 +301,18 @@ LUME-services is packaged with a command line utility for launching the developm
 
 ![docker](files/docker_architecture.png)
 
-First, configure your environment variables.
+
+
+Create a new console window. If you haven't, clone the lume-services repository.
+```
+git clone https://github.com/jacquelinegarrahan/lume-services
+```
+Navigate to your local `lume-services` repository. 
+```
+cd lume-services
+```
+
+Configure your environment variables.
 
 ```
 source docs/examples/demo.env
@@ -320,11 +331,7 @@ And access the UI using your browser at http://localhost:8080.
 
 ### 12. Run the notebook and register your model
 
-Create a new console window. If you haven't, clone the lume-services repository.
-```
-git clone https://github.com/jacquelinegarrahan/lume-services
-```
-Navigate to your local `lume-services` repository. 
+Create a new console window. Navigate to your local `lume-services` repository. 
 ```
 cd lume-services
 ```
