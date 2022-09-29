@@ -226,17 +226,8 @@ Install your package into this environment:
 pip install -e .
 ```
 
-### 7. Run your flow
 
-Navigate to the `examples` directory inside the `lume-services-model-template` repository. Open the noteboook `run.ipynb`.
-
-
-```
-jupyter notebook run.ipynb
-```
-
-
-### 8. Set up tests
+### 7. Set up tests
 
 In `my_model/tests/test_flow.py` modify the `test_flow_execution` function, adding the `tmp_path` fixture to the signature and passing `filename=f"{tmp_dir}/test_file.txt"` and `filesytem_identifier="local"` to the run method. The resulting code should look like:
 
@@ -250,7 +241,7 @@ Navigate back to your `my-model` directory. You can now test your flow locally b
 pytest .
 ```
 
-### 9. Run tests with GitHub actions
+### 8. Run tests with GitHub actions
 
 Check in all of your code, and push to GitHub.
 
@@ -262,7 +253,7 @@ git push
 
 In your browser, navigate to your GitHub repository at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions, replacing username and brackets with your github username. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
 
-### 10. Configure GitHub actions build
+### 9. Configure GitHub actions build
 
 #### Stanford Container Registry
 
@@ -283,13 +274,13 @@ SLAC users can take advantage of the [Stanford Container Registry](https://itcom
 
 The LUME-services model template is pre-configured to publish the container image to DockerHub. In order to use this workflow, authentication for the repository must be configured using [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
 
-1. Navigate to the settings on your repository.
+1. Navigate to the settings on your repository.  
 
 ![settings](files/repo-actions-settings.png)
 
-2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value.
+2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value.  
 
-### 11. Create a release
+### 10. Create a release
 
 Create a tagged release for your model. Navigate to `https://github.com/{YOUR_GITHUB_USERNAME}/my-model/releases` -> `Draft a new release`
 
@@ -304,7 +295,7 @@ The release will trigger a GitHub action workflow for your project, which you ca
 The below steps mimic a production deployment workflow.
 
 
-### 12. Start services with docker-compose
+### 11. Start services with docker-compose
 
 LUME-services is packaged with a command line utility for launching the development environment, a docker-compose application with all services packaged and configurable via environment variables.
 
@@ -327,7 +318,7 @@ Once the console logs a message about passed health checks, you've started all s
 
 And access the UI using your browser at http://localhost:8080.
 
-### 13. Run the notebook and register your model
+### 12. Run the notebook and register your model
 
 Create a new console window. If you haven't, clone the lume-services repository.
 ```
