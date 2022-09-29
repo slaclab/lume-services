@@ -261,15 +261,15 @@ In your browser, navigate to your GitHub repository at https://github.com/{YOUR_
 
 SLAC users can take advantage of the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) to store their containers. The steps for configuring your project to use the registry are as follows:
 
-1. Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration.
+**9.1** Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration.
 
 ![token](files/PAT.png)
 
-2. Create  a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
+**9.2** Create a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
 
 ![project](files/scr_project.png)
 
-3. Add the token to your repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value.
+**9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value.
 
 
 #### DockerHub
