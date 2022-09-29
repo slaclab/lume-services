@@ -21,7 +21,7 @@ Schema is defined using the sqlalchemy API in `lume_services/services/models/db/
 
 The model table tracks high-level metadata about a model, including
 
-A model's deployments can be accessed using the Model.deployments attribute, which will return a list of deployments associated with the model. This relationship is established in the sqlalchemy [schema](https://github.com/jacquelinegarrahan/lume-services/blob/main/lume_services/services/models/db/schema.py):
+A model's deployments can be accessed using the Model.deployments attribute, which will return a list of deployments associated with the model. This relationship is established in the sqlalchemy [schema](https://github.com/slaclab/lume-services/blob/main/lume_services/services/models/db/schema.py):
 
 ```python
 from sqlalchemy.orm import declarative_base, relationship
