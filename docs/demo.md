@@ -329,7 +329,16 @@ And access the UI using your browser at http://localhost:8080.
 
 ### 13. Run the notebook and register your model
 
-Create a new console window. Activate lume-services-dev and configure the environment variables:
+Create a new console window. If you haven't, clone the lume-services repository.
+```
+git clone https://github.com/jacquelinegarrahan/lume-services
+```
+Navigate to your local `lume-services` repository. 
+```
+cd lume-services
+```
+Source the appropriate environment:
+
 ```
 source docs/examples/demo.env
 ```
