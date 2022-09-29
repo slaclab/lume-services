@@ -263,7 +263,7 @@ SLAC users can take advantage of the [Stanford Container Registry](https://itcom
 
 ![token](files/PAT.png)
 
-2. Create  a project using Stanford Code https://code.stanford.edu/projects/new#blank_project. In the `Project name` field, write `My Model`. Select internal visibility level.
+2. Create  a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
 
 ![project](files/scr_project.png)
 
