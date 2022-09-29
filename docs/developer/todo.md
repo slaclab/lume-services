@@ -25,13 +25,14 @@
     - [x] Fix prefect context bug during pytest
 
 ## Template
-TODO:
+- TODO:
     - [ ] CLI tool
-    - [ ] Instructions for templating tool and configuration
+    - [x] Instructions for templating tool and configuration
     - [x] Templated README
     - [x] Handling of input/output variables at outset
     - [ ] Drop required defaults for lume-model variables
     - [ ] Docs
+    - [ ] Relative path for cookiecutter generation
 - Done:
     - [x] Action for testing package install & running pytests
     - [x] Upload docker image to repo artifacts 5/3

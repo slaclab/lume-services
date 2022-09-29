@@ -4,7 +4,9 @@ repos:
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
+        exclude: "(\\.ipynb|\\.yml|\\.md)"
     -   id: trailing-whitespace
+        exclude: "(\\.md)"
 - repo: local
   hooks:
     - id: black
