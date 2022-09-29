@@ -131,7 +131,7 @@ git branch -m master main
 
 Replace ellipses in the `evaluate` method of `my_model/model.py` with:
 ```python
-self.output_variables["output1"].value = numpy.random.uniform(
+self.output_variables["output1"].value = np.random.uniform(
     input_variables["input1"].value,  # lower dist bound
     input_variables["input2"].value,  # upper dist bound
     (50, 50),
