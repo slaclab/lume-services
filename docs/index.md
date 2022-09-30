@@ -59,6 +59,7 @@ The service interfaces developed for `LUME-services` are isolated, which allows 
 Alternatively, users can execute run workflows directly in their process by configuring a local backend.
 
 Features:
+
 * Standard schema for managing model metadata
 * Differentiated local and remote execution environments suitable for fast/slow executing models, respectively
 * Supports deployment of models into a standardized container by exposing pip and conda commands to container

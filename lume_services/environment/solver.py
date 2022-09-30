@@ -165,7 +165,7 @@ class Source(BaseModel):
 
         # create temporary directory
         if not os.path.exists(tmp_dir):
-            os.mkdir(tmp_dir)
+            os.makedirs(tmp_dir)
 
         path = values.get("path")
         if path is None:
