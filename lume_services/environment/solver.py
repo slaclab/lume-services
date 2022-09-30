@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # We use this template to check remote sources in
 # Source.validate_source
 _GITHUB_TARBALL_TEMPLATE = re.compile(
-    r"^https://github.com/([a-z0-9_-]+)/([a-z0-9_-]+)l/releases/download/([a-z0-9_.-]+)/([a-z0-9._-]+).tar.gz"  # noqa
+    r"^https://github.com/([a-z0-9_-]+)/([a-z0-9_-]+)/releases/download/([a-z0-9_.-]+)/([a-z0-9._-]+).tar.gz"  # noqa
 )
 
 
