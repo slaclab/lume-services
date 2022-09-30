@@ -261,7 +261,7 @@ In your browser, navigate to your GitHub repository at https://github.com/{YOUR_
 
 SLAC users can take advantage of the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) to store their containers. The steps for configuring your project to use the registry are as follows:
 
-**9.1** Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration.
+**9.1** Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration. Record this API token for use in steps 9.3 and 9.4.
 
 ![token](files/PAT.png)
 
@@ -271,6 +271,13 @@ SLAC users can take advantage of the [Stanford Container Registry](https://itcom
 
 **9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value. Repeat this process to set a secret named `STANFORD_USERNAME` to your Stanford username.
 
+**9.4** Login to the container registry on your machine.
+
+Replace the <> with the appropriate values:
+
+```
+echo <your token> | docker login --username <your Stanford username> --password-stdin http://scr.svc.stanford.edu
+```
 
 #### DockerHub
 
