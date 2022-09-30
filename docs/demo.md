@@ -290,7 +290,7 @@ Create a tagged release for your model. Navigate to `https://github.com/{YOUR_GI
 
 Under choose tag, type `v0.0.1` (this is a development tag, [semantic versioning](https://semver.org/) for releases formally starts at v0.1). You can enter the same for the title and may enter some description, but this is optional. Check the pre-release box at the bottom of the page and click the button to publish your release.
 
-The release will trigger a GitHub action workflow for your project, which you can monitor at https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions. Once the build completes, your image will be available at https://hub.docker.com/ or https://code.stanford.edu/{YOUR_STANFORD_USERNAME}/my-model/container_registry.
+The release will trigger a GitHub action workflow for your project, which you can monitor at `https://github.com/{YOUR_GITHUB_USERNAME}/my-model/actions`. Once the build completes, your image will be available at [DockerHub](https://hub.docker.com/) or `https://code.stanford.edu/{YOUR_STANFORD_USERNAME}/my-model/container_registry`.
 
 ## Deploying a model to production:
 
@@ -304,14 +304,14 @@ LUME-services is packaged with a command line utility for launching the developm
 ![docker](files/docker_architecture.png)
 
 
-
 Create a new console window. If you haven't, clone the lume-services repository.
 ```
 git clone https://github.com/jacquelinegarrahan/lume-services
 ```
-Navigate to your local `lume-services` repository. 
+Navigate to your local `lume-services` repository and activate your environment. 
 ```
 cd lume-services
+conda activate my-project-dev
 ```
 
 Configure your environment variables.
@@ -325,6 +325,8 @@ Next start up your services:
 lume-services docker start-services
 ```
 
+If you have existing services running on the ports defined in `docs/examples/demo.env`, you may need to edit the file to use free ports.  
+
 Once the console logs a message about passed health checks, you've started all services successfully. You can inspect the services using Docker Desktop:
 
 ![desktop](files/docker_desktop.png)
@@ -333,9 +335,10 @@ And access the UI using your browser at http://localhost:8080.
 
 ### 12. Run the notebook and register your model
 
-Create a new console window. Navigate to your local `lume-services` repository. 
+Create a new console window. Navigate to your local `lume-services` repository and activate your environment. 
 ```
 cd lume-services
+conda activate my-project-dev
 ```
 Source the appropriate environment:
 
