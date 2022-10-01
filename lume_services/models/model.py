@@ -451,7 +451,6 @@ class Model(BaseModel):
 
     def get_results(
         self,
-        collection: str,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
         all_deployments: bool = False,
@@ -460,7 +459,6 @@ class Model(BaseModel):
         """Query model results.
 
         Args:
-            collection (str): Collection to query.
             model_db_service (ModelDBService): Model database service. Injected if
                 not provided.
             results_db_service (ResultsDBService): Results database service. Injected
@@ -475,8 +473,13 @@ class Model(BaseModel):
         if query is None:
             query = {}
 
+        results = []
         if not all_deployments:
             query.update({"flow_id": self.deployment.flow.flow_id})
+            project_name = model_db_service.get_project(
+                flow_id=self.deployment.flow.flow_id
+            )
+            results = results_db_service.find(collection=project_name, query=query)
 
         else:
             # require all flows
@@ -488,11 +491,13 @@ class Model(BaseModel):
             )
             for deployment in deployments:
                 flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
-                flow_ids.append(flow.flow_id)
+
+                query["flow_id"] = flow.flow_id
+                project_name = model_db_service.get_project(flow_id=flow.flow_id)
+                results += results_db_service.find(collection=project_name, query=query)
 
             query["flow_id"] = flow_ids
 
-        results = results_db_service.find(collection=collection, query=query)
         res_objs = []
         for res in results:
             result_type_string = res.pop("result_type_string")
@@ -503,7 +508,6 @@ class Model(BaseModel):
 
     def get_results_df(
         self,
-        collection: str,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         model_db_service: ModelDBService = Provide[Context.model_db_service],
         all_deployments: bool = False,
@@ -523,11 +527,7 @@ class Model(BaseModel):
 
         """
 
-        if query is None:
-            query = {}
-
         results = self.get_results(
-            collection,
             results_db_service=results_db_service,
             model_db_service=model_db_service,
             all_deployments=all_deployments,
