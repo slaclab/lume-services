@@ -25,7 +25,7 @@ Using your GitHub account, create an empty repository named `my-model` (feel fre
 
 ### 2: Create project
 
-Clone `lume-model-services-template` and navigate to repository:
+Clone `lume-services-model-template` and navigate to repository:
 ```
 git clone https://github.com/slaclab/lume-services-model-template
 cd lume-services-model-template

@@ -411,7 +411,9 @@ class LoadDBResult(Task):
         """
         result_type = get_result_from_string(result_rep["result_type_string"])
         result = result_type.load_from_query(
-            result_rep["query"], results_db_service=results_db_service
+            result_rep["project_name"],
+            result_rep["query"],
+            results_db_service=results_db_service,
         )
 
         # select first attribute

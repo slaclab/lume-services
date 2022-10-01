@@ -3,13 +3,12 @@
 - TODO:
     - [ ] Persist volumes for databases
     - [ ] Docs for injection and container
-    - [x] Remove tests in pip installation
     - [ ] Docs!
     - [ ] Set up all loggers
     - [ ] Set collection at the system level.
     - [ ] Move environments, flows, tasks, and results under model directory
-    - [ ] Fix the workflow tests to use templated repos with docker build
-    - [x] Fix image issue... Build a designated image in deployment using a lume-services base image
+    - [ ] Add templated repo test
+    - [ ] Add environment installer tests for file/repo/private repo
 - Done:
     - [x] Versioneer
     - [x] Action for testing package install & running pytests
@@ -23,27 +22,29 @@
     - [x] Automatically generate diagram from .sql schema? 5/6s
     - [x] Move any services in __init__ files to a service.py
     - [x] Fix prefect context bug during pytest
+    - [x] Fix image issue... Build a designated image in deployment using a lume-services base image
+    - [x] Remove tests in pip installation
 
 ## Template
 - TODO:
     - [ ] CLI tool
-    - [x] Instructions for templating tool and configuration
-    - [x] Templated README
-    - [x] Handling of input/output variables at outset
-    - [ ] Drop required defaults for lume-model variables
     - [ ] Docs
     - [ ] Relative path for cookiecutter generation
+    - [ ] Raise not implemented for to-be-replaced template functions
 - Done:
     - [x] Action for testing package install & running pytests
     - [x] Upload docker image to repo artifacts 5/3
     - [x] Docker build action for templated repos 4/12
+    - [x] Instructions for templating tool and configuration
+    - [x] Templated README
+    - [x] Handling of input/output variables at outset
 
 ## Databases
 - TODO:
     - [ ] Test database failure cases
-    - [x] Rename base classes for DBService
     - [ ] Dashboard image field in mongodb for impact
     - [ ] Docs
+    - [ ] Use model id for databases
 - Done:
     - [x] Initial tests for mysql model db
     - [x] Abstraction of database schema and auth config from query execution
@@ -52,6 +53,7 @@
     - [x] Make mongodb multiprocessing safe
     - [x] Add uniqueness to results
     - [x] Fix test connection with mysql in-package plugin. "Connection refused" 4/13
+    - [x] Rename base classes for DBService
 
 ## Backlog
 - TODO:
@@ -64,14 +66,10 @@
 
 ## Scheduler
 - TODO:
-    - [x] Test flow of flows composition
     - [ ] Add mapped parameters to database?
-    - [x] Add requirements table
     - [ ] Kubernetes backend tests
-    - [x] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
     - [ ] Docs
-    - [x] Environment solving for containerized jobs
-    - [x] Interace to model
+
 - Done:
     - [x] Refactor scheduler 7/13
     - [x] Create prefect flow image 6/26
@@ -85,6 +83,14 @@
     - [x] Add scheduler to context
     - [x] Drop all but apollo from config 8/3
     - [x] Improve service wait_until_responsive checks and move into docker 8/9
+    - [x] Test flow of flows composition
+    - [x] Add requirements table
+    - [x] Environment solving for containerized jobs
+    - [x] Interace to model
+    - [x] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
+
+
+
 
 ## Misc
 - TODO:

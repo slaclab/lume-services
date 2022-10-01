@@ -6,13 +6,14 @@ import sys
 import re
 import yaml
 import hashlib
+import tarfile
 from urllib.request import urlretrieve
 from platform import python_version as current_python_version
 from pydantic import BaseModel, root_validator
 from typing import List
 from typing import Optional, Literal
-import tarfile
 from pkginfo import SDist
+import tempfile
 
 from lume_services.errors import (
     UnableToInstallCondaDependenciesError,
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 # We use this template to check remote sources in
 # Source.validate_source
 _GITHUB_TARBALL_TEMPLATE = re.compile(
-    r"^https://github.com/([a-z0-9_-]+)/([a-z0-9_-]+)l/releases/download/([a-z0-9_.-]+)/([a-z0-9._-]+).tar.gz"  # noqa
+    r"^https://github.com/([a-z0-9_-]+)/([a-z0-9_-]+)/releases/download/([a-z0-9_.-]+)/([a-z0-9._-]+).tar.gz"  # noqa
 )
 
 
@@ -145,27 +146,16 @@ class Source(BaseModel):
 
     path: str
     source_type: Literal["file", "url"]
-    tar_filename: str
-    pkg_dir: str
     version: str
     name: str
     checksum: str
     image: Optional[str]
-    tmp_dir: str = "/tmp/lume-services/sources"
     conda_dependencies: List[str]
     channels: List[str]
     pip_dependencies: List[str]
 
     @root_validator(pre=True)
     def validate_source(cls, values):
-
-        tmp_dir = values.get("tmp_dir")
-        if tmp_dir is None:
-            tmp_dir = cls.__fields__["tmp_dir"].default
-
-        # create temporary directory
-        if not os.path.exists(tmp_dir):
-            os.makedirs(tmp_dir)
 
         path = values.get("path")
         if path is None:
@@ -174,21 +164,18 @@ class Source(BaseModel):
                 filesystem path or the remote url."
             )
 
-        if isinstance(path, (str,)):
+        if not isinstance(path, (str,)):
+            raise ValueError("Provided path must be string. Provided %s", type(path))
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+
+            if not path[-7:] == ".tar.gz":
+                raise ValueError("File passed for install %s is not a tgz file.", path)
 
             if os.path.exists(path):
 
-                # if its a directory, check that the environment yaml is found
-                if not os.path.isfile(f"{path}/environment.yml"):
-                    raise MissingEnvironmentYamlError(path)
-
                 values["source_type"] = "file"
                 tar_filename = path
-
-                # get repo and tag
-                pkg = SDist(path)
-                version = pkg.version
-                name = pkg.name
 
             elif not _GITHUB_TARBALL_TEMPLATE.match(path):
                 raise ValueError("Source does not match template %s", path)
@@ -200,7 +187,7 @@ class Source(BaseModel):
                 # can use index to extract name and version:
                 url_split = path.split("/")
                 tmp_filename = url_split[-1]
-                tar_filename = f"{tmp_dir}/{tmp_filename}"
+                tar_filename = f"{tmpdirname}/{tmp_filename}"
 
                 try:
                     urlretrieve(
@@ -211,36 +198,37 @@ class Source(BaseModel):
                     logger.error("Unable to download source %s", path)
                     raise e
 
-                pkg = SDist(tar_filename)
-                version = pkg.version
-                name = pkg.name
+            # get package info from tarball
+            pkg = SDist(tar_filename)
+            version = pkg.version
+            name = pkg.name
 
-                tar_filename = f"{tmp_dir}/{name}-{version}.tar.gz"
-
-            # compute sha256 checksum
+            # compute checksum
             checksum = hashlib.sha256(open(tar_filename, "rb").read()).hexdigest()
-            values["checksum"] = checksum
-            values["tar_filename"] = tar_filename
-            values["version"] = version
-            values["name"] = name
+            # untar the file
+            base_name = tar_filename.split("/")[-1].replace(".tar.gz", "")
+            with tarfile.open(tar_filename) as f:
+                extract_path = f"{tmpdirname}/{base_name}"
 
-        # now untar
-        with tarfile.open(tar_filename) as f:
-            # extracting will create a subdir for each member.
-            # This should be the top level of the repo
+                f.extractall(tmpdirname)
 
-            f.extractall(tmp_dir)
+                # if its a directory, check that the environment yaml is found
+                env_yaml_path = f"{extract_path}/environment.yml"
+                if not os.path.isfile(env_yaml_path):
+                    raise MissingEnvironmentYamlError(extract_path)
 
-        extract_path = f"{tmp_dir}/{name}-{version}"
-        values["pkg_dir"] = extract_path
+                (
+                    channels,
+                    conda_dependencies,
+                    pip_dependencies,
+                ) = load_environment_yaml(env_yaml_path)
 
-        env_yaml_path = f"{extract_path}/environment.yml"
-        channels, conda_dependencies, pip_dependencies = load_environment_yaml(
-            env_yaml_path
-        )
+        values["version"] = version
+        values["name"] = name
         values["conda_dependencies"] = conda_dependencies
         values["pip_dependencies"] = pip_dependencies
         values["channels"] = channels
+        values["checksum"] = checksum
 
         return values
 
@@ -292,7 +280,6 @@ class Source(BaseModel):
 
                     output_lines = uninstall_proc.decode("utf-8").split("\n")
                     for line in output_lines:
-                        print(line)
                         logger.debug(line)
 
                     logger.info("Uninstall complete")
@@ -309,7 +296,7 @@ class Source(BaseModel):
         # filter lume-services and add file
         pip_dependencies = [
             dep for dep in self.pip_dependencies if "lume-services" not in dep
-        ] + [self.tar_filename]
+        ]
 
         # install dependencies
         if dry_run:
@@ -345,31 +332,54 @@ class Source(BaseModel):
                 raise UnableToInstallCondaDependenciesError(conda_dependencies)
 
             logger.debug("installing pip deps")
-            # run verbose
-            pip_cmd = [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "--no-deps",
-                "-v",
-            ] + pip_dependencies
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                base_filename = self.path.split("/")[-1]
+                filename = base_filename
 
-            # run pip command
-            try:
-                logger.debug("Opening subprocess")
-                download_proc = subprocess.check_output(pip_cmd)
+                if self.source_type == "url":
+                    base_filename = self.path.split("/")[-1]
+                    filename = f"{tmpdirname}/{base_filename}"
 
-                output_lines = download_proc.decode("utf-8").split("\n")
-                for line in output_lines:
-                    logger.debug(line)
+                    try:
+                        urlretrieve(
+                            self.path, filename=filename
+                        )  # NEED TO HANDLE PRIVATE REPOS
+                        logger.info("%s saved to %s", self.path, filename)
+                    except Exception as e:
+                        logger.error("Unable to download source %s", self.path)
+                        raise e
 
-                logger.info("Dependency installation complete")
+                    pip_dependencies = pip_dependencies + [filename]
 
-            except subprocess.CalledProcessError as e:
-                raise UnableToInstallPipDependenciesError(
-                    pip_dependencies, current_python_version(), sys.platform, e
-                )
+                else:
+                    pip_dependencies = pip_dependencies + [self.path]
+
+                pip_cmd = [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-deps",
+                    "-v",
+                ] + pip_dependencies
+
+                print(pip_cmd)
+
+                # run pip command
+                try:
+                    logger.debug("Opening subprocess")
+                    download_proc = subprocess.check_output(pip_cmd)
+
+                    output_lines = download_proc.decode("utf-8").split("\n")
+                    for line in output_lines:
+                        logger.debug(line)
+
+                    logger.info("Dependency installation complete")
+
+                except subprocess.CalledProcessError as e:
+                    raise UnableToInstallPipDependenciesError(
+                        pip_dependencies, current_python_version(), sys.platform, e
+                    )
 
             # confirm import successful and get image from the _image.py module
             # packaged with the template

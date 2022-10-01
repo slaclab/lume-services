@@ -1,10 +1,10 @@
 from .generic import Result
 from .impact import ImpactResult
-from typing import List, Dict
+from typing import Dict
 
 import logging
 
-from lume_services.utils import fingerprint_dict
+from lume_services.utils import fingerprint_dict, get_callable_from_string
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +23,16 @@ def get_result_from_string(result_type_string: str) -> Result:
 
     """
 
-    if not _ResultTypes.get(result_type_string):
+    result_class = get_callable_from_string(result_type_string)
+
+    if not issubclass(result_class, Result):
         raise ValueError(
-            "String not in result types. %s, %s",
-            result_type_string,
-            list(_ResultTypes.keys()),
+            "Result type is not a subclass of lume_services.results.generic.Result. %s",
+            result_class.__name__,
         )
 
     else:
-        return _ResultTypes.get(result_type_string)
+        return result_class
 
 
 def get_result_types() -> Dict[str, Result]:
@@ -43,23 +44,6 @@ def get_result_types() -> Dict[str, Result]:
 
     """
     return _ResultTypes
-
-
-def get_collections() -> Dict[str, List[str]]:
-    """Utility function for returning result collection info.
-
-    Returns:
-        Dict[str, List[str]]: Dictionary mapping collection name to unique index.
-
-    """
-    collection_rep = {}
-
-    for res_type in _ResultTypes.values():
-        collection = res_type.__fields__["model_type"].default
-        collection_index = res_type.__fields__["unique_on"].default
-        collection_rep[collection] = collection_index
-
-    return collection_rep
 
 
 def get_unique_hash(result_rep) -> str:

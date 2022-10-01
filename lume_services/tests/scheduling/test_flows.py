@@ -149,14 +149,21 @@ class TestFlowExecution:
         lume_services_settings,
     ):
         prefect_config = lume_services_settings.prefect
+        project_name = "test"
         with prefect.context(config=prefect_config.apply()):
+
+            prefect_run_config = docker_run_config.build()
+            # requires setting env variable for saving db result
+            prefect_run_config.env.update(
+                {"PREFECT__CONTEXT__PROJECT_NAME": project_name}
+            )
 
             client = Client()
 
             flow_run_id = client.create_flow_run(
                 flow_id=flow2_id,
                 parameters={"file_rep": test_flow1_run},
-                run_config=docker_run_config.build(),  # convert to prefect
+                run_config=prefect_run_config,  # convert to prefect
             )
 
             # watch and block
@@ -185,7 +192,9 @@ class TestFlowExecution:
             # now load result as result object...
             result_type = get_result_from_string(result_rep["result_type_string"])
             result = result_type.load_from_query(
-                result_rep["query"], results_db_service=results_db_service
+                result_rep["project_name"],
+                result_rep["query"],
+                results_db_service=results_db_service,
             )
 
             assert task_run.state.is_successful()

@@ -16,7 +16,11 @@ from lume_services.config import Context
 from lume_services.utils import JSON_ENCODERS
 from lume_services.files import File, get_file_from_serializer_string
 
-from prefect import context
+from prefect import context as prefect_context
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
@@ -32,7 +36,9 @@ def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
 class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
-    model_type: str = Field("generic", alias="collection")
+    project_name: str = Field(
+        "local", alias="collection"
+    )  # this will be the project_name for the scheduled flow
 
     # database id
     id: Optional[str] = Field(alias="_id", exclude=True)
@@ -78,10 +84,17 @@ class Result(BaseModel):
 
         # If flow_id is not passed, check prefect context
         if not values.get("flow_id"):
-            if not context.flow_id:
+            if not hasattr(prefect_context, "flow_id"):
                 raise ValueError("No flow_id passed to result")
 
-            values["flow_id"] = context.flow_id
+            values["flow_id"] = prefect_context.flow_id
+
+        if not values.get("collection") and not values.get("project_name"):
+            if not hasattr(prefect_context, "project_name"):
+                logger.warning("No project_name passed to result")
+
+            else:
+                values["project_name"] = prefect_context.project_name
 
         # create index hash
         if not values.get("unique_hash"):
@@ -99,7 +112,7 @@ class Result(BaseModel):
             if isinstance(_id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
 
-        values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
+        values["result_type_string"] = f"{cls.__module__}.{cls.__name__}"
 
         return values
 
@@ -119,13 +132,12 @@ class Result(BaseModel):
     @inject
     def load_from_query(
         cls,
+        project_name: str,
         query: dict,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ):
         query = get_bson_dict(query)
-        res = results_db_service.find(
-            collection=cls.__fields__["model_type"].default, query=query
-        )
+        res = results_db_service.find(collection=project_name, query=query)
 
         if len(res) == 0:
             raise ValueError("Provided query returned no results. %s", query)
@@ -134,12 +146,13 @@ class Result(BaseModel):
             raise ValueError("Provided query returned multiple results. %s", query)
 
         values = load_db_dict(res[0])
-        return cls(**values)
+        return cls(project_name=project_name, **values)
 
     def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
 
         return {
+            "project_name": self.project_name,
             "result_type_string": self.result_type_string,
             "query": {"unique_hash": self.unique_hash},
         }

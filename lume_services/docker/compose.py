@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 _BASE_SETUP_COMMAND = "up -d"
 _UI_SETUP_COMMAND = "--profile with_ui up -d"
 _CLEANUP_COMMANDS = ["down -v", "rm --stop --force"]
-_PERSIST_CLEANUP_COMMANDS = ["down"]
+_PERSIST_CLEANUP_COMMANDS = ["stop"]
 
 
 def check_mongodb_ready(lume_services_settings: LUMEServicesSettings):
@@ -52,7 +52,7 @@ def check_mysql_ready(lume_services_settings: LUMEServicesSettings):
         )
         return True
     except Exception as e:
-        logger.error("Error in mysql check: %s", e)
+        logger.info("Error in mysql check: %s", e)
         return False
 
 

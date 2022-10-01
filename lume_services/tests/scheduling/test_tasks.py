@@ -25,6 +25,7 @@ from lume_services import config
 @pytest.fixture(scope="module", autouse=True)
 def impact_result():
     return ImpactResult(
+        project_name="impact",
         flow_id="test_tasks_impact",
         inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5], "input3": "my_file.txt"},
         outputs={
@@ -42,6 +43,7 @@ def impact_result():
 @pytest.fixture(scope="module", autouse=True)
 def task_generic_result():
     return Result(
+        project_name="generic",
         flow_id="test_tasks_generic",
         inputs={"input1": 2.0, "input2": [1, 2, 3, 4, 5]},
         outputs={

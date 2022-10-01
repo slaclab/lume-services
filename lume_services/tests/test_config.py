@@ -201,6 +201,7 @@ class TestResultServiceInjection:
     @pytest.fixture()
     def inserted_generic_result(self):
         return Result(
+            project_name="generic",
             flow_id="test_inject",
             inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
             outputs={
@@ -216,6 +217,7 @@ class TestResultServiceInjection:
     @pytest.mark.usefixtures("_prepare")
     def test_result_load_from_query(self, inserted_generic_result):
         Result.load_from_query(
+            inserted_generic_result.project_name,
             {
                 "flow_id": inserted_generic_result.flow_id,
                 "inputs": inserted_generic_result.inputs,

@@ -1,5 +1,8 @@
 import pytest
 import logging
+from urllib.request import urlretrieve
+from lume_services.environment.solver import Source
+
 from lume_services.environment.solver import _GITHUB_TARBALL_TEMPLATE
 
 logger = logging.getLogger(__name__)
@@ -8,7 +11,8 @@ logger = logging.getLogger(__name__)
 @pytest.mark.parametrize(
     "url",
     [
-        "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.7/my_model-0.0.7.tar.gz",
+        "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.7/my_model-0.0.7.tar.gz",  # noqa
+        "https://github.com/jacquelinegarrahan/lume-lcls-cu-inj-nn/releases/download/v0.0.2/lume-lcls-cu-inj-nn-0.0.2.tar.gz",  # noqa
         pytest.param(
             "api.github.com/repos/jacquelinegarrahan/my-model/tarball/v0.0",
             marks=pytest.mark.xfail,
@@ -24,6 +28,35 @@ logger = logging.getLogger(__name__)
 )  # TODO CHANGE TO SLACLAB
 def test_tarball_template(url):
     assert _GITHUB_TARBALL_TEMPLATE.match(url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.42/my_model-0.0.42.tar.gz"  # noqa
+    ],
+)
+def test_download_from_url(url):
+    Source(path=url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.42/my_model-0.0.42.tar.gz"  # noqa
+    ],
+)
+def test_download_from_file(url, tmp_path):
+    filename = url.split("/")[-1]
+    filepath = f"{tmp_path}/{filename}"
+    try:
+        urlretrieve(url, filename=filepath)  # NEED TO HANDLE PRIVATE REPOS
+        logger.info("%s saved to %s", url, filepath)
+    except Exception as e:
+        logger.error("Unable to download source %s", url)
+        raise e
+
+    Source(path=filepath)
 
 
 class TestModelDB:
