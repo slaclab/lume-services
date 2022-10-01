@@ -205,18 +205,17 @@ class Source(BaseModel):
 
             # compute checksum
             checksum = hashlib.sha256(open(tar_filename, "rb").read()).hexdigest()
-
             # untar the file
             base_name = tar_filename.split("/")[-1].replace(".tar.gz", "")
-            with tarfile.open(path) as f:
+            with tarfile.open(tar_filename) as f:
                 extract_path = f"{tmpdirname}/{base_name}"
 
-                f.extractall(extract_path)
+                f.extractall(tmpdirname)
 
                 # if its a directory, check that the environment yaml is found
                 env_yaml_path = f"{extract_path}/environment.yml"
                 if not os.path.isfile(env_yaml_path):
-                    raise MissingEnvironmentYamlError(path)
+                    raise MissingEnvironmentYamlError(extract_path)
 
                 (
                     channels,
@@ -281,7 +280,6 @@ class Source(BaseModel):
 
                     output_lines = uninstall_proc.decode("utf-8").split("\n")
                     for line in output_lines:
-                        print(line)
                         logger.debug(line)
 
                     logger.info("Uninstall complete")
@@ -334,20 +332,24 @@ class Source(BaseModel):
                 raise UnableToInstallCondaDependenciesError(conda_dependencies)
 
             logger.debug("installing pip deps")
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                base_filename = self.path.split("/")[-1]
+                filename = base_filename
 
-            with tempfile.TemporaryFile() as f:
                 if self.source_type == "url":
+                    base_filename = self.path.split("/")[-1]
+                    filename = f"{tmpdirname}/{base_filename}"
+
                     try:
                         urlretrieve(
-                            self.path, filename=f.name
+                            self.path, filename=filename
                         )  # NEED TO HANDLE PRIVATE REPOS
-                        logger.info("%s saved to %s", self.path, f.name)
+                        logger.info("%s saved to %s", self.path, filename)
                     except Exception as e:
                         logger.error("Unable to download source %s", self.path)
-                        f.close()
                         raise e
 
-                    pip_dependencies = pip_dependencies + [f.name]
+                    pip_dependencies = pip_dependencies + [filename]
 
                 else:
                     pip_dependencies = pip_dependencies + [self.path]
@@ -360,6 +362,8 @@ class Source(BaseModel):
                     "--no-deps",
                     "-v",
                 ] + pip_dependencies
+
+                print(pip_cmd)
 
                 # run pip command
                 try:
