@@ -9,6 +9,7 @@
     - [ ] Move environments, flows, tasks, and results under model directory
     - [ ] Add templated repo test
     - [ ] Add environment installer tests for file/repo/private repo
+    - [ ] Fix docker cred handling in workflows
 - Done:
     - [x] Versioneer
     - [x] Action for testing package install & running pytests
@@ -44,7 +45,7 @@
     - [ ] Test database failure cases
     - [ ] Dashboard image field in mongodb for impact
     - [ ] Docs
-    - [ ] Use model id for databases
+    - [ ] Use model id for database collections
 - Done:
     - [x] Initial tests for mysql model db
     - [x] Abstraction of database schema and auth config from query execution
