@@ -79,35 +79,34 @@ Cookiecutter will render a repository using the template with the structure:
 
 ```
 my-model
-├─ .github/
-|  ├─ workflows/
-|  |  ├─ build_image.yaml
-│  │  ├─ tests.yaml
-│  │  ├─ build.yaml
-├─ my_model
-|  ├─ files/
-|  |  ├─ __init__.py
-|  |  ├─ variables.yaml
-|  ├─ tests/
-|  |  ├─ test_flow.py
-|  ├─ __init__.py
-|  ├─ model.py
-|  ├─ flow.py
-├─ _entrypoint.sh
-├─ .gitignore
-├─ .git
-├─ .gitattributes
-├─ conftest.py
-├─ dev-environment.yml
-├─ Dockerfile
-├─ environment.yml
-├─ MANIFEST.in
-├─ README.md
-├─ pytest.ini
-├─ requirements.txt
-├─ setup.cfg
-├─ setup.py
-├─ versioneer.py
+├── Dockerfile
+├── MANIFEST.in
+├── README.md
+├── _entrypoint.sh
+├── conftest.py
+├── dev-environment.yml
+├── environment.yml
+├── my_model
+│   ├── __init__.py
+│   ├── _image.py
+│   ├── _version.py
+│   ├── files
+│   │   ├── __init__.py
+│   │   └── variables.yml
+│   ├── flow.py
+│   ├── model.py
+│   └── tests
+│       ├── __init__.py
+│       └── test_flow.py
+├── pytest.ini
+├── requirements.txt
+├── setup.cfg
+├── setup.py
+└── versioneer.py
+```
+You can generate this tree from your generated project by running:
+```
+tree my-model
 ```
 
 Now, navigate to the directory where you've created your repository:
@@ -162,7 +161,7 @@ class MyModel(BaseModel):
         data files, etc.
 
         """
-        super(self).__init__()
+        super().__init__()
 
         # handle settings if any
         # if settings_kwargs is not None:
@@ -219,7 +218,7 @@ Now, create an environment for working with your model package:
 
 ```
 conda env create -f dev-environment.yml
-conda activate my-project-dev
+conda activate my-model-dev
 ```
 
 Install your package into this environment:
@@ -317,7 +316,7 @@ git clone https://github.com/jacquelinegarrahan/lume-services
 Navigate to your local `lume-services` repository and activate your environment. 
 ```
 cd lume-services
-conda activate my-project-dev
+conda activate my-model-dev
 ```
 
 Configure your environment variables.
@@ -344,7 +343,7 @@ And access the UI using your browser at http://localhost:8080.
 Create a new console window. Navigate to your local `lume-services` repository and activate your environment. 
 ```
 cd lume-services
-conda activate my-project-dev
+conda activate my-model-dev
 ```
 Source the appropriate environment:
 
