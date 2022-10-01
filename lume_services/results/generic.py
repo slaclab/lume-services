@@ -32,7 +32,7 @@ def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
 class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
-    collection: str = Field("generic", alias="collection")
+    collection: str  # this will be the project_name for the scheduled flow
 
     # database id
     id: Optional[str] = Field(alias="_id", exclude=True)
