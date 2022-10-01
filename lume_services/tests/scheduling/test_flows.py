@@ -154,7 +154,9 @@ class TestFlowExecution:
 
             prefect_run_config = docker_run_config.build()
             # requires setting env variable for saving db result
-            prefect_run_config.env = {"PREFECT__CONTEXT__PROJECT_NAME": project_name}
+            prefect_run_config.env.update(
+                {"PREFECT__CONTEXT__PROJECT_NAME": project_name}
+            )
 
             client = Client()
 
