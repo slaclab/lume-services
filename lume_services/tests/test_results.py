@@ -272,7 +272,7 @@ class TestResultsInsertMethods:
         return result
 
     @pytest.fixture(scope="class", autouse=True)
-    def impact_result2(self, project_name):
+    def impact_result2(self):
         result = ImpactResult(
             project_name="impact",
             flow_id="test_flow_impact_id2",
