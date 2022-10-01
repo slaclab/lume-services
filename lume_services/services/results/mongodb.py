@@ -163,7 +163,8 @@ class MongodbResultsDB(ResultsDB):
         # conver to bson
         with self.client() as client:
             db = client[self.config.database]
-            inserted_id = db[collection].insert_one(kwargs).inserted_id
+            db_collection = db[collection]
+            inserted_id = db_collection.insert_one(kwargs).inserted_id
 
             if inserted_id is None:
                 raise ValueError(
@@ -189,7 +190,8 @@ class MongodbResultsDB(ResultsDB):
         # make items bsonable
         with self.client() as client:
             db = client[self.config.database]
-            inserted_ids = db[collection].insert_many(items).inserted_ids
+            db_collection = db[collection]
+            inserted_ids = db_collection.insert_many(items).inserted_ids
 
         return [inserted_id.str for inserted_id in inserted_ids]
 
