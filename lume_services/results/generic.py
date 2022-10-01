@@ -141,12 +141,13 @@ class Result(BaseModel):
             raise ValueError("Provided query returned multiple results. %s", query)
 
         values = load_db_dict(res[0])
-        return cls(**values)
+        return cls(project_name=project_name, **values)
 
     def unique_rep(self) -> dict:
         """Get minimal representation needed to load result object from database."""
 
         return {
+            "project_name": self.project_name,
             "result_type_string": self.result_type_string,
             "query": {"unique_hash": self.unique_hash},
         }

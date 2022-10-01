@@ -306,7 +306,7 @@ class TestResultsInsertMethods:
     @pytest.mark.usefixtures("generic_result_insert_by_method")
     def test_load_generic_result(self, generic_result2, results_db_service):
         new_generic_obj = Result.load_from_query(
-            generic_result.project_name,
+            generic_result2.project_name,
             {
                 "flow_id": generic_result2.flow_id,
                 "inputs": generic_result2.inputs,
