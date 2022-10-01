@@ -99,7 +99,9 @@ class TestBSON:
             "flow_id": generic_result.flow_id,
         }
         query = get_bson_dict(query)
-        selected = results_db_service.find(collection="generic", query=query)
+        selected = results_db_service.find(
+            collection=generic_result.collection, query=query
+        )
 
         assert len(selected)
 
@@ -112,7 +114,9 @@ class TestBSON:
 
         query = {"outputs.output2": generic_result.outputs["output2"]}
         query = get_bson_dict(query)
-        selected = results_db_service.find(collection="generic", query=query)
+        selected = results_db_service.find(
+            collection=generic_result.collection, query=query
+        )
 
         assert len(selected)
 
@@ -220,7 +224,7 @@ class TestResultsDBService:
         }
 
         res = results_db_service.find(
-            collection=generic_result.model_type,
+            collection=generic_result.collection,
             query=get_bson_dict(query),
         )
 
@@ -236,7 +240,7 @@ class TestResultsDBService:
             "outputs": impact_result.outputs,
         }
         res = results_db_service.find(
-            collection=impact_result.model_type,
+            collection=impact_result.collection,
             query=get_bson_dict(query),
         )
 
@@ -245,7 +249,7 @@ class TestResultsDBService:
         check_impact_result_equal(impact_result, new_impact_obj)
 
     def test_find_all(self, generic_result, results_db_service):
-        res = results_db_service.find_all(collection=generic_result.model_type)
+        res = results_db_service.find_all(collection=generic_result.collection)
         assert isinstance(res, list)
 
 
