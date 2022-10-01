@@ -250,14 +250,20 @@ class ServerBackend(Backend):
                 will execute using passed run_config."
             )
 
-        # convert LUME-services run config to appropriate Prefect RunConfig object
-        if run_config is None:
-            run_config = self.run_config_type(**kwargs)
-
-        prefect_run_config = run_config.build()
-
         with prefect.context(config=self.config.apply()):
             client = Client()
+
+            flow_view = FlowView.from_flow_id(flow_id)
+
+            # convert LUME-services run config to appropriate Prefect RunConfig object
+            if run_config is None:
+                run_config = self.run_config_type(
+                    env={"PREFECT__CONTEXT__PROJECT_NAME": flow_view.project_name},
+                    **kwargs,
+                )
+
+            prefect_run_config = run_config.build()
+
             flow_run_id = client.create_flow_run(
                 flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
@@ -305,12 +311,6 @@ class ServerBackend(Backend):
                 will execute using passed run_config."
             )
 
-        # convert LUME-services run config to appropriate Prefect RunConfig object
-        if run_config is None:
-            run_config = self.run_config_type(**kwargs)
-
-        prefect_run_config = run_config.build()
-
         logger.info(
             "Creating Prefect flow run for %s with parameters %s and run_config %s",
             flow_id,
@@ -321,10 +321,20 @@ class ServerBackend(Backend):
         with prefect.context(config=self.config.apply()):
             client = Client()
 
+            flow_view = FlowView.from_flow_id(flow_id)
+
+            # convert LUME-services run config to appropriate Prefect RunConfig object
+            if run_config is None:
+                run_config = self.run_config_type(
+                    env={"PREFECT__CONTEXT__PROJECT_NAME": flow_view.project_name},
+                    **kwargs,
+                )
+
+            prefect_run_config = run_config.build()
+
             flow_run_id = client.create_flow_run(
                 flow_id=flow_id, parameters=parameters, run_config=prefect_run_config
             )
-            flow_view = FlowView.from_flow_id(flow_id)
 
             # watch flow run and stream logs until timeout
             try:
