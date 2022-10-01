@@ -82,7 +82,9 @@ class Deployment(Base):
     flow = relationship("Flow", back_populates="deployment", uselist=False)
 
     # unique constraints
-    __table_args__ = (UniqueConstraint("sha256", name="_sha256_unique"),)
+    __table_args__ = (
+        UniqueConstraint("model_id", "version", name="_deployment_unique"),
+    )
 
     def __repr__(self):
         return f"Deployment( \
