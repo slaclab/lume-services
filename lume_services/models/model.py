@@ -476,9 +476,7 @@ class Model(BaseModel):
         results = []
         if not all_deployments:
             query.update({"flow_id": self.deployment.flow.flow_id})
-            project_name = model_db_service.get_project(
-                flow_id=self.deployment.flow.flow_id
-            )
+            project_name = self.deployment.flow.project_name
             results = results_db_service.find(collection=project_name, query=query)
 
         else:
@@ -493,8 +491,9 @@ class Model(BaseModel):
                 flow = model_db_service.get_flow(deployment_id=deployment.deployment_id)
 
                 query["flow_id"] = flow.flow_id
-                project_name = model_db_service.get_project(flow_id=flow.flow_id)
-                results += results_db_service.find(collection=project_name, query=query)
+                results += results_db_service.find(
+                    collection=flow.project_name, query=query
+                )
 
             query["flow_id"] = flow_ids
 
