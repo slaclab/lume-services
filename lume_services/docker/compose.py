@@ -52,7 +52,7 @@ def check_mysql_ready(lume_services_settings: LUMEServicesSettings):
         )
         return True
     except Exception as e:
-        logger.error("Error in mysql check: %s", e)
+        logger.info("Error in mysql check: %s", e)
         return False
 
 
