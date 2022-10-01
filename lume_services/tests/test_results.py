@@ -232,7 +232,7 @@ class TestResultsDBService:
             query=get_bson_dict(query),
         )
 
-        new_generic_obj = Result(**res[0])
+        new_generic_obj = Result(project_name=generic_result.project_name, **res[0])
 
         check_generic_result_equal(generic_result, new_generic_obj)
 
@@ -248,7 +248,7 @@ class TestResultsDBService:
             query=get_bson_dict(query),
         )
 
-        new_impact_obj = ImpactResult(**res[0])
+        new_impact_obj = ImpactResult(project_name=impact_result.project_name, **res[0])
 
         check_impact_result_equal(impact_result, new_impact_obj)
 
