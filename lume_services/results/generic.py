@@ -18,6 +18,10 @@ from lume_services.files import File, get_file_from_serializer_string
 
 from prefect import context as prefect_context
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
     """Mongodb rounds datetime to milliseconds so round on assignment for
@@ -33,7 +37,7 @@ class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
     project_name: str = Field(
-        alias="collection"
+        "local", alias="collection"
     )  # this will be the project_name for the scheduled flow
 
     # database id
@@ -87,9 +91,10 @@ class Result(BaseModel):
 
         if not values.get("collection") and not values.get("project_name"):
             if not hasattr(prefect_context, "project_name"):
-                raise ValueError("No project_name passed to result")
+                logger.warning("No project_name passed to result")
 
-            values["project_name"] = prefect_context.project_name
+            else:
+                values["project_name"] = prefect_context.project_name
 
         # create index hash
         if not values.get("unique_hash"):
