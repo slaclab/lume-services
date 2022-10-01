@@ -6,7 +6,6 @@ from lume_services.services.results import (
 )
 
 from lume_services.tests.fixtures.docker import *  # noqa: F403, F401
-from lume_services.results import get_collections
 
 import logging
 
@@ -31,9 +30,6 @@ def mongodb_results_db(
 @pytest.mark.usefixtures("docker_services")
 @pytest.fixture(scope="session", autouse=True)
 def results_db_service(mongodb_results_db, mongodb_database):
-
-    collections = get_collections()
-    mongodb_results_db.configure(collections=collections)
 
     results_db_service = ResultsDBService(results_db=mongodb_results_db)
 
