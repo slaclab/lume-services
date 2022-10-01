@@ -27,7 +27,7 @@ CREATE TABLE deployment (
 	is_live BOOL NOT NULL,
 	model_id INTEGER NOT NULL,
 	PRIMARY KEY (deployment_id),
-	CONSTRAINT _sha256_unique UNIQUE (sha256),
+	CONSTRAINT _deployment_unique UNIQUE (model_id, version),
 	FOREIGN KEY(model_id) REFERENCES model (model_id)
 );
 CREATE TABLE flow (
