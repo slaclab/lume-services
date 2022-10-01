@@ -352,7 +352,6 @@ class Model(BaseModel):
 
     def run_and_return(
         self,
-        collection,
         parameters: dict,
         task_name: str = None,
         scheduling_service: SchedulingService = Provide[Context.scheduling_service],
@@ -371,11 +370,13 @@ class Model(BaseModel):
 
         """
 
-        def parse_result(res, collection):
+        def parse_result(res):
 
             result_type_string = res.get("result_type_string")
             if result_type_string is not None:
-                res = self.get_results(collection=collection, query=res["query"])[0]
+                res = self.get_results(
+                    collection=res.get("project_name"), query=res["query"]
+                )[0]
 
                 return res
 
@@ -398,7 +399,7 @@ class Model(BaseModel):
         if isinstance(res, dict):
 
             if "result_type_string" in res or "file_type_string" in res:
-                return parse_result(res, collection)
+                return parse_result(res)
 
             else:
                 return {key: parse_result(value) for key, value in res.items()}
