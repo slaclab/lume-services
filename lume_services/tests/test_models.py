@@ -37,7 +37,7 @@ def test_tarball_template(url):
     ],
 )
 def test_download_from_url(url):
-    Source(url)
+    Source(path=url)
 
 
 @pytest.mark.parametrize(
@@ -56,7 +56,7 @@ def test_download_from_file(url, tmp_path):
         logger.error("Unable to download source %s", url)
         raise e
 
-    Source(filepath)
+    Source(path=filepath)
 
 
 class TestModelDB:
