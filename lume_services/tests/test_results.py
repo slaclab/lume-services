@@ -102,7 +102,7 @@ class TestBSON:
         }
         query = get_bson_dict(query)
         selected = results_db_service.find(
-            collection=generic_result.collection, query=query
+            collection=generic_result.project_name, query=query
         )
 
         assert len(selected)
@@ -117,7 +117,7 @@ class TestBSON:
         query = {"outputs.output2": generic_result.outputs["output2"]}
         query = get_bson_dict(query)
         selected = results_db_service.find(
-            collection=generic_result.collection, query=query
+            collection=generic_result.project_name, query=query
         )
 
         assert len(selected)
@@ -131,8 +131,8 @@ class TestBSON:
 @pytest.mark.parametrize(
     ("string", "result_class_target"),
     [
-        ("lume_services.results.generic:Result", Result),
-        ("lume_services.results.impact:ImpactResult", ImpactResult),
+        ("lume_services.results.generic.Result", Result),
+        ("lume_services.results.impact.ImpactResult", ImpactResult),
         pytest.param(
             "incorrect.import.string",
             Result,
