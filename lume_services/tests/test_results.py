@@ -20,6 +20,7 @@ from lume_services.services.results import MongodbResultsDBConfig, MongodbResult
 @pytest.fixture(scope="module", autouse=True)
 def impact_result(results_db_service):
     result = ImpactResult(
+        project_name="impact",
         flow_id="test_flow_id_impact",
         inputs={
             "input1": 2.0,
@@ -66,6 +67,7 @@ def check_impact_result_equal(impact_result, new_impact_obj):
 @pytest.fixture(scope="module", autouse=True)
 def generic_result(results_db_service):
     result = Result(
+        project_name="generic",
         flow_id="test_flow_id",
         inputs={"input1": 2.0, "input2": np.array([1, 2, 3, 4, 5])},
         outputs={
@@ -146,7 +148,7 @@ def test_get_result_from_string(string, result_class_target):
 class TestGenericResult:
     def test_create_generic_result_from_alias(self):
         Result(
-            collection="generic",
+            project_name="generic",
             flow_id="test_flow_id",
             inputs={"input1": 4, "input2": 3},
             outputs={"output1": 1},
@@ -224,7 +226,7 @@ class TestResultsDBService:
         }
 
         res = results_db_service.find(
-            collection=generic_result.collection,
+            collection=generic_result.project_name,
             query=get_bson_dict(query),
         )
 
@@ -240,7 +242,7 @@ class TestResultsDBService:
             "outputs": impact_result.outputs,
         }
         res = results_db_service.find(
-            collection=impact_result.collection,
+            collection=impact_result.project_name,
             query=get_bson_dict(query),
         )
 
@@ -249,7 +251,7 @@ class TestResultsDBService:
         check_impact_result_equal(impact_result, new_impact_obj)
 
     def test_find_all(self, generic_result, results_db_service):
-        res = results_db_service.find_all(collection=generic_result.collection)
+        res = results_db_service.find_all(collection=generic_result.project_name)
         assert isinstance(res, list)
 
 
@@ -257,6 +259,7 @@ class TestResultsInsertMethods:
     @pytest.fixture(scope="class", autouse=True)
     def generic_result2(self):
         result = Result(
+            project_name="generic",
             flow_id="test_flow_id2",
             inputs={"input1": 2.0, "input2": np.array([1, 2, 9, 4, 5])},
             outputs={
@@ -267,8 +270,9 @@ class TestResultsInsertMethods:
         return result
 
     @pytest.fixture(scope="class", autouse=True)
-    def impact_result2(self):
+    def impact_result2(self, project_name):
         result = ImpactResult(
+            project_name="impact",
             flow_id="test_flow_impact_id2",
             inputs={
                 "input1": 2.0,
@@ -302,6 +306,7 @@ class TestResultsInsertMethods:
     @pytest.mark.usefixtures("generic_result_insert_by_method")
     def test_load_generic_result(self, generic_result2, results_db_service):
         new_generic_obj = Result.load_from_query(
+            generic_result.project_name,
             {
                 "flow_id": generic_result2.flow_id,
                 "inputs": generic_result2.inputs,
@@ -323,6 +328,7 @@ class TestResultsInsertMethods:
     @pytest.mark.usefixtures("impact_result_insert_by_method")
     def test_load_impact_result(self, impact_result2, results_db_service):
         new_impact_obj = ImpactResult.load_from_query(
+            impact_result2.project_name,
             {
                 "flow_id": impact_result2.flow_id,
                 "inputs": impact_result2.inputs,

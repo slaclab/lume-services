@@ -32,7 +32,9 @@ def round_datetime_to_milliseconds(time: Union[datetime, str]) -> datetime:
 class Result(BaseModel):
     """Creates a data model for a result and generates a unique result hash."""
 
-    collection: str  # this will be the project_name for the scheduled flow
+    project_name: str = Field(
+        alias="collection"
+    )  # this will be the project_name for the scheduled flow
 
     # database id
     id: Optional[str] = Field(alias="_id", exclude=True)
@@ -78,16 +80,16 @@ class Result(BaseModel):
 
         # If flow_id is not passed, check prefect context
         if not values.get("flow_id"):
-            if not prefect_context.flow_id:
+            if not hasattr(prefect_context, "flow_id"):
                 raise ValueError("No flow_id passed to result")
 
             values["flow_id"] = prefect_context.flow_id
 
-        if not values.get("collection"):
-            if not prefect_context.project_name:
-                raise ValueError("No flow_id passed to result")
+        if not values.get("collection") and not values.get("project_name"):
+            if not hasattr(prefect_context, "project_name"):
+                raise ValueError("No project_name passed to result")
 
-            values["collection"] = prefect_context.project_name
+            values["project_name"] = prefect_context.project_name
 
         # create index hash
         if not values.get("unique_hash"):
@@ -105,7 +107,7 @@ class Result(BaseModel):
             if isinstance(_id, (ObjectId,)):
                 values["_id"] = str(values["_id"])
 
-        values["result_type_string"] = f"{cls.__module__}:{cls.__name__}"
+        values["result_type_string"] = f"{cls.__module__}.{cls.__name__}"
 
         return values
 
