@@ -149,6 +149,7 @@ services:
     # This configures access to services
     command: >
       bash -c "prefect server create-tenant --name default --slug default &>/dev/null ;
+      [[ -n ${STANFORD_USERNAME} && -n ${SCR_PAT} ]] && docker login -u ${STANFORD_USERNAME} -p ${SCR_PAT} http://scr.svc.stanford.edu;
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net --env LUME_BACKEND=$LUME_BACKEND
       --env LUME_MOUNTED_FILESYSTEM__IDENTIFIER=${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
       --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}

@@ -325,10 +325,10 @@ Configure your environment variables.
 source docs/examples/demo.env
 ```
 
-If you are using the Stanford Container Registry, you'll have to pull your image due to this [Prefect bug](https://github.com/PrefectHQ/prefect/issues/6643).
+If you are using the Stanford Container Registry, you'll have to set additional environment variables, you `STANFORD_USERNAME` and `SCR_PAT` from step 9.
 ```
-echo <your PAT from step 9> | docker login --username <your Stanford username> --password-stdin http://scr.svc.stanford.edu
-docker pull scr.svc.stanford.edu/<your Stanford username>/my-model:v0.0.1
+export STANFORD_USERNAME=<your_stanford_username>
+export SCR_PAT=<your PAT from step 9>
 ```
 
 Next start up your services:
