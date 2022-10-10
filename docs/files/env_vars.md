@@ -53,7 +53,7 @@
 # Scheduling Service
 |              Name              | Type  |           Default           |
 |--------------------------------|-------|-----------------------------|
-|LUME_PREFECT__SERVER__TAG       |string |core-1.2.4                   |
+|LUME_PREFECT__SERVER__TAG       |string |core-1.4.0                   |
 |LUME_PREFECT__SERVER__HOST      |string |http://localhost             |
 |LUME_PREFECT__SERVER__HOST_PORT |string |4200                         |
 |LUME_PREFECT__SERVER__HOST_IP   |string |127.0.0.1                    |
