@@ -7,7 +7,6 @@ import time
 import timeit
 from contextlib import contextmanager
 from prefect import Client
-import attr
 
 import logging
 from lume_services.docker.files import DOCKER_COMPOSE
@@ -113,51 +112,20 @@ def get_docker_ip():
     return match.group(1)
 
 
-@attr.s(frozen=True)
 class Services:
+    def __init__(self, compose_file, project_name, lume_services_settings):
+        self._compose_file = compose_file
+        self._project_name = project_name
+        self._lume_services_settings = lume_services_settings
 
-    _docker_compose = attr.ib()
-    _services = attr.ib(init=False, default=attr.Factory(dict))
-
-    def port_for(self, service, container_port):
-        """Return the "host" port for `service` and `container_port`.
-        E.g. If the service is defined like this:
-            version: '2'
-            services:
-              httpbin:
-                build: .
-                ports:
-                  - "8000:80"
-        this method will return 8000 for container_port=80.
-        """
-
-        # Lookup in the cache.
-        cache = self._services.get(service, {}).get(container_port, None)
-        if cache is not None:
-            return cache
-
-        output = self._docker_compose.execute("port %s %d" % (service, container_port))
-        endpoint = output.strip().decode("utf-8")
-        if not endpoint:
-            raise ValueError(
-                'Could not detect port for "%s:%d".' % (service, container_port)
-            )
-
-        # This handles messy output that might contain warnings or other text
-        if len(endpoint.split("\n")) > 1:
-            endpoint = endpoint.split("\n")[-1]
-
-        # Usually, the IP address here is 0.0.0.0, so we don't use it.
-        match = int(endpoint.split(":", 1)[1])
-
-        # Store it in cache in case we request it multiple times.
-        self._services.setdefault(service, {})[container_port] = match
-
-        return match
+    def execute(self, subcommand):
+        command = "docker-compose"
+        command += ' -f "{}"'.format(self._compose_file)
+        command += ' -p "{}" {}'.format(self._project_name, subcommand)
+        return execute(command)
 
     def wait_until_responsive(
         self,
-        lume_services_settings: LUMEServicesSettings,
         timeout: float,
         pause: float,
         clock=timeit.default_timer,
@@ -169,7 +137,7 @@ class Services:
         status = {key: False for key in _HEALTHCHECKS.keys()}
         while (now - ref) < timeout:
             status = {
-                key: check(lume_services_settings)
+                key: check(self._lume_services_settings)
                 for key, check in _HEALTHCHECKS.items()
             }
 
@@ -182,26 +150,6 @@ class Services:
         failed = [service for service, status_ in status.items() if not status_]
 
         raise Exception("Timeout reached while waiting for: %s", ",".join(failed))
-
-
-def str_to_list(arg):
-    if isinstance(arg, (list, tuple)):
-        return arg
-    return [arg]
-
-
-@attr.s(frozen=True)
-class DockerComposeExecutor:
-
-    _compose_files = attr.ib(converter=str_to_list)
-    _compose_project_name = attr.ib()
-
-    def execute(self, subcommand):
-        command = "docker-compose"
-        for compose_file in self._compose_files:
-            command += ' -f "{}"'.format(compose_file)
-        command += ' -p "{}" {}'.format(self._compose_project_name, subcommand)
-        return execute(command)
 
 
 def get_cleanup_commands():
@@ -240,7 +188,7 @@ def run_docker_services(
 
     """
     logger.info(f"Running services in environment: {dict(os.environ)}")
-    docker_compose = DockerComposeExecutor(DOCKER_COMPOSE, project_name)
+    services = Services(DOCKER_COMPOSE, project_name, lume_services_settings)
 
     if ui:
         cmd = _UI_SETUP_COMMAND
@@ -250,7 +198,8 @@ def run_docker_services(
     # setup containers.
     logger.info("Setting up docker-compose containers.")
     try:
-        docker_compose.execute(cmd)
+        services.execute(cmd)
+
     except Exception as e:
 
         cleanup_commands = _CLEANUP_COMMANDS
@@ -260,7 +209,7 @@ def run_docker_services(
         for cmd in cleanup_commands:
             logger.debug("Executing cmd %s", cmd)
             try:
-                docker_compose.execute(cmd)
+                services.execute(cmd)
             except Exception as cleanup_exception:
                 logger.warning(
                     f"Cleanup command exception for {cmd}: {cleanup_exception}"
@@ -271,9 +220,8 @@ def run_docker_services(
     # now we perform startup checks
     try:
         try:
-            services = Services(docker_compose)
-            services.wait_until_responsive(lume_services_settings, timeout, pause)
-            yield Services(docker_compose)
+            services.wait_until_responsive(timeout, pause)
+            yield services
 
         except Exception as e:
             logger.exception("Exception when composing services: %s", e)
@@ -281,7 +229,7 @@ def run_docker_services(
             for cmd in _CLEANUP_COMMANDS:
                 logger.debug("Executing cmd %s", cmd)
                 try:
-                    docker_compose.execute(cmd)
+                    services.execute(cmd)
                 except Exception as cleanup_exception:
                     logger.warning(
                         f"Cleanup command exception for {cmd}: \
@@ -300,7 +248,7 @@ def run_docker_services(
         for cmd in cleanup_commands:
             logger.debug("Executing cmd %s", cmd)
             try:
-                docker_compose.execute(cmd)
+                services.execute(cmd)
             except Exception as cleanup_exception:
                 logger.warning(
                     f"Cleanup command exception for {cmd}: {cleanup_exception}"

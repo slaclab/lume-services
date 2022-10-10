@@ -45,6 +45,7 @@ def start_services(project_name, timeout, pause, persist: bool):
         env_vars = get_env_vars()
         raise EnvironmentNotConfiguredError(env_vars)
 
+    print("Starting services...")
     try:
         with run_docker_services(
             lume_services_settings,
