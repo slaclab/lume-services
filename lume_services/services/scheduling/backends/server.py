@@ -31,7 +31,7 @@ class PrefectAgentConfig(BaseModel):
 
 
 class PrefectServerConfig(BaseModel):
-    tag: str = "core-1.2.4"
+    tag: str = "core-1.4.0"
     host: str = "http://localhost"
     host_port: str = "4200"
     host_ip: str = "127.0.0.1"
