@@ -325,6 +325,12 @@ Configure your environment variables.
 source docs/examples/demo.env
 ```
 
+If you are using the Stanford Container Registry, you'll have to pull your image due to this [Prefect bug](https://github.com/PrefectHQ/prefect/issues/6643).
+```
+echo <your PAT from step 9> | docker login --username <your Stanford username> --password-stdin http://scr.svc.stanford.edu
+docker pull scr.svc.stanford.edu/<your Stanford username>/my-model:v0.0.1
+```
+
 Next start up your services:
 ```
 lume-services docker start-services
@@ -336,7 +342,7 @@ Once the console logs a message about passed health checks, you've started all s
 
 ![desktop](files/docker_desktop.png)
 
-And access the UI using your browser at http://localhost:8080.
+And access the UI using your browser at [http://localhost:8080](http://localhost:8080).
 
 ### 12. Run the notebook and register your model
 

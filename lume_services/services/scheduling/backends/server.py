@@ -31,7 +31,7 @@ class PrefectAgentConfig(BaseModel):
 
 
 class PrefectServerConfig(BaseModel):
-    tag: str = "core-1.2.4"
+    tag: str = "core-1.4.0"
     host: str = "http://localhost"
     host_port: str = "4200"
     host_ip: str = "127.0.0.1"
@@ -311,13 +311,6 @@ class ServerBackend(Backend):
                 will execute using passed run_config."
             )
 
-        logger.info(
-            "Creating Prefect flow run for %s with parameters %s and run_config %s",
-            flow_id,
-            parameters,
-            run_config.json(),
-        )
-
         with prefect.context(config=self.config.apply()):
             client = Client()
 
@@ -329,6 +322,13 @@ class ServerBackend(Backend):
                     env={"PREFECT__CONTEXT__PROJECT_NAME": flow_view.project_name},
                     **kwargs,
                 )
+
+            logger.info(
+                "Creating Prefect flow run for %s with parameters %s and run_config %s",
+                flow_id,
+                parameters,
+                run_config.json(),
+            )
 
             prefect_run_config = run_config.build()
 
