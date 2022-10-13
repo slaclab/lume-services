@@ -14,6 +14,7 @@ services:
         target: /docker-entrypoint-initdb.d/model-db-init.sql
         read_only: true
     environment:
+      # password should not be stored like this... need to migrate to docker secrets for prod
       MYSQL_ROOT_PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       MYSQL_ROOT_HOST: '%'
       MYSQL_ROOT_USER: ${LUME_MODEL_DB__USER:-root}
@@ -24,6 +25,7 @@ services:
     image: mongo:latest
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${LUME_RESULTS_DB__USERNAME:-root}
+      # password should not be stored like this... need to migrate to docker secrets for prod
       MONGO_INITDB_ROOT_PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
     ports:
       - ${LUME_RESULTS_DB__PORT:-27017}:27017
@@ -147,9 +149,11 @@ services:
     image: prefecthq/prefect:1.4.0-python3.10
     # The environment variables are passed from agent to job pods
     # This configures access to services
+    # The authentication processes here should be reviewed before productionalizing
     command: >
       bash -c "prefect server create-tenant --name default --slug default &>/dev/null ;
-      [[ -n ${STANFORD_USERNAME:-''} && -n ${SCR_PAT:-''} ]] && docker login -u ${STANFORD_USERNAME} -p ${SCR_PAT} http://scr.svc.stanford.edu;
+      [[ -n ${STANFORD_USERNAME:-''} && -n ${SCR_PAT:-''} ]] &&
+      bash /root/install_docker_cli.sh && docker login -u ${STANFORD_USERNAME} -p ${SCR_PAT} http://scr.svc.stanford.edu;
       prefect agent docker start --label lume-services --agent-address http://localhost:5000/ --show-flow-logs --log-level DEBUG --network service-net --env LUME_BACKEND=$LUME_BACKEND
       --env LUME_MOUNTED_FILESYSTEM__IDENTIFIER=${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
       --env LUME_MOUNTED_FILESYSTEM__MOUNT_PATH=${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
@@ -184,6 +188,10 @@ services:
           source: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
           target: ${LUME_MOUNTED_FILESYSTEM__MOUNT_ALIAS:-/lume-services/data}
           read_only: false
+        - type: bind
+          source: ./install_docker_cli.sh
+          target: /root/install_docker_cli.sh
+          read_only: true
     environment:
       LUME_MOUNTED_FILESYSTEM__IDENTIFIER: ${LUME_MOUNTED_FILESYSTEM__IDENTIFIER:-mounted}
       LUME_MOUNTED_FILESYSTEM__MOUNT_PATH: ${LUME_MOUNTED_FILESYSTEM__MOUNT_PATH}
@@ -192,11 +200,13 @@ services:
       LUME_MODEL_DB__HOST: mysql
       LUME_MODEL_DB__PORT: 3306
       LUME_MODEL_DB__USER: ${LUME_MODEL_DB__USER:-root}
+      # password should not be stored like this... need to migrate to docker secrets
       LUME_MODEL_DB__PASSWORD: ${LUME_MODEL_DB__PASSWORD:-password}
       LUME_MODEL_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_services_models}
       LUME_RESULTS_DB__DATABASE: ${LUME_MODEL_DB__DATABASE:-lume_service_results}
       LUME_RESULTS_DB__USERNAME: ${LUME_RESULTS_DB__USERNAME:-root}
       LUME_RESULTS_DB__HOST: mongodb
+       # password should not be stored like this... need to migrate to docker secrets
       LUME_RESULTS_DB__PASSWORD: ${LUME_RESULTS_DB__PASSWORD:-password}
       LUME_RESULTS_DB__PORT: 27017
       LUME_PREFECT__SERVER__HOST: http://apollo
