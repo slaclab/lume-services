@@ -374,9 +374,7 @@ class Model(BaseModel):
 
             result_type_string = res.get("result_type_string")
             if result_type_string is not None:
-                res = self.get_results(
-                    collection=res.get("project_name"), query=res["query"]
-                )[0]
+                res = self.get_results(query=res["query"])[0]
 
                 return res
 
