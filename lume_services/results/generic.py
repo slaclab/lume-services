@@ -96,6 +96,9 @@ class Result(BaseModel):
             else:
                 values["project_name"] = prefect_context.project_name
 
+        elif values.get("collection"):
+            values["project_name"] = values.get("collection")
+
         # create index hash
         if not values.get("unique_hash"):
 
