@@ -164,6 +164,7 @@ class MongodbResultsDB(ResultsDB):
         with self.client() as client:
             db = client[self.config.database]
             db_collection = db[collection]
+            kwargs["collection"] = collection
             inserted_id = db_collection.insert_one(kwargs).inserted_id
 
             if inserted_id is None:
