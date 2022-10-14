@@ -2,6 +2,7 @@ import logging
 from typing import Optional, Any
 from dependency_injector.wiring import Provide, inject
 
+from lume_services.results import Result
 from lume_services.config import Context
 from lume_services.services.results import ResultsDB
 from prefect.engine.results import PrefectResult
@@ -191,7 +192,7 @@ class SaveDBResult(Task):
     @inject
     def run(
         self,
-        result,
+        result: Result,
         results_db_service: ResultsDB = Provide[Context.results_db_service],
     ) -> dict:
         """Insert result into the results database service. Creates a PrefectResult that
