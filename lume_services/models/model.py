@@ -372,16 +372,17 @@ class Model(BaseModel):
 
         def parse_result(res):
 
-            result_type_string = res.get("result_type_string")
-            if result_type_string is not None:
-                res = self.get_results(query=res["query"])[0]
+            if isinstance(res, dict):
+                result_type_string = res.get("result_type_string")
+                if result_type_string is not None:
+                    res = self.get_results(query=res["query"])[0]
 
-                return res
+                    return res
 
-            file_type_string = res.get("file_type_string")
-            if file_type_string is not None:
-                file_type = get_file_from_serializer_string(file_type_string)
-                return file_type(**res)
+                file_type_string = res.get("file_type_string")
+                if file_type_string is not None:
+                    file_type = get_file_from_serializer_string(file_type_string)
+                    return file_type(**res)
 
             return res
 
