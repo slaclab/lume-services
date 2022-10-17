@@ -233,7 +233,13 @@ In `my_model/tests/test_flow.py` modify the `test_flow_execution` function, addi
 
 ```python
 def test_flow_execution(tmp_path):
+    flow.set_reference_tasks([output_variables])
+
+    # Running without passing parameters require defaults for all parameters
     flow.run(filename=f"{tmp_path}/test_file.txt", filesystem_identifier="local")
+
+    # check success of flow
+    assert flow_run.is_successful()
 ```
 
 Navigate back to your `my-model` directory. You can now test your flow locally by running:
