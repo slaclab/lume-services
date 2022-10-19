@@ -4,6 +4,9 @@ on: [push, pull_request]
 
 jobs:
   test:
+    permissions:
+        pull-requests: write
+
     runs-on: ${{ matrix.os }}
     defaults:
         run:
