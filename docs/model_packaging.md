@@ -89,6 +89,60 @@ Output variables have the same fields as their corresponding input variables, bu
 |               | dim_labels      | List[str]  | Labels to use for dimensions                    | true     |
 |               | dim_units       | List[str]  | Units to use for dimensions.                    |          |
 
+Variables may be defined either programatically:
+```python
+from lume_model.variables import ScalarInputVariable, ScalarOutputVariable
+
+input_variable = ScalarInputVariable(name="test_input", default=0.1, value_range=[1, 2])
+output_variable = ScalarOutputVariable(name="test_output")
+```
+
+Or using a YAML spec:
+
+`my_variables.yml`
+```yaml
+input_variables:
+  input1:
+      name: input1
+      type: scalar
+      default: 1
+      range: [0, 256]
+
+  input2:
+      name: input2
+      type: scalar
+      default: 2.0
+      range: [0, 256]
+
+output_variables:
+  output1:
+    name: output1
+    type: image
+    x_label: "value1"
+    y_label: "value2"
+    axis_units: ["mm", "mm"]
+    x_min: 0
+    x_max: 10
+    y_min: 0
+    y_max: 10
+
+  output2:
+    name: output2
+    type: scalar
+  
+  output3:
+    name: output3
+    type: scalar
+```
+
+And subsequently loaded using:
+```python
+from lume_model.utils import variables_from_yaml
+
+with open("my_variables.yml", "r") as f:
+  input_variables, output_variables = variables_from_yaml(f)
+```
+
 ## Model
 
 The LUME-model class provides a minimal and extensible base for formatting models. The ‘evaluate’ method must be implemented on the subclass and accept a dictionary mapping input variable name to LUME-model input variable. The output of the `evaluate` method will be the dictionary output. The example packaged in the [demo](demo.md) implements the following:
@@ -151,90 +205,212 @@ The class can be extended to absorb other methods, accept custom kwargs, etc.
 
 ## Python Package
 
-### Requirements
-- Must include lume-services
-
-No additional dependencies will be downloaded for pip packages. This means requirements must be defined in the environment.yaml...
-
-# Templating
-## 1. Create package repository
-
-.json template
-
-
-
-
-## 2. Define your model variables
-
-Open `your-project/your_project/files/variables.yml`. The file will look like:
-
-```yaml
-
+The [LUME-services-model-template](https://github.com/slaclab/lume-services-model-template) provides a [cookiecutter](https://cookiecutter.readthedocs.io/en/stable/). The cookiecutter generates a LUME-services-compatible Python project with the following structure:
 
 ```
+<your project>
+├── Dockerfile
+├── MANIFEST.in
+├── README.md
+├── _entrypoint.sh
+├── conftest.py
+├── dev-environment.yml
+├── environment.yml
+├── <package name>
+│   ├── __init__.py
+│   ├── _image.py
+│   ├── _version.py
+│   ├── files
+│   │   ├── __init__.py
+│   │   └── variables.yml
+│   ├── flow.py
+│   ├── model.py
+│   └── tests
+│       ├── __init__.py
+│       └── test_flow.py
+├── pytest.ini
+├── requirements.txt
+├── setup.cfg
+├── setup.py
+└── versioneer.py
+```
 
-## 3. Define your model evaluation method
+The following steps describe use of this template.
 
-This class is extensible and can accomodate as many additional methods as you'd like to include.
+### 1. Create a repository for your project on GitHub
+Using your GitHub account, create an empty repository with your project name.
 
-## 4.  Define your flow
+### 2. Compile a YAML for your model input + output variables
 
-A minimal flow will accept ...
+Create a YAML using the [LUME-model variable spec](https://slaclab.github.io/lume-model/#variables).
+
+### 2: Create project using template
+
+Clone `lume-services-model-template` and navigate to repository:
+```
+git clone https://github.com/slaclab/lume-services-model-template
+cd lume-services-model-template
+```
+
+Create the template environment:
+
+```
+conda env create -f environment.yml
+conda activate lume-services-model-template
+```
+
+Create your project. The `-o` flag indicates the directory where you'd like the resulting repo to be stored. For now, let's create it in the repo root:
+```
+cookiecutter template -o $(pwd)
+```
+
+Answer the prompts
+```
+author: <your name>
+email: <your email address>
+github_username: <your GitHub username>
+github_url: <url of GitHub repo you've just created>
+project_name: <Name of GitHub repository>
+```
+You can use your own names below or use auto-generated values in the brackets by pressing enter.
+```
+repo_name [...]:
+package [...]:
+model_class [...]:
+```
+
+The template contains GitHub actions for building a Docker image from the package that will be used to run workflows in the distributed environment. If you plan to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort, enter `2`. Otherwise, enter `1` for DockerHub. 
+
+```
+Select container_registry:
+1 - DockerHub
+2 - Stanford Container Registry
+Choose from 1, 2 [1]:
+```
+Now, enter the username you use for the contaner registry:
+
+```
+container_username: <your registry username> 
+```
+And the full path to your variable file compiled in #2. 
+```
+model_config_file: <path/to/you/variable.yml>
+```
+
+Now, navigate to the directory where you've created your repository:
+```
+cd <your project name>
+```
+
+### 3. Configure generated repo to use GitHub repo as the origin:
+
+Replace username and brackets in the below command:
+```
+git remote add origin git@github.com:<your GitHub username>/<your project>.git
+git push --set-upstream -f origin main
+```
+
+Note: If your local git configuration defaults to creating a branch with name `master`, you'll have to rename the local branch to main using:
+```
+git branch -m master main
+```
+
+### 4. Set up model
+
+You can now update your model to fit your needs provided that the `evaluate` method accepts a dictionary mapping input variable name to LUME-model input variable and the method returns a dictionary mapping variable name to LUME-model output variable.
+
+### 5. Set up flow
+
+In order for our flow to run, we must edit the code in `<your project>/flow.py`. The comments in the `flow.py` should serve as a guide to setting up the flow.
 
 
-Execution of a flow is defined in the blurb:
+### 6. Create development environment
+
+Now, create an environment for working with your model package:
+
+```
+conda env create -f dev-environment.yml
+conda activate <your-project>-dev
+```
+
+Install your package into this environment:
+```
+pip install -e .
+```
+
+
+### 7. Set up tests
+
+In `my_model/tests/test_flow.py` modify the `test_flow_execution` so that your model will execute, passing appropriate parameters to the `flow.run()` method. For example:
+
 ```python
+def test_flow_execution(tmp_path):
+    flow.set_reference_tasks([output_variables])
 
+    # Running without passing parameters require defaults for all parameters
+    flow.run(filename=f"{tmp_path}/test_file.txt", filesystem_identifier="local")
+
+    # check success of flow
+    assert flow_run.is_successful()
+```
+
+Navigate back to your `<your project>` directory. You can now test your flow locally by running:
+```
+pytest .
+```
+
+### 8. Run tests with GitHub actions
+
+Check in all of your code, and push to GitHub.
 
 ```
-Where `task1`, `task2`, and `task3` are defined in the module body using the `@task` decorator.
-
-
-
-Flow targets:
-1. Filesystem target
-2. Mongodb target
-
-Flows are also extensible and can accomodate plenty of complexity. Using database targets requires a configured resources to be available to the flow at runtime.
-
-
-The `README.md` file should contain a comprehensive outline of variables accepted by your flow.
-
-## 5. Actions
-
-Define GitHub secret variables
-
-
-## Caveats
-Because the repository is heavily templated, there are several things that may break on modification. The tests defined in the `your-project/your_project/tests` file are designed to test the following conditions:
-1. Clearly defined entrypoints
-2. Properly formatted and registerable flows
-4.
-
-
-JSON FILE WITH THE FOLLOWING:
-{% raw %}
+git add .
+git commit -m "Check in formatted repo"
+git push
 ```
-{
-  "author": "Jacqueline Garrahan",
-  "email": "jacquelinegarrahan@gmail.com",
-  "github_username": "jacquelinegarrahan",
-  "project_name": "My Package", # Python importable package
-  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
 
+In your browser, navigate to your GitHub repository at `https://github.com/<your GitHub username>/<your project>/actions`. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
 
-  "project_short_description": "Python Boilerplate contains all the boilerplate you need to create a Python package.",
-  "pypi_username": "{{ cookiecutter.github_username }}",
-  "version": "0.1.0",
-  "use_pytest": "n",
-  "use_black": "n",
-  "use_pypi_deployment_with_travis": "y",
-  "add_pyup_badge": "n",
-  "command_line_interface": ["Click", "Argparse", "No command-line interface"],
-  "create_author_file": "y",
-  "open_source_license": ["MIT license", "BSD license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3", "Not open source"]
-}
+### 9. Configure GitHub actions build
 
+#### Stanford Container Registry
+
+SLAC users can take advantage of the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) to store their containers. The steps for configuring your project to use the registry are as follows:
+
+**9.1** Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration. Record this API token for use in steps 9.3 and 9.4.
+
+![token](files/PAT.png)
+
+**9.2** Create a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
+
+![project](files/scr_project.png)
+
+**9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value. Repeat this process to set a secret named `STANFORD_USERNAME` to your Stanford username.
+
+**9.4** Login to the container registry on your machine.
+
+Replace the <> with the appropriate values:
 
 ```
-{% endraw %}
+echo <your token> | docker login --username <your Stanford username> --password-stdin http://scr.svc.stanford.edu
+```
+
+#### DockerHub
+
+The LUME-services model template is pre-configured to publish the container image to DockerHub. In order to use this workflow, authentication for the repository must be configured using [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+
+1. Navigate to the settings on your repository.  
+
+![settings](files/repo-actions-settings.png)
+
+2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value.  
+
+### 10. Create a release
+
+Create a tagged release for your model. Navigate to `https://github.com/<your GitHub username>/<your project>/releases` -> `Draft a new release`
+
+![draft_release](files/draft_new_release.png)
+
+Under choose tag, type `v0.0.1` (this is a development tag, [semantic versioning](https://semver.org/) for releases formally starts at v0.1). You can enter the same for the title and may enter some description, but this is optional. Check the pre-release box at the bottom of the page and click the button to publish your release.
+
+The release will trigger a GitHub action workflow for your project, which you can monitor at `https://github.com/<your GitHub username>/<your-project>/actions`. Once the build completes, your image will be available at `https://hub.docker.com/u/<your DockerHub username>` or `https://code.stanford.edu/<your Stanford username>/<your project>/container_registry`.
