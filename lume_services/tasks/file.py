@@ -9,14 +9,14 @@ from prefect.engine.results import PrefectResult
 
 from lume_services.files import get_file_from_serializer_string
 from lume_services.utils import fingerprint_dict
-
+import os
 
 logger = logging.getLogger(__name__)
 
 
 def _unique_file_location(file_rep):
-    hash = fingerprint_dict(file_rep)
-    return f"{hash}.prefect"
+    unique_hash = fingerprint_dict(file_rep)
+    return f"{unique_hash}.prefect"
 
 
 class SaveFile(Task):
@@ -72,16 +72,13 @@ class SaveFile(Task):
 
     """
 
-    parameters = {
-        "filename": Parameter("filename"),
-        "filesystem_identifier": Parameter("filesystem_identifier"),
-    }
-
-    def __init__(self, **kwargs):
+    def __init__(self, parameter_base: str = None, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
         object and accepts all Task arguments during initialization.
 
         Args:
+            parameter_base (str): Base parameter name for use with multiple SaveFile
+                tasks in the same flow.
             name (Optional[str]): The name of this task.
             slug (Optional[str]):  The slug for this task. Slugs provide a stable ID
                 for tasks so that the Prefect API can identify task run states. If a
@@ -188,13 +185,23 @@ class SaveFile(Task):
 
         super().__init__(log_stdout=log_stdout, name=name, result=result, **kwargs)
 
+        if parameter_base is None:
+            parameter_base = ""
+
+        self.parameters = {
+            "filename": Parameter(f"{parameter_base}_filename"),
+            "filesystem_identifier": Parameter(
+                f"{parameter_base}_filesystem_identifier"
+            ),
+        }
+
     @inject
     def run(
         self,
         obj: Any,
         filename: str,
-        filesystem_identifier: str,
         file_type: type,
+        filesystem_identifier: str,
         file_service: FileService = Provide[Context.file_service],
     ):
         """Save a file.
@@ -213,6 +220,15 @@ class SaveFile(Task):
             dict: Loaded file type
 
         """
+        # if the filesystem identifier is not provided, use lume env vars
+        if filesystem_identifier is None:
+            filesystem_identifier = os.environ.get[
+                "LUME_MOUNTED_FILESYSTEM__IDENTIFIER"
+            ]
+
+        if filesystem_identifier is None:
+            filesystem_identifier = "local"
+
         file = file_type(
             obj=obj, filesystem_identifier=filesystem_identifier, filename=filename
         )
