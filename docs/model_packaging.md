@@ -1,7 +1,3 @@
-# Page TODO
-- [ ] Fix variable types
-
-
 # Model packaging (WIP docs)
 
 The LUME project provides a standard interface for formatting models for use with LUME services in [LUME-model](https://slaclab.github.io/lume-model/). LUME-services relies on this interface for templating the user packages served over orchestration tooling. The formatting strategy consists of:
@@ -12,82 +8,7 @@ The LUME project provides a standard interface for formatting models for use wit
 
 
 ## Variables
-[LUME-model variables](https://slaclab.github.io/lume-model/variables/) define the inputs and outputs to the model and enforce minimal metadata on the variables. The variables are divided into categories, with `InputVariable` and `OutputVariable` as bases, then further subdivided by data type giving:
-
-### INPUT VARIABLES
-| Variable Type | Fields          | Type       | Description                                     | Required |
-|---------------|-----------------|------------|-------------------------------------------------|----------|
-| Scalar        | name            |            | Name assigned to the variable.                  | true     |
-|               | default         |            | A default value                                 | true     |
-|               | precision       |            | Precision to use for the value                  |          |
-|               | value           |            | Value assigned to variable                      |          |
-|               | value_range     |            | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "scalar" on creation                   | true     |
-|               | units           |            | String value for units                          |          | 
-|               | parent_variable |            | Variable for which this is an attribute.        |          |
-| Image         | name            | str        | Name assigned to the variable.                  | true     |
-|               | default         |            | A default value                                 | true     |
-|               | precision       | int        | Precision to use for the value                  |          |
-|               | value           |            | Value assigned to variable                      |          |
-|               | value_range     | list       | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "image" on creation                    | true     |
-|               | axis_labels     | List[str]  | Labels to use for rendering axes.               |          |
-|               | axis_units      | List[str]  | Units to use for rendering axes labels.         |          | 
-|               | x_min           | float      | Minimum x value of image.                       | true     |
-|               | x_max           | float      | Maximum x value of image.                       | true     |
-|               | y_min           | float      | Minimum y value of image.                       | true     |
-|               | y_max           | float      | Maximum y value of image.                       | true     |
-|               | x_min_variable  | str        | Scalar variable associated with image minimum x |          |
-|               | x_max_variable  | str        | Scalar variable associated with image maximum x | true     |
-|               | y_min_variable  | str        | Scalar variable associated with image minimum y |          |
-|               | y_max_variable  | str        | Scalar variable associated with image maximum y |          |
-| Array         | name            | str        | Name assigned to the variable.                  | true     |
-|               | default         | np.ndarray | A default value                                 | true     |
-|               | precision       | int        | Precision to use for the value                  |          |
-|               | value           | np.ndarray | Value assigned to variable                      |          |
-|               | value_range     | list       | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "image" on creation                    | true     |
-|               | dim_labels      | List[str]  | Labels to use for dimensions                    | true     |
-|               | dim_units       | List[str]  | Units to use for dimensions.                    |          |
-
-
-Output variables have the same fields as their corresponding input variables, but have less requirements than their input counterpart.
-
-### OUTPUT VARIABLES
-| Variable Type | Fields          | Type       | Description                                     | Required |
-|---------------|-----------------|------------|-------------------------------------------------|----------|
-| Scalar        | name            |            | Name assigned to the variable.                  | true     |
-|               | default         |            | A default value                                 | true     |
-|               | precision       |            | Precision to use for the value                  |          |
-|               | value           |            | Value assigned to variable                      |          |
-|               | value_range     |            | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "scalar" on creation                   | true     |
-|               | units           |            | String value for units                          |          | 
-|               | parent_variable |            | Variable for which this is an attribute.        |          |
-| Image         | name            | str        | Name assigned to the variable.                  | true     |
-|               | default         |            | A default value                                 | true     |
-|               | precision       | int        | Precision to use for the value                  |          |
-|               | value           |            | Value assigned to variable                      |          |
-|               | value_range     | list       | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "image" on creation                    | true     |
-|               | axis_labels     | List[str]  | Labels to use for rendering axes.               |          |
-|               | axis_units      | List[str]  | Units to use for rendering axes labels.         |          | 
-|               | x_min           | float      | Minimum x value of image.                       | true     |
-|               | x_max           | float      | Maximum x value of image.                       | true     |
-|               | y_min           | float      | Minimum y value of image.                       | true     |
-|               | y_max           | float      | Maximum y value of image.                       | true     |
-|               | x_min_variable  | str        | Scalar variable associated with image minimum x |          |
-|               | x_max_variable  | str        | Scalar variable associated with image maximum x | true     |
-|               | y_min_variable  | str        | Scalar variable associated with image minimum y |          |
-|               | y_max_variable  | str        | Scalar variable associated with image maximum y |          |
-| Array         | name            | str        | Name assigned to the variable.                  | true     |
-|               | default         | np.ndarray | A default value                                 | true     |
-|               | precision       | int        | Precision to use for the value                  |          |
-|               | value           | np.ndarray | Value assigned to variable                      |          |
-|               | value_range     | list       | Range of values allowed.                        | true     |
-|               | variable_type   |            | Assigned "image" on creation                    | true     |
-|               | dim_labels      | List[str]  | Labels to use for dimensions                    | true     |
-|               | dim_units       | List[str]  | Units to use for dimensions.                    |          |
+[LUME-model variables](https://slaclab.github.io/lume-model/variables/) define the inputs and outputs to the model and enforce minimal metadata on the variables. The variables are divided into categories, with `InputVariable` and `OutputVariable` as bases, then further subdivided by data.
 
 Variables may be defined either programatically:
 ```python
@@ -279,7 +200,7 @@ package [...]:
 model_class [...]:
 ```
 
-The template contains GitHub actions for building a Docker image from the package that will be used to run workflows in the distributed environment. If you plan to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort, enter `2`. Otherwise, enter `1` for DockerHub. 
+The template contains GitHub actions for building a Docker image from the package that will be used to run workflows in the distributed environment. If you plan to use the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) provided by the [code.stanford.edu](https://code.stanford.edu/SiteDocs/faq) effort, enter `2`. Otherwise, enter `1` for DockerHub. See (model_packaging.md#registries) 
 
 ```
 Select container_registry:
@@ -323,6 +244,11 @@ You can now update your model to fit your needs provided that the `evaluate` met
 
 In order for our flow to run, we must edit the code in `<your project>/flow.py`. The comments in the `flow.py` should serve as a guide to setting up the flow.
 
+** Notes:
+
+Prefect's parameters must be json serializable
+Special datetime parameter uses [pendulum](https://pypi.org/project/pendulum/) to [parse datetime strings](https://github.com/PrefectHQ/prefect/blob/e6bd04abb5580eb79bde12b9ad3845e9f1d1479c/src/prefect/core/parameter.py#L147)
+Pass datetimes as strings by calling `my_datetime.isoformat()`
 
 ### 6. Create development environment
 
@@ -338,79 +264,37 @@ Install your package into this environment:
 pip install -e .
 ```
 
+### 7. GitHub actions
 
-### 7. Set up tests
+The template configures a number of actions to run against the repository once checked in to the GitHub origin. Statuses of these workflows will be available in our GitHub repository at `https://github.com/<your GitHub username>/<your project>/actions`. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
 
-In `my_model/tests/test_flow.py` modify the `test_flow_execution` so that your model will execute, passing appropriate parameters to the `flow.run()` method. For example:
+Versioned tags of the GitHub repository will correspond to deployments of a given model. The build action runs once a tag is created and uploads the model to your registry service of choice. 
 
-```python
-def test_flow_execution(tmp_path):
-    flow.set_reference_tasks([output_variables])
+## Registries
 
-    # Running without passing parameters require defaults for all parameters
-    flow.run(filename=f"{tmp_path}/test_file.txt", filesystem_identifier="local")
 
-    # check success of flow
-    assert flow_run.is_successful()
-```
-
-Navigate back to your `<your project>` directory. You can now test your flow locally by running:
-```
-pytest .
-```
-
-### 8. Run tests with GitHub actions
-
-Check in all of your code, and push to GitHub.
-
-```
-git add .
-git commit -m "Check in formatted repo"
-git push
-```
-
-In your browser, navigate to your GitHub repository at `https://github.com/<your GitHub username>/<your project>/actions`. The testing workflow configured in `.github/workflows/tests.yml` will run automatically on pushes to your main branch and you can monitor the success of these tests from the GitHub actions console for the repo. The workflow tests your package against a matrix of Python versions (3.7, 3.8, 3.9) on the latest Ubuntu build. You can expand this matrix if desired using [GitHub actions matrix options](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
-
-### 9. Configure GitHub actions build
-
-#### Stanford Container Registry
+### Stanford Container Registry
 
 SLAC users can take advantage of the [Stanford Container Registry](https://itcommunity.stanford.edu/unconference/sessions/2018/introducing-scr-stanford-container-registry) to store their containers. The steps for configuring your project to use the registry are as follows:
 
-**9.1** Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration. Record this API token for use in steps 9.3 and 9.4.
+
+1. Create an API token at https://code.stanford.edu/-/profile/personal_access_tokens. For `Token name` enter `My Model`. Optionally choose an expiration date. This can be whatever you'd like, but the GitHub action secret defined in step 3. will need to be updated with a new value after this expiration. Record this API token for use in steps 9.3 and 9.4.
 
 ![token](files/PAT.png)
 
-**9.2** Create a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
+2. Create a project using [Stanford Code](https://code.stanford.edu/projects/new#blank_project). In the `Project name` field, write `My Model`. Select internal visibility level.
 
 ![project](files/scr_project.png)
 
-**9.3** Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value. Repeat this process to set a secret named `STANFORD_USERNAME` to your Stanford username.
+3. Add the token to your GitHub repository secrets. Navigate to your repository settings. In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `SCR_PAT` into the name, and your generated API key into the value. Repeat this process to set a secret named `STANFORD_USERNAME` to your Stanford username.
 
-**9.4** Login to the container registry on your machine.
+### DockerHub
 
-Replace the <> with the appropriate values:
 
-```
-echo <your token> | docker login --username <your Stanford username> --password-stdin http://scr.svc.stanford.edu
-```
-
-#### DockerHub
-
-The LUME-services model template is pre-configured to publish the container image to DockerHub. In order to use this workflow, authentication for the repository must be configured using [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets).
+In order to use DockerHub workflow, you must first create a [DockerHub account](https://hub.docker.com/), then set the appropriate [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) on the repository.
 
 1. Navigate to the settings on your repository.  
 
 ![settings](files/repo-actions-settings.png)
 
 2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value.  
-
-### 10. Create a release
-
-Create a tagged release for your model. Navigate to `https://github.com/<your GitHub username>/<your project>/releases` -> `Draft a new release`
-
-![draft_release](files/draft_new_release.png)
-
-Under choose tag, type `v0.0.1` (this is a development tag, [semantic versioning](https://semver.org/) for releases formally starts at v0.1). You can enter the same for the title and may enter some description, but this is optional. Check the pre-release box at the bottom of the page and click the button to publish your release.
-
-The release will trigger a GitHub action workflow for your project, which you can monitor at `https://github.com/<your GitHub username>/<your-project>/actions`. Once the build completes, your image will be available at `https://hub.docker.com/u/<your DockerHub username>` or `https://code.stanford.edu/<your Stanford username>/<your project>/container_registry`.
