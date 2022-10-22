@@ -107,3 +107,20 @@ All result tasks are subclasses of the prefect Task object and accept all Task i
 
 Yaml
 * task name must match name
+
+
+
+
+
+Multi-flow registration
+```yaml
+flow:
+    order:
+        - epics_pv_collection
+        - scale
+        - normalize
+        - example_cu_hxr_0.0
+
+epics: example_cu_hxr_epics_map.yaml
+```
+

@@ -1,7 +1,6 @@
 # LUME-services cli
 
-LUME-services is packaged with a number of cli tools.
-
+See CLI [TODO](developer/todo.md#cli).
 
 ::: mkdocs-click
     :module: lume_services.cli.cli
