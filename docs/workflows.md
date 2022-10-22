@@ -1,34 +1,17 @@
 # Workflows
 
-LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be conceptualized of as scoped units of work.
-
-A flow looks like:
-```
-
-
-```
-
-Parameters are data objects passed into the flow at runtime.
-
-Variable names inside the flow context are used to compose the workflow
+LUME-services allows us to build workflows using Prefect's [Flow](https://docs.prefect.io/core/concepts/flows.html) APIs. Flows can be conceptualized of as scoped units of work. Prefect uses a context-management pattern to define flow hierarchy. Parameters are units of data passed into the flow at runtime.
 
 
 ## Configuring flows for use with LUME-services
 
-
-configure_lume_services task uses environment variable names to configure the lume-services api endpoints
-
-must be set as upstream taks to any tasks using those services using `my_task.set_upstream(configure_task)` within the flow context.
-
-
-
-
+Inside a flow, you may use the `configure_lume_services` task to configure LUME-services from environment variables. This task must be set as upstream task to any tasks that then use those services `my_task.set_upstream(configure_task)` within the flow context.
 
 
 ## Flow parameters
 
 Flow Parameters have some constraints. To see why those constraints exist, see developer docs [here](developer/services/scheduling.md#serialization).
-1. Flow-level parameters must be serializable, meaning they must be of types:
+1. Flow-level parameters must be json serializable, meaning they must be of types:
 
 |  Python          | JSON    |
 |----------------------------|
@@ -40,12 +23,10 @@ Flow Parameters have some constraints. To see why those constraints exist, see d
 | False            | false   |
 | None             |         |
 
-2. In order to access the results of tasks outside a flow, the task-level results must be JSON serializable. LUME-services packages some utilities for interacting with custom result types using JSON representations of the result that can be used to load at runtime.
+2. In order to access the results of tasks outside a flow, the task-level results must also be JSON serializable. LUME-services packages some utilities for interacting with custom result types using JSON representations of the result that can be used to load at runtime. The method `lume_services.results.generic.get_db_dict()` creates a json serializable result that may then be used to fetch a full model run result form the results database.
 
 
 ## Common tasks
-
-
 
 ```python
 from prefect import task, Flow, Parameter
@@ -82,28 +63,3 @@ with Flow("flow1", storage=Module(__name__)) as flow1:
 
 
 ```
-
-## Results
-
-name results
-
-
-### Database results
-
-in order to save multiple results to the database, define a name for the database result
-
-
-### File results
-
-if saving multiple files in the workflow, task name should be passed when initializing the task
-
-
-### Result customization
-
-All result tasks are subclasses of the prefect Task object and accept all Task initialization arguments...
-
-
-## Flow-of-flows
-
-Yaml
-* task name must match name
