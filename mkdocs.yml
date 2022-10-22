@@ -9,6 +9,7 @@ nav:
     - Workflows: workflows.md
     - CLI: cli.md
     - Demo: demo.md
+  - Packaging: model_packaging.md
   - Services:
     - File Service: services/files.md
     - Results DB Service: services/results.md
@@ -44,7 +45,6 @@ nav:
           - Backends: api/services/scheduling/backends.md
   - Developer:
     - Setup:  developer/setup.md
-    - Testing:  developer/testing.md
     - Documentation: developer/documentation.md
     - TODO: developer/todo.md
     - Cluster Architecture: developer/cluster.md
