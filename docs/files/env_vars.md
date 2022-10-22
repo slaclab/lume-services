@@ -13,18 +13,6 @@
 |LUME_MOUNTED_FILESYSTEM__MOUNT_TYPE |string|DirectoryOrCreate|
 
 
-# Environment Resolution
-|                     Name                      | Type  |                                         Default                                          |
-|-----------------------------------------------|-------|------------------------------------------------------------------------------------------|
-|LUME_ENVIRONMENT__LOCAL_PIP_REPOSITORY         |string |                                                                                          |
-|LUME_ENVIRONMENT__LOCAL_CONDA_CHANNEL_DIRECTORY|string |                                                                                          |
-|LUME_ENVIRONMENT__BASE_ENV_FILEPATH            |string |/Users/jacquelinegarrahan/sandbox/lume-services/lume_services/docker/files/environment.yml|
-|LUME_ENVIRONMENT__TMP_DIRECTORY                |string |/tmp/lume-services                                                                        |
-|LUME_ENVIRONMENT__PLATFORM                     |string |linux-64                                                                                  |
-|LUME_ENVIRONMENT__URL_RETRY_COUNT              |integer|                                                                                         3|
-|LUME_ENVIRONMENT__PYTHON_VERSION               |string |3.9.13                                                                                    |
-
-
 # Model Database
 |                  Name                  | Type  |   Default   |
 |----------------------------------------|-------|-------------|
@@ -51,20 +39,22 @@
 
 
 # Scheduling Service
-|              Name              | Type  |           Default           |
-|--------------------------------|-------|-----------------------------|
-|LUME_PREFECT__SERVER__TAG       |string |core-1.4.0                   |
-|LUME_PREFECT__SERVER__HOST      |string |http://localhost             |
-|LUME_PREFECT__SERVER__HOST_PORT |string |4200                         |
-|LUME_PREFECT__SERVER__HOST_IP   |string |127.0.0.1                    |
-|LUME_PREFECT__UI__HOST          |string |http://localhost             |
-|LUME_PREFECT__UI__HOST_PORT     |string |8080                         |
-|LUME_PREFECT__UI__HOST_IP       |string |127.0.0.1                    |
-|LUME_PREFECT__UI__APOLLO_URL    |string |http://localhost:4200/graphql|
-|LUME_PREFECT__TELEMETRY__ENABLED|boolean|True                         |
-|LUME_PREFECT__AGENT__HOST       |string |http://localhost             |
-|LUME_PREFECT__AGENT__HOST_PORT  |string |5000                         |
-|LUME_PREFECT__HOME_DIR          |string |~/.prefect                   |
-|LUME_PREFECT__DEBUG             |boolean|False                        |
-|LUME_PREFECT__BACKEND           |string |server                       |
+|              Name              | Type  |               Default                |
+|--------------------------------|-------|--------------------------------------|
+|LUME_PREFECT__SERVER__TAG       |string |core-1.2.4                            |
+|LUME_PREFECT__SERVER__HOST      |string |http://localhost                      |
+|LUME_PREFECT__SERVER__HOST_PORT |string |4200                                  |
+|LUME_PREFECT__SERVER__HOST_IP   |string |127.0.0.1                             |
+|LUME_PREFECT__UI__HOST          |string |http://localhost                      |
+|LUME_PREFECT__UI__HOST_PORT     |string |8080                                  |
+|LUME_PREFECT__UI__HOST_IP       |string |127.0.0.1                             |
+|LUME_PREFECT__UI__APOLLO_URL    |string |http://localhost:4200/graphql         |
+|LUME_PREFECT__TELEMETRY__ENABLED|boolean|True                                  |
+|LUME_PREFECT__AGENT__HOST       |string |http://localhost                      |
+|LUME_PREFECT__AGENT__HOST_PORT  |string |5000                                  |
+|LUME_PREFECT__HOME_DIR          |string |~/.prefect                            |
+|LUME_PREFECT__DEBUG             |boolean|False                                 |
+|LUME_PREFECT__BACKEND           |string |server                                |
+|LUME_PREFECT__IMAGE             |string |jgarrahan/lume-services-prefect:latest|
+|LUME_PREFECT__ISOLATED          |boolean|False                                 |
 
