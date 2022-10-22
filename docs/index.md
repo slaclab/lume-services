@@ -35,16 +35,20 @@
 [coverage]: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/jacquelinegarrahan/61dce43449fc0509f34520fd7efc41b1/raw/slaclab-lume-services-coverage.json&style=for-the-badge
 
 
+LUME-services provides a set of common services for model workflow orchestration:
 
-LUME-services provides a set of common services for use in the orchestrations of models (here defined as a self-contained workflow):
 
-- Contextualized [file service](services/files.md) (local/mounted/remote)
-- [Model database service](services/models.md) for tracking model deployments
+- Contextualized [file service](services/files.md) (local/mounted for containerized services)
+- [Model database service](services/models.md) for registering models and metadata
 - [Results database service](services/results.md) for storing model output
 - [Scheduling service](services/scheduling.md) for deploying model runs with [Prefect](https://docs.prefect.io/)
+
+Not yet implemented but eventually this will also include HPC interfaces slurm etc.: 
+
+
 - Abstracted [HPC service](services/hpc.md) for integration with scientific computing infrastructure.
 
-The intent of these tools are to streamline the packaging of modeling/simulation code by providing contextual flexibility with respect to service clusters. The framework uses runtime configurations for initializing backend implementation of all services, facilitating portability from local, to distributed dev, or production environments.
+The intent of these tools are to streamline the packaging of modeling/simulation code by providing contextual flexibility with respect to service clusters. The framework uses a configuration provided at runtime to establish connections will all services. This code design facilitate portability from local, to distributed dev, or production environments with the same code, but by setting the enironment variables. Models revisions are tracked using git.
 
 <br>
 
@@ -61,30 +65,18 @@ Alternatively, users can execute run workflows directly in their process by conf
 Features:
 
 * Standard schema for managing model metadata
-* Differentiated local and remote execution environments suitable for fast/slow executing models, respectively
-* Supports deployment of models into a standardized container by exposing pip and conda commands to container
-* Versioning at model and workflow levels
-* Simple reversion and execution of prior model versions
-* Configurable result persistence
-* Visualization tools for model results
+* Differentiated local and remote execution environments
+* Project template for building packaged models
+* Interfaces for model registry database and results database
+* APIs for scheduling workflow runs, registering models, and collecting results from the database.
 
 ## Requirements
 
-Use of the LUME-services requires Docker Engine
-https://docs.docker.com/engine/install/
+* The development environment launch containerized services in Docker containers. Use of these tools requires installation of the [Docker Engine](https://docs.docker.com/engine/install/)
 
 
 ## Installation
-
-
 This package can be installed from GitHub using:
 ```
 pip install git+https://github.com/slaclab/lume-services.git
 ```
-
-or from conda using ... (*once configured with conda-forge)
-
-
-## Intro
-
-Most use will use the model class as an interface to the other objects
