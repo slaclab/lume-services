@@ -78,9 +78,15 @@ from lume_services.config import configure
 configure()
 ```
 
-Relevant environment variables (tables built using script in `scripts/build_configuration_table.py` automatically generated w/ the GitHub build action defined in `.github/workflows/build_docs.yml`, see ** beneath):
+Relevant environment variables (these tables are built using script in `scripts/build_configuration_table.py` automatically generated w/ the GitHub build action defined in `.github/workflows/build_docs.yml`, see **note beneath):
 
 {% include 'files/env_vars.md' %}
+
+**note: I haven't validated these table. Sorry! You can check the  fields directly [here](). 
+
+
+
+
 
 ##  Custom configuration
 

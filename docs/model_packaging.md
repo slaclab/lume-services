@@ -290,7 +290,6 @@ SLAC users can take advantage of the [Stanford Container Registry](https://itcom
 
 ### DockerHub
 
-
 In order to use DockerHub workflow, you must first create a [DockerHub account](https://hub.docker.com/), then set the appropriate [GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) on the repository.
 
 1. Navigate to the settings on your repository.  
