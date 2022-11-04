@@ -5,11 +5,11 @@
     - [ ] Docs for injection and container
     - [ ] Docs!
     - [ ] Set up all loggers
-    - [ ] Set collection at the system level.
     - [ ] Move environments, flows, tasks, and results under model directory
-    - [ ] Add templated repo test
-    - [ ] Add environment installer tests for file/repo/private repo
+    - [ ] Add tests for templated repo
     - [ ] Fix docker cred handling in workflows
+    - [ ] Set up with conda
+    - [ ] Could test the templated flows directly with the services by using the lume-services pytest fixtures 
 - Done:
     - [x] Versioneer
     - [x] Action for testing package install & running pytests
@@ -26,12 +26,19 @@
     - [x] Fix image issue... Build a designated image in deployment using a lume-services base image
     - [x] Remove tests in pip installation
 
+
+## CLI
+- TODO:
+    - [ ] Integrate template with LUME-services CLI tooling. Once the template is tracked as a git submodule, a command can be implemented for creating the template directly using the lume-services [entrypoint](https://github.com/slaclab/lume-services/blob/c567fd4a2f4bdd274453190a38cb804e11a25bdc/setup.py#L24).
+    - [ ] Implement CLI tools for registering model deployments. At present, you need to call the in-code API as demonstrated in 
+    - [ ] Add CLI tool for listing available models and deployments
+
+
+
 ## Template
 - TODO:
-    - [ ] CLI tool
-    - [ ] Docs
-    - [ ] Relative path for cookiecutter generation
-    - [ ] Raise not implemented for to-be-replaced template functions
+    - [ ] Use git submodule to track template with version
+    - [ ] Use relative path for cookiecutter generation
 - Done:
     - [x] Action for testing package install & running pytests
     - [x] Upload docker image to repo artifacts 5/3
@@ -39,13 +46,13 @@
     - [x] Instructions for templating tool and configuration
     - [x] Templated README
     - [x] Handling of input/output variables at outset
+    - [x] Raise not implemented for to-be-replaced template functions
 
 ## Databases
 - TODO:
     - [ ] Test database failure cases
     - [ ] Dashboard image field in mongodb for impact
     - [ ] Docs
-    - [ ] Use model id for database collections
 - Done:
     - [x] Initial tests for mysql model db
     - [x] Abstraction of database schema and auth config from query execution
@@ -60,16 +67,16 @@
 - TODO:
     - [ ] Synchronous snapshot service (-> SLAC-services)
     - [ ] HPC interface
-    - [ ] Slurm interface
-    - [ ] Output service (-> LUME-EPICS?)
+    - [ ] Slurm interface (Can we just mount the binary?)
+    - [ ] Output service (this probably belongs in LUME-EPICS)
 - Done:
     - [x] Finish util testing
 
 ## Scheduler
 - TODO:
-    - [ ] Add mapped parameters to database?
     - [ ] Kubernetes backend tests
     - [ ] Docs
+    - [ ] Authentication for private repositories
 
 - Done:
     - [x] Refactor scheduler 7/13
@@ -91,11 +98,8 @@
     - [x] How do we handle submission of environment variables to the scheduler? For example, how do we communicate the aliasing of services in a docker-compose app?
 
 
-
-
 ## Misc
 - TODO:
-    - [ ] Separate template into own repo and use git submodule
     - [ ] Use environment variable fixture in tests instead of modifying env
 - Done:
     - [x] Rename file.systems to file.filesystems and all files names service.py
@@ -104,7 +108,7 @@
 
 ## Files
 - TODO:
-    - [ ] File locks
+    - [ ] Do we need file locks for the file handlers?
 - Done:
     - [x] Implement local file handler 5/2
     - [x] Implement mounted filesystem handler 5/2
