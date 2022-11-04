@@ -1,12 +1,23 @@
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Dict
 from pydantic import ValidationError
 import os
 
 
 class EnvironmentNotConfiguredError(Exception):
-    """Error for marking unconfigured environment."""
+    """Error used to mark an unconfigured environment."""
 
-    def __init__(self, env_vars, validation_error: ValidationError = None):
+    def __init__(
+        self, env_vars: Dict[str, str], validation_error: ValidationError = None
+    ) -> None:
+        """
+        Args:
+            env_vars (Dict[str, str]): Dictionary mapping service to list of
+                environment variables used to configure that service.
+            validation_error (ValidationError): ValidationError raised by Pydantic
+                class during assignment.
+
+        """
+
         self.env = dict(os.environ)
         self.env_vars = []
 
@@ -30,35 +41,62 @@ class EnvironmentNotConfiguredError(Exception):
 
 
 class FlowNotFoundError(Exception):
-    def __init__(self, query):
+    def __init__(self, query: dict) -> None:
+        """
+        Args:
+            query (dict): Dictionary representation of mongodb query.
+
+        """
+
         self.query = query
         self.message = "Flow not found for query: %s."
         super().__init__(self.message, self.query)
 
 
 class FlowOfFlowsNotFoundError(Exception):
-    def __init__(self, query):
+    def __init__(self, query: dict) -> None:
+        """
+        Args:
+            query (dict): Dictionary representation of mongodb query.
+
+        """
         self.query = query
         self.message = "Flow not found for query: %s."
         super().__init__(self.message, self.query)
 
 
 class ProjectNotFoundError(Exception):
-    def __init__(self, query):
+    def __init__(self, query: dict) -> None:
+        """
+        Args:
+            query (dict): Dictionary representation of mongodb query.
+
+
+        """
         self.query = query
         self.message = "Project not found for query: %s."
         super().__init__(self.message, self.query)
 
 
 class ModelNotFoundError(Exception):
-    def __init__(self, query):
+    def __init__(self, query: dict) -> None:
+        """
+        Args:
+            query (dict): Dictionary representation of mongodb query.
+
+        """
         self.query = query
         self.message = "Model not found for query: %s."
         super().__init__(self.message, self.query)
 
 
 class DeploymentNotFoundError(Exception):
-    def __init__(self, query):
+    def __init__(self, query: dict) -> None:
+        """
+        Args:
+            query (dict): Dictionary representation of mongodb query.
+
+        """
         self.query = query
         self.message = "Deployment not found for query: %s."
         super().__init__(self.message, str(self.query))
@@ -76,7 +114,18 @@ class ParameterNotInFlowError(Exception):
 
 
 class ParentFlowNotInFlowsError(Exception):
+    """Error raised when composing flow-of-flows when the parent flow is not found
+    in the list of flows.
+
+    """
+
     def __init__(self, flow_name: str, flows: List[str]):
+        """
+        Args:
+            flow_name (str): Name of parent flow
+            flows (List[str]): List of flows provided
+
+        """
         self.flow_name = flow_name
         self.flows = flows
         self.message = "Parent flow %s not in flows: %s"
@@ -84,7 +133,17 @@ class ParentFlowNotInFlowsError(Exception):
 
 
 class TaskNotInFlowError(Exception):
-    def __init__(self, flow_name: str, project_name: str, task_name: str):
+    """Error raised to indicate that the given task is not in a flow."""
+
+    def __init__(self, flow_name: str, project_name: str, task_name: str) -> None:
+        """
+        Args:
+            flow_name (str): Name of flow
+            project_name (str): Name of project
+            task_name (str): Name of task
+
+        """
+
         self.flow_name = flow_name
         self.task_name = task_name
         self.project_name = project_name
@@ -95,7 +154,15 @@ class TaskNotInFlowError(Exception):
 
 
 class TaskNotCompletedError(Exception):
-    def __init__(self, task_slug: str, flow_id: str, flow_run_id: str):
+    """Error raised when a task fails to execute successfully."""
+
+    def __init__(self, task_slug: str, flow_id: str, flow_run_id: str) -> None:
+        """
+        Args:
+            task_slug (str): Slug of the task that was not completed.
+            flow_id (str): ID of Prefect flow.
+            flow_run_id (str): ID of Prefect Flow run.
+        """
         self.flow_id = flow_id
         self.flow_run_id = flow_run_id
         self.task_slug = task_slug
@@ -106,7 +173,11 @@ class TaskNotCompletedError(Exception):
 
 
 class FlowFailedError(Exception):
-    def __init__(self, flow_id: str, flow_run_id: str, exception_message: str = None):
+    """Error raised when a flow fails to execute successfully."""
+
+    def __init__(
+        self, flow_id: str, flow_run_id: str, exception_message: str = None
+    ) -> None:
         self.flow_id = flow_id
         self.flow_run_id = flow_run_id
         self.exception_message = exception_message
@@ -117,7 +188,20 @@ class FlowFailedError(Exception):
 
 
 class EmptyResultError(Exception):
-    def __init__(self, flow_id: str, flow_run_id: str, task_slug: Optional[str]):
+    """Error raised when a result is empty."""
+
+    def __init__(
+        self, flow_id: str, flow_run_id: str, task_slug: Optional[str] = None
+    ) -> None:
+        """
+        Args:
+            flow_id (str): ID of the flow.s
+            flow_run_id (str): ID of the flow run.
+            task_slug (Optional[str]): Prefect tasks are assigned slugs. The task
+                slug is the identifier for the task for which we're trying to load the
+                result.
+
+        """
         self.flow_id = flow_id
         self.flow_run_id = flow_run_id
         self.task_slug = task_slug
@@ -153,7 +237,12 @@ class DeploymentNotRegisteredError(Exception):
 
     """
 
-    def __init__(self, model_id: int, deployment_id: int = None):
+    def __init__(self, model_id: int, deployment_id: Optional[int] = None) -> None:
+        """
+        Args:
+            model_id (int): ID of model.
+            deployment_id (Optional[int]): Deployment ID that was attempted to retrieve.
+        """
         self.model_id = model_id
         self.deployment_id = deployment_id
         if deployment_id is None:
@@ -172,7 +261,7 @@ class DeploymentNotRegisteredError(Exception):
 class WritePermissionError(Exception):
     """Error indicates missing write permission on a directory."""
 
-    def __init__(self, directory: str):
+    def __init__(self, directory: str) -> None:
         """
         Args:
             directory (str): Directory that is missing write permissions.
@@ -188,7 +277,7 @@ class WritePermissionError(Exception):
 class NoPackagesToInstallError(Exception):
     """Error indicates no packages were returned from environment resolution."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.message = "No packages were returned from environment resolution."
         super().__init__(self.message)
 
@@ -199,7 +288,7 @@ class UnableToInstallCondaDependenciesError(Exception):
 
     """
 
-    def __init__(self, conda_dependencies: List[str]):
+    def __init__(self, conda_dependencies: List[str]) -> None:
         """
         Args:
             conda_dependencies (List[str]): List of conda dependencies that were not
@@ -220,7 +309,7 @@ class UnableToInstallPipDependenciesError(Exception):
         python_version: float,
         platform: Literal["linux-64", "linux-32", "osx-64", "win-32", "win-64"],
         e: Exception,
-    ):
+    ) -> None:
         """
 
         Args:
@@ -247,7 +336,9 @@ class UnableToIndexLocalChannelError(Exception):
 
     """
 
-    def __init__(self, local_channel_directory: str, return_code: int, output: str):
+    def __init__(
+        self, local_channel_directory: str, return_code: int, output: str
+    ) -> None:
         """
         Args:
             local_channel_directory (str): Directory holding local channel.
@@ -288,21 +379,37 @@ class MissingEnvironmentYamlError(Exception):
 class NoCondaEnvironmentFoundError(Exception):
     """Error raised when CONDA_PREFIX is not defined."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("CONDA_PREFIX environment variabe is not set.")
 
 
 class NoFlowFoundInPackageError(Exception):
-    def __init__(self, source_path):
+    """Error raised when flow not found at a given entrypoint."""
+
+    def __init__(self, source_path: str):
+        """
+        Args:
+            source_path (str): Import path of the flow provided to entrypoint.
+
+        """
         self.source_path = source_path
         self.message = "No flow entrypoint found for the distribution at %s"
         super().__init__(self.message, self.source_path)
 
 
 class PathNotInMount(Exception):
+    """Error raised when the path provided does not exist in a mounted filesystem."""
+
     def __init__(
         self, filesystem_identifier: str, path: str, mount_path: str, mount_alias: str
-    ):
+    ) -> None:
+        """
+        Args:
+            filesystem_identifier (str): Identifier of the filesystem to use.
+            path (str): Path that was not found.
+            mount_path (str): Original path of the mounted directory on host.
+            mount_alias (str): Alias used in mount the filesystem.
+        """
         self.filesystem_identifier = filesystem_identifier
         self.path = (path,)
         self.mount_path = mount_path
