@@ -9,20 +9,17 @@ LUME-serices is packaged with `LocalFilesystem` and `MountedFilesystem` implemen
 
 ## Filesystems
 
-Filesystems may be defined in a `.ini` file and provided at runtime
+### LocalFilesystem
 
-```ini
-[local]
-identifier=local
+The local filesystem defined at [`lume_services.services.files.filesystems.local`](https://github.com/slaclab/lume-services/blob/main/lume_services/services/files/filesystems/local.py) uses the raw path provided to save and load methods for access to files.
 
-[mounted]
-identifier=workdir
-mount_alias="/workdir"
-mount_path="%(workdir)s"
-```
+### MountedFilesystem
 
+The mounted filesystem interface defined at [`lume_services.services.files.filesystems.mounted`](https://github.com/slaclab/lume-services/blob/main/lume_services/services/files/filesystems/mounted.py) aims to provide a handler for filesystems or directories mounted to containerized services, as with Docker and Kubernetes. 
 
-Mount types:
+The handler checks the mount path for files and performs substring substitutions on full paths.
+
+The mounted filesystem accommodates various mount types:
 
     # types associated with mounting host filesystem to kubernetes
     # https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
