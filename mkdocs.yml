@@ -50,11 +50,6 @@ nav:
     - Cluster Architecture: developer/cluster.md
     - Configuration: developer/configuration.md
     - Docker Image: developer/docker_image.md
-    - Services:
-      - File: developer/services/file.md
-      - Scheduling: developer/services/scheduling.md
-      - Results: developer/services/results.md
-      - Models: developer/services/models.md
 
 plugins:
   - macros

@@ -65,7 +65,6 @@ with open("my_variables.yml", "r") as f:
 ```
 
 ## Model
-
 The LUME-model class provides a minimal and extensible base for formatting models. The ‘evaluate’ method must be implemented on the subclass and accept a dictionary mapping input variable name to LUME-model input variable. The output of the `evaluate` method will be the dictionary output. The example packaged in the [demo](demo.md) implements the following:
 
 ```python
@@ -239,6 +238,9 @@ git branch -m master main
 ### 4. Set up model
 
 You can now update your model to fit your needs provided that the `evaluate` method accepts a dictionary mapping input variable name to LUME-model input variable and the method returns a dictionary mapping variable name to LUME-model output variable.
+
+
+Edit the environment.yml files in the repository to reflect the project dependencies. No additional dependencies will be downloaded for pip packages. This means all dependencies must be provided in the environment.yml of the project. 
 
 ### 5. Set up flow
 
