@@ -56,3 +56,73 @@ Workflows may be constructed by stitching together many subflows. This table tra
 * Parent flow ID:  ID of parent flow
 * Flow ID: ID of subflow
 * Position: Relative position in the flow of flows composition. For example, the second flow would have 2 in this field.
+
+
+Schema is defined using the sqlalchemy API in `lume_services/services/models/db/schema.py`.:
+
+![schema](../../files/model_db_schema.png)
+
+![uml](../../files/model_db_uml.png)
+
+### Updating the model schema
+On any changes to the schema, the database init script for the docker-compose must be updated.
+
+From the repository root run,
+```
+python scripts/update_docker_compose_schema.py build-docker-compose-schema
+```
+
+This will automatically render the schema file in `lume_services/docker/files/model-db-init.sql`. Now, you can add this file updated file to the git repository.
+
+
+### Sqlalchemy notes
+
+Sqlalchemy can be configured to use a number of different [dialects](https://docs.sqlalchemy.org/en/14/dialects/). The database implementation in `lume_services/services/models/db/db.py` defaults to using a `mysql` connection, as indicated with the `dialect_str="mysql+pymysql"` attribute on the ModelDBConfig object. Additional dialects can be accomodated by assigning this dialect string.
+
+At present, LUME-services does not take advantage of all the features of sqlalchemy, most notably the ability to do joined loads to link data between tables using [relationships](https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html).
+
+All queries could be adjusted to do things like joined loads for table relationships, etc.
+
+
+
+## API
+
+LUME-services defines an API for model objects in `lume_services.models.model`. 
+
+A model's deployments can be accessed using the Model.deployments attribute, which will return a list of deployments associated with the model. This relationship is established in the sqlalchemy [schema](https://github.com/slaclab/lume-services/blob/main/lume_services/services/models/db/schema.py):
+
+
+## Environment resolution
+
+LUME-services provides an interface to install packages from a given source. Below, we create a model and store a deployment.
+
+```python
+from lume_services.models import Model
+from lume_services import config
+config.configure()
+
+
+model = Model.create_model(
+    author = "Jackie Garrahan",
+    laboratory = "slac",
+    facility = "lcls",
+    beampath = "cu_hxr",
+    description = "test_model"
+)
+
+
+model_db_service = config.context.model_db_service()
+scheduling_service = config.context.scheduling_service()
+
+
+# create a project
+project_name = model_db_service.store_project(
+    project_name="test", description="my_description"
+)
+scheduling_service.create_project("test")
+
+
+source_path = "https://github.com/jacquelinegarrahan/my-model/releases/download/v0.0.44/my_model-0.0.44.tar.gz"
+# populates local channel
+model.store_deployment(source_path, project_name="test")
+```
