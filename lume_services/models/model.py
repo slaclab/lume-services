@@ -227,13 +227,13 @@ class Model(BaseModel):
                 group="orchestration", name=f"{deployment.package_import_name}.model"
             )
             if len(model_entrypoint):
-                model_type = model_entrypoint[0].load()
+                model_type = model_entrypoint[f"{deployment.package_import_name}.model"].load()
 
             flow_entrypoint = dist.entry_points.select(
                 group="orchestration", name=f"{deployment.package_import_name}.flow"
             )
             if len(flow_entrypoint):
-                flow.prefect_flow = flow_entrypoint[0].load()
+                flow.prefect_flow = flow_entrypoint[f"{deployment.package_import_name}.flow"].load()
 
             else:
                 raise NoFlowFoundInPackageError(deployment.package_import_name)
@@ -274,8 +274,9 @@ class Model(BaseModel):
         flow_entrypoint = dist.entry_points.select(
             group="orchestration", name=f"{source.name}.flow"
         )
+
         if len(flow_entrypoint):
-            prefect_flow = flow_entrypoint[0].load()
+            prefect_flow = flow_entrypoint[f"{source.name}.flow"].load()
 
         else:
             raise NoFlowFoundInPackageError(source_path)
