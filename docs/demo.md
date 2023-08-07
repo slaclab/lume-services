@@ -287,6 +287,10 @@ The LUME-services model template is pre-configured to publish the container imag
 
 2.  In the left sidebar, click `Secrets`, `Actions`, then `New repository secret`. Type `DOCKER_USERNAME` into the name, and your DockerHub username into the value and click `Add secret` to save. Repeat this process to create a `DOCKER_PASSWORD` secret with your DockerHub password as the value.  
 
+
+3.  In the left sidebar, click the top level `Actions` (not the one under `Secrets`), and choose `General`. Go to the `Workflow permissions` section
+and select `Read and write permissions`. This will allow the workflow triggered by a new release to publish your model to your repository.
+
 ### 10. Create a release
 
 Create a tagged release for your model. Navigate to `https://github.com/<your GitHub username>/my-model/releases` -> `Draft a new release`
@@ -325,6 +329,12 @@ Configure your environment variables.
 source docs/examples/demo.env
 ```
 
+Ensure docker has the ability to bind mount files from your conda environment. If using docker desktop, go to Preferences -> Resources -> File Sharing
+and ensure the path to `/opt/miniconda3/envs/my-model-dev/lib/python3.9/site-packages/lume_services` is included within your
+rules (adjusting the path to your local installation as necessary). If this path is not available to docker, then you will likely
+encounter `Error response from daemon: invalid mount config for type "bind": bind source path does not exist` when attempting to start
+up lume-services below.
+
 If you are using the Stanford Container Registry, you'll have to set additional environment variables, you `STANFORD_USERNAME` and `SCR_PAT` from step 9.
 ```
 export STANFORD_USERNAME=<your_stanford_username>
@@ -358,5 +368,5 @@ source docs/examples/demo.env
 ```
 Open the demo notebook and continue the remainder of the demo by running each cell:
 ```
-jupyter notebook docs/examples/Demo.ipynb
+jupyter lab docs/examples/Demo.ipynb
 ```
