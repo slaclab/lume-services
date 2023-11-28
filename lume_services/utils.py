@@ -9,8 +9,10 @@ import pandas as pd
 from importlib import import_module
 from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
-from pydantic import BaseModel, root_validator, create_model, Field, Extra, BaseSettings
+from pydantic import BaseModel, root_validator, create_model, Field, Extra
 from pydantic.generics import GenericModel
+from pydantic_settings import BaseSettings
+
 
 logger = logging.getLogger(__name__)
 
