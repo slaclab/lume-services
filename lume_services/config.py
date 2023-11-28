@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
-from pydantic import BaseSettings, ValidationError
+from pydantic import ValidationError
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 from lume_services.services.models.db import ModelDB, ModelDBConfig
