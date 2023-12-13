@@ -1,8 +1,6 @@
 from typing import Optional, Dict, Any, Union, List
 from prefect import Flow
 
-from lume_services.services.scheduling.backends.backend import Backend, RunConfig
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SchedulingService:
     """Scheduler handling job submission with Prefect."""
 
-    def __init__(self, backend: Backend):
+    def __init__(self, backend: Any):
         """Initialize PrefectScheduler using configuration
 
         Args:
@@ -113,7 +111,7 @@ class SchedulingService:
     def run_and_return(
         self,
         parameters: Optional[Dict[str, Any]],
-        run_config: Optional[RunConfig] = None,
+        run_config: Optional[Any] = None,
         task_name: Optional[str] = None,
         **kwargs
     ) -> Any:

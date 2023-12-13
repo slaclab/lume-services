@@ -1,15 +1,11 @@
 from datetime import datetime, timedelta
 from pydantic import BaseModel, validator, Field
-from prefect import Parameter
-from prefect.run_configs import RunConfig
 from typing import List, Optional, Dict, Literal, Any
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
 
 from lume_services.services.scheduling import SchedulingService
-from lume_services.services.scheduling.backends.local import LocalBackend
-from lume_services.services.scheduling.backends.server import ServerBackend
 
 
 class MappedParameter(BaseModel):
@@ -113,7 +109,7 @@ class Flow(BaseModel):
     flow_id: Optional[str]
     project_name: Optional[str]
     prefect_flow: Optional[PrefectFlow]
-    parameters: Optional[Dict[str, Parameter]]
+    parameters: Optional[Dict[str, Any]]
     mapped_parameters: Optional[Dict[str, MappedParameter]]
     task_slugs: Optional[Dict[str, str]]
     labels: List[str] = ["lume-services"]
@@ -219,18 +215,19 @@ class Flow(BaseModel):
             kwargs: Arguments passed to run config construction
 
         """
-        if isinstance(scheduling_service.backend, (LocalBackend,)):
-            if self.prefect_flow is None:
-                self.load_flow()
+        scheduling_service.run(parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs)
+#        if isinstance(scheduling_service.backend, (LocalBackend,)):
+#            if self.prefect_flow is None:
+#                self.load_flow()
 
-            scheduling_service.run(
-                parameters=parameters, flow=self.prefect_flow, **kwargs
-            )
+#            scheduling_service.run(
+#                parameters=parameters, flow=self.prefect_flow, **kwargs
+#            )
 
-        elif isinstance(scheduling_service.backend, (ServerBackend,)):
-            scheduling_service.run(
-                parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs
-            )
+#        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+#            scheduling_service.run(
+#                parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs
+#            )
 
     def run_and_return(
         self,
@@ -247,26 +244,33 @@ class Flow(BaseModel):
 
 
         """
-        if isinstance(scheduling_service.backend, (LocalBackend,)):
-            if self.prefect_flow is None:
-                self.load_flow()
+        return scheduling_service.run_and_return(
+            parameters=parameters,
+            flow_id=self.flow_id,
+            task_name=task_name,
+            image=self.image,
+            **kwargs
+        )
+#        if isinstance(scheduling_service.backend, (LocalBackend,)):
+#            if self.prefect_flow is None:
+#                self.load_flow()
 
-            return scheduling_service.run_and_return(
-                parameters=parameters,
-                flow=self.prefect_flow,
-                task_name=task_name,
-                image=self.image,
-                **kwargs
-            )
+#            return scheduling_service.run_and_return(
+#                parameters=parameters,
+#                flow=self.prefect_flow,
+#                task_name=task_name,
+#                image=self.image,
+#                **kwargs
+#            )
 
-        elif isinstance(scheduling_service.backend, (ServerBackend,)):
-            return scheduling_service.run_and_return(
-                parameters=parameters,
-                flow_id=self.flow_id,
-                task_name=task_name,
-                image=self.image,
-                **kwargs
-            )
+#        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+#            return scheduling_service.run_and_return(
+#                parameters=parameters,
+#                flow_id=self.flow_id,
+#                task_name=task_name,
+#                image=self.image,
+#                **kwargs
+#            )
 
 
 # unused...
@@ -279,7 +283,7 @@ class FlowRunConfig(BaseModel):
     poll_interval: timedelta = timedelta(seconds=10)
     scheduled_start_time: Optional[datetime]
     parameters: Optional[Dict[str, Any]]
-    run_config: Optional[RunConfig]
+    run_config: Optional[Any]
     labels: Optional[List[str]]
     run_name: Optional[str]
 

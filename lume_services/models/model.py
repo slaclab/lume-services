@@ -17,7 +17,7 @@ from lume_services.errors import (
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.flows.flow import Flow
-from lume_services.flows.flow_of_flows import FlowOfFlows
+#from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.results import Result
 from lume_services.files import get_file_from_serializer_string
 from lume_services.results.utils import get_result_from_string
@@ -119,12 +119,18 @@ class Model(BaseModel):
                             for flow in flows
                         ]
 
-                        new_values["deployment"]["flow"] = FlowOfFlows(
+                        new_values["deployment"]["flow"] = Flow(
                             flow_id=flow.flow_id,
                             name=flow.flow_name,
                             project_name=flow.project_name,
-                            composing_flows=composing_flows,
                         )
+
+#                        new_values["deployment"]["flow"] = FlowOfFlows(
+#                            flow_id=flow.flow_id,
+#                            name=flow.flow_name,
+#                            project_name=flow.project_name,
+#                            composing_flows=composing_flows,
+#                        )
 
                     # if not flow of flow, use standard flow
                     except FlowOfFlowsNotFoundError:
@@ -202,13 +208,20 @@ class Model(BaseModel):
                 {"name": flow.name, "project_name": flow.project_name} for flow in flows
             ]
 
-            flow = FlowOfFlows(
+            flow = Flow(
                 flow_id=flow_metadata.flow_id,
                 name=flow_metadata.flow_name,
                 project_name=flow_metadata.project_name,
-                composing_flows=composing_flows,
                 image=deployment.image,
             )
+
+#            flow = FlowOfFlows(
+#                flow_id=flow_metadata.flow_id,
+#                name=flow_metadata.flow_name,
+#                project_name=flow_metadata.project_name,
+#                composing_flows=composing_flows,
+#                image=deployment.image,
+#            )
 
         # if not flow of flow, use standard flow
         except FlowOfFlowsNotFoundError:

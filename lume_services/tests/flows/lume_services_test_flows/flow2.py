@@ -1,5 +1,4 @@
-from prefect import task, Flow, Parameter
-from prefect.storage import Module
+from prefect import task, Flow
 from lume_services.tasks import (
     LoadFile,
     SaveDBResult,
@@ -27,10 +26,8 @@ def format_result(text):
 load_file = LoadFile()
 save_db_result = SaveDBResult()
 
-with Flow(
-    "flow2", storage=Module(__name__.replace("lume_services.tests.flows.", ""))
-) as flow:
-    file_rep = Parameter("file_rep")
+with Flow("flow2") as flow:
+    file_rep = "file_rep"
     # load file
     configure = configure_lume_services()
     loaded_text = load_file(file_rep)

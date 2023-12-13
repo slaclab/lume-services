@@ -1,11 +1,10 @@
 import logging
 from dependency_injector.wiring import Provide, inject
-from prefect import Task, Parameter
+from prefect import Task
 from typing import Any
 
 from lume_services.config import Context
 from lume_services.services.files import FileService
-from prefect.engine.results import PrefectResult
 
 from lume_services.files import get_file_from_serializer_string
 from lume_services.utils import fingerprint_dict
@@ -71,12 +70,6 @@ class SaveFile(Task):
         ```
 
     """
-
-    parameters = {
-        "filename": Parameter("filename"),
-        "filesystem_identifier": Parameter("filesystem_identifier"),
-    }
-
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
         object and accepts all Task arguments during initialization.
@@ -124,8 +117,6 @@ class SaveFile(Task):
                 store its result using the configured result available during the run;
                 Also note that checkpointing will only occur locally if
                 `prefect.config.flows.checkpointing` is set to `True`
-            result (Optional[Result]): the result instance used to retrieve and
-                store task results during execution
             target (Optional[Union[str, Callable]]): location to check for task Result.
                 If a result exists at that location then the task run will enter a
                 cached state. `target` strings can be templated formatting strings
@@ -148,8 +139,6 @@ class SaveFile(Task):
             on_failure (Optional[Callable]): A function with signature
                 `fn(task: Task, state: State) -> None` that will be called anytime this
                 Task enters a failure state
-            log_stdout (Optional[bool]): Toggle whether or not to send stdout messages
-                to the Prefect logger. Defaults to `False`.
             task_run_name (Optional[Union[str, Callable]]): a name to set for this task
                 at runtime. `task_run_name` strings can be templated formatting strings
                 which will be formatted at runtime with values from task arguments,
@@ -170,23 +159,12 @@ class SaveFile(Task):
         """  # noqa
 
         # apply some defaults but allow overrides
-        log_stdout = kwargs.get("log_stdout")
-        if not kwargs.get("log_stdout"):
-            log_stdout = True
-        else:
-            log_stdout = kwargs.pop("log_stdout")
-
         if not kwargs.get("name"):
             name = "save_file"
         else:
             name = kwargs.pop("name")
 
-        if not kwargs.get("result"):
-            result = PrefectResult(location=_unique_file_location)
-        else:
-            result = kwargs.pop("result")
-
-        super().__init__(log_stdout=log_stdout, name=name, result=result, **kwargs)
+        super().__init__(name=name, **kwargs)
 
     @inject
     def run(
@@ -221,9 +199,6 @@ class SaveFile(Task):
 
 
 class LoadFile(Task):
-    parameters = {
-        "file_rep": Parameter("file_rep"),
-    }
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
@@ -272,8 +247,6 @@ class LoadFile(Task):
                 store its result using the configured result available during the run;
                 Also note that checkpointing will only occur locally if
                 `prefect.config.flows.checkpointing` is set to `True`
-            result (Optional[Result]): the result instance used to retrieve and
-                store task results during execution
             target (Optional[Union[str, Callable]]): location to check for task Result.
                 If a result exists at that location then the task run will enter a
                 cached state. `target` strings can be templated formatting strings
@@ -296,8 +269,6 @@ class LoadFile(Task):
             on_failure (Optional[Callable]): A function with signature
                 `fn(task: Task, state: State) -> None` that will be called anytime this
                 Task enters a failure state
-            log_stdout (Optional[bool]): Toggle whether or not to send stdout messages
-                to the Prefect logger. Defaults to `False`.
             task_run_name (Optional[Union[str, Callable]]): a name to set for this task
                 at runtime. `task_run_name` strings can be templated formatting strings
                 which will be formatted at runtime with values from task arguments,
@@ -318,18 +289,12 @@ class LoadFile(Task):
         """  # noqa
 
         # apply some defaults but allow overrides
-        log_stdout = kwargs.get("log_stdout")
-        if not kwargs.get("log_stdout"):
-            log_stdout = True
-        else:
-            log_stdout = kwargs.pop("log_stdout")
-
         if not kwargs.get("name"):
             name = "load_file"
         else:
             name = kwargs.pop("name")
 
-        super().__init__(log_stdout=log_stdout, name=name, **kwargs)
+        super().__init__(name=name, **kwargs)
 
     @inject
     def run(

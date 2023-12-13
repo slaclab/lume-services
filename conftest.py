@@ -6,11 +6,6 @@ from lume_services import config
 from lume_services.docker.files import DOCKER_COMPOSE
 from lume_services.services.models.db import ModelDBConfig
 from lume_services.services.results.mongodb import MongodbResultsDBConfig
-from lume_services.services.scheduling.backends.server import (
-    PrefectAgentConfig,
-    PrefectConfig,
-    PrefectServerConfig,
-)
 
 from lume_services.services.files.filesystems import (
     LocalFilesystem,
@@ -289,20 +284,9 @@ def lume_services_settings(
         password=mongodb_password,
     )
 
-    prefect_config = PrefectConfig(
-        server=PrefectServerConfig(
-            host=server_host, host_port=server_host_port, tag=server_tag
-        ),
-        agent=PrefectAgentConfig(host=agent_host, host_port=agent_host_port),
-        backend=prefect_backend,
-        default_image=prefect_docker_tag,
-        debug=prefect_debug,
-    )
-
     settings = config.LUMEServicesSettings(
         model_db=model_db_config,
         results_db=results_db_config,
-        prefect=prefect_config,
         backend=lume_backend,
         mounted_filesystem=mounted_filesystem,
     )

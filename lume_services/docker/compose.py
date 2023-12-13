@@ -3,10 +3,10 @@ import re
 import subprocess
 from pymongo import MongoClient
 import pymysql
+import requests
 import time
 import timeit
 from contextlib import contextmanager
-from prefect import Client
 import attr
 
 import logging
@@ -61,9 +61,8 @@ def check_prefect_ready(lume_services_settings: LUMEServicesSettings):
     port = lume_services_settings.prefect.server.host_port
 
     try:
-        client = Client(api_server=f"{host}:{port}")
-        client.graphql("query{hello}", raise_on_error=True)
-        return True
+        response = requests.get(f"{host}:{port}/api/health")
+        return response.status_code == 200
     except Exception as e:
         logger.error("Error in prefect check: %s", e)
         return False

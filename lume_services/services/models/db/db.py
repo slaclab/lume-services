@@ -29,7 +29,7 @@ class ConnectionConfig(BaseModel):
 
     """
 
-    pool_size: Optional[int]
+    pool_size: Optional[int] = 5
     pool_pre_ping: bool = True
 
 

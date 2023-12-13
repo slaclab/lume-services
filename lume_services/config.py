@@ -18,14 +18,7 @@ from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
-from lume_services.services.scheduling import PrefectConfig, SchedulingService
-from lume_services.services.scheduling.backends import (
-    Backend,
-    LocalBackend,
-    DockerBackend,
-    KubernetesBackend,
-)
-
+from lume_services.services.scheduling import SchedulingService
 
 from lume_services.errors import EnvironmentNotConfiguredError
 
@@ -50,8 +43,6 @@ class Context(containers.DeclarativeContainer):
 
     results_db = providers.Dependency(instance_of=ResultsDB)
 
-    scheduling_backend = providers.Dependency(instance_of=Backend)
-
     # filter on the case that a filesystem is undefined
     file_service = providers.Singleton(FileService, filesystems=filesystems)
 
@@ -62,10 +53,6 @@ class Context(containers.DeclarativeContainer):
     results_db_service = providers.Singleton(
         ResultsDBService,
         results_db=results_db,
-    )
-
-    scheduling_service = providers.Singleton(
-        SchedulingService, backend=scheduling_backend
     )
 
     wiring_config = containers.WiringConfiguration(
@@ -83,7 +70,6 @@ class LUMEServicesSettings(BaseSettings):
 
     model_db: Optional[ModelDBConfig]
     results_db: Optional[MongodbResultsDBConfig]
-    prefect: PrefectConfig
     mounted_filesystem: Optional[MountedFilesystem]
     backend: str = "local"
     # something wrong with pydantic literal parsing?
@@ -129,24 +115,6 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
     if settings.results_db is not None:
         results_db = MongodbResultsDB(settings.results_db)
 
-    # this could be moved to an enum
-    if settings.backend is not None:
-        if settings.backend == "kubernetes":
-            backend = KubernetesBackend(config=settings.prefect)
-
-        elif settings.backend == "docker":
-            backend = DockerBackend(config=settings.prefect)
-
-        elif settings.backend == "local":
-            backend = LocalBackend()
-
-        else:
-            raise ValueError(f"Unsupported backend {settings.backend}")
-
-    # default to local
-    else:
-        backend = LocalBackend()
-
     filesystems = [
         LocalFilesystem(),
     ]
@@ -158,7 +126,6 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
         model_db=model_db,
         results_db=results_db,
         filesystems=filesystems,
-        scheduling_backend=backend
     )
     _settings = settings
     logger.info("Environment configured.")
