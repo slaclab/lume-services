@@ -34,6 +34,8 @@ class MountedFilesystem(LocalFilesystem):
     mount_alias: str
     mount_type: _HostMountLiteral = "DirectoryOrCreate"
 
+    # TODO[pydantic]: We couldn't refactor the `validator`, please replace it by `field_validator` manually.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-validators for more information.
     @validator("mount_path", pre=True)
     def validate_mount_path(cls, v, values):
         mount_type = values.get("mount_type")

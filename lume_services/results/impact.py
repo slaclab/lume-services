@@ -2,7 +2,7 @@ from datetime import datetime
 
 from typing import Optional
 
-from pydantic import validator
+from pydantic import field_validator, validator
 from lume_services.results.generic import Result, round_datetime_to_milliseconds
 from lume_services.files import HDF5File, ImageFile
 
@@ -19,7 +19,8 @@ class ImpactResult(Result):
         "pv_collection_isotime", allow_reuse=True, always=True, pre=True
     )(round_datetime_to_milliseconds)
 
-    @validator("plot_file", pre=True)
+    @field_validator("plot_file", mode="before")
+    @classmethod
     def validate_plot_file(cls, v):
 
         # if the plot file isinstance of dictionary, load file type
@@ -28,7 +29,8 @@ class ImpactResult(Result):
 
         return v
 
-    @validator("archive", pre=True)
+    @field_validator("archive", mode="before")
+    @classmethod
     def validate_archive_file(cls, v):
 
         # if the plot file isinstance of dictionary, load file type

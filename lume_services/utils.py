@@ -9,8 +9,7 @@ import pandas as pd
 from importlib import import_module
 from typing import Any, Callable, Generic, List, Optional, TypeVar
 from types import FunctionType, MethodType
-from pydantic import BaseModel, root_validator, create_model, Field, Extra
-from pydantic.generics import GenericModel
+from pydantic import model_validator, ConfigDict, BaseModel, create_model, Field
 from pydantic_settings import BaseSettings
 
 
@@ -217,8 +216,7 @@ def get_callable_from_string(callable: str, bind: Any = None) -> Callable:
 
 
 class SignatureModel(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def build(self, *args, **kwargs):
         stored_kwargs = self.dict()
@@ -314,13 +312,12 @@ def validate_and_compose_signature(callable: Callable, *args, **kwargs):
 class CallableModel(BaseModel):
     callable: Callable
     signature: SignatureModel
+    # TODO[pydantic]: The following keys were removed: `json_encoders`.
+    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
+    model_config = ConfigDict(arbitrary_types_allowed=True, json_encoders=JSON_ENCODERS, extra="forbid")
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = JSON_ENCODERS
-        extra = Extra.forbid
-
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def validate_all(cls, values):
         callable = values.pop("callable")
 
@@ -384,8 +381,7 @@ class CallableModel(BaseModel):
 
 
 class ObjLoader(
-    GenericModel,
-    Generic[ObjType],
+    BaseModel, Generic[ObjType],
     arbitrary_types_allowed=True,
     json_encoders=JSON_ENCODERS,
 ):
@@ -393,7 +389,8 @@ class ObjLoader(
     loader: CallableModel = None
     object_type: Optional[type]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def validate_all(cls, values):
         # inspect class init signature
         obj_type = cls.__fields__["object"].type_

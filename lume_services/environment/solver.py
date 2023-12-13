@@ -9,7 +9,7 @@ import hashlib
 import tarfile
 from urllib.request import urlretrieve
 from platform import python_version as current_python_version
-from pydantic import BaseModel, root_validator
+from pydantic import model_validator, BaseModel
 from typing import List
 from typing import Optional, Literal
 from pkginfo import SDist
@@ -149,12 +149,13 @@ class Source(BaseModel):
     version: str
     name: str
     checksum: str
-    image: Optional[str]
+    image: Optional[str] = None
     conda_dependencies: List[str]
     channels: List[str]
     pip_dependencies: List[str]
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def validate_source(cls, values):
 
         path = values.get("path")

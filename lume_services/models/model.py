@@ -1,4 +1,4 @@
-from pydantic import BaseModel, root_validator
+from pydantic import model_validator, ConfigDict, BaseModel
 from typing import Optional, List
 import pandas as pd
 from importlib_metadata import distribution
@@ -36,32 +36,25 @@ logger = logging.getLogger(__name__)
 
 
 class Project(BaseModel):
-    metadata: Optional[ProjectSchema]
-
-    class Config:
-        arbitrary_types_allowed = True
+    metadata: Optional[ProjectSchema] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Deployment(BaseModel):
-    metadata: Optional[DeploymentSchema]
-    project: Optional[Project]
-    flow: Optional[Flow]  # defined using template entrypoints
-    model_type: Optional[type]
-
-    class Config:
-        arbitrary_types_allowed = True
-        validate_on_assignment = True
+    metadata: Optional[DeploymentSchema] = None
+    project: Optional[Project] = None
+    flow: Optional[Flow] = None  # defined using template entrypoints
+    model_type: Optional[type] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True, validate_on_assignment=True)
 
 
 class Model(BaseModel):
     """Class used for interacting with models."""
 
-    metadata: Optional[ModelSchema]
-    deployment: Optional[Deployment]
-    results: Optional[List[Result]]
-
-    class Config:
-        arbitrary_types_allowed = True
+    metadata: Optional[ModelSchema] = None
+    deployment: Optional[Deployment] = None
+    results: Optional[List[Result]] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,
@@ -71,7 +64,8 @@ class Model(BaseModel):
         values["model_db_service"] = model_db_service
         super().__init__(**values)
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def load_model_data(cls, values):
         """Loads relevant sqlalchemy objects from the database."""
         model_db_service = None

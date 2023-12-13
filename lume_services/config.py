@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 from pydantic import ValidationError
-from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict, BaseSettings
 from typing import Optional
 
 from lume_services.services.models.db import ModelDB, ModelDBConfig
@@ -72,15 +72,7 @@ class LUMEServicesSettings(BaseSettings):
     results_db: Optional[MongodbResultsDBConfig]
     mounted_filesystem: Optional[MountedFilesystem]
     backend: str = "local"
-    # something wrong with pydantic literal parsing?
-    # Literal["kubernetes", "local", "docker"] = "local"
-
-    class Config:
-        # env_file = '.env'
-        # env_file_encoding = 'utf-8'
-        validate_assignment = True
-        env_prefix = "LUME_"
-        env_nested_delimiter = "__"
+    model_config = SettingsConfigDict(validate_assignment=True, env_prefix="LUME_", env_nested_delimiter="__")
 
 
 def configure(settings: Optional[LUMEServicesSettings] = None):
