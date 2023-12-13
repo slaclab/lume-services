@@ -3,7 +3,7 @@ from pydantic import field_validator, model_validator, ConfigDict, BaseModel, Fi
 from datetime import datetime
 from lume_services.services.results import ResultsDB
 from lume_services.utils import fingerprint_dict
-from typing import List, Optional, Union, Dict
+from typing import Any, ClassVar, List, Optional, Union, Dict
 import numpy as np
 import pandas as pd
 import pickle
@@ -59,6 +59,10 @@ class Result(BaseModel):
 
     # store result type
     result_type_string: str
+
+    insert: ClassVar[Any]
+    load_from_query: ClassVar[Any]
+
     # TODO[pydantic]: The following keys were removed: `json_encoders`.
     # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     model_config = ConfigDict(arbitrary_types_allowed=True, json_encoders=JSON_ENCODERS, populate_by_name=True, extra="forbid")
