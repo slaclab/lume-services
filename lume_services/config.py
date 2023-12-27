@@ -68,9 +68,9 @@ class Context(containers.DeclarativeContainer):
 class LUMEServicesSettings(BaseSettings):
     """Settings describing configuration for default LUME-services provider objects."""
 
-    model_db: Optional[ModelDBConfig]
-    results_db: Optional[MongodbResultsDBConfig]
-    mounted_filesystem: Optional[MountedFilesystem]
+    model_db: Optional[ModelDBConfig] = None
+    results_db: Optional[MongodbResultsDBConfig] = None
+    mounted_filesystem: Optional[MountedFilesystem] = None
     backend: str = "local"
     model_config = SettingsConfigDict(validate_assignment=True, env_prefix="LUME_", env_nested_delimiter="__")
 
