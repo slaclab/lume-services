@@ -257,7 +257,7 @@ class Model(BaseModel):
         source_path: str,
         project_name: str,
         is_live: bool = True,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         model_db_service: ModelDBService = Provide[Context.model_db_service],
     ):
         """
@@ -338,7 +338,7 @@ class Model(BaseModel):
     def run(
         self,
         parameters: dict,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs,
     ):
         """
@@ -362,7 +362,7 @@ class Model(BaseModel):
         self,
         parameters: dict,
         task_name: str = None,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         **kwargs,
     ):

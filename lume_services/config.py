@@ -95,8 +95,8 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
             )
 
     # apply prefect config
-    if settings.prefect is not None:
-        settings.prefect.apply()
+#    if settings.prefect is not None:
+#        settings.prefect.apply()
 
     global context, _settings
     model_db = None

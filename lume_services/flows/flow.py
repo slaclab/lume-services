@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from pydantic import field_validator, ConfigDict, BaseModel
-from typing import List, Optional, Dict, Literal, Any
+from typing import List, Optional, Dict, Literal, Any, ClassVar
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
@@ -114,6 +114,8 @@ class Flow(BaseModel):
     task_slugs: Optional[Dict[str, str]] = None
     labels: List[str] = ["lume-services"]
     image: str
+    load_flow: ClassVar[Any]
+    register: ClassVar[Any]
     model_config = ConfigDict(arbitrary_types_allowed=True, validate_assignment=True)
 
     @field_validator("mapped_parameters", mode="before")
@@ -150,7 +152,7 @@ class Flow(BaseModel):
     @inject
     def load_flow(
         self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
     ) -> None:
         """Loads Prefect flow artifact from the backend.
 
@@ -171,7 +173,7 @@ class Flow(BaseModel):
     @inject
     def register(
         self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
     ) -> str:
         """Register flow with SchedulingService backend.
 
@@ -204,7 +206,7 @@ class Flow(BaseModel):
     def run(
         self,
         parameters,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs
     ):
         """Run the flow.
@@ -231,7 +233,7 @@ class Flow(BaseModel):
         self,
         parameters,
         task_name: Optional[str],
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs
     ):
         """Run flow and return result. Result will reference either passed task name or
