@@ -17,6 +17,56 @@ def _unique_file_location(file_rep):
     hash = fingerprint_dict(file_rep)
     return f"{hash}.prefect"
 
+@inject
+def save_file(
+    self,
+    obj: Any,
+    filename: str,
+    filesystem_identifier: str,
+    file_type: type,
+    file_service: FileService = Provide[Context.file_service],
+):
+    """Save a file.
+
+    Args:
+        obj (Any): Object to be saved
+        filename (str): File path to save
+        filesystem_identifier (str): String identifier for filesystem configured
+            with File Service
+        file_type (type): Type of file to save as. This is not exposed as a
+            task parameter and should be passed explicitely during task run call.
+            See examples.
+        file_service (FileService): File service for interacting w/ filesystems
+
+    Returns:
+        dict: Loaded file type
+
+    """
+    file = file_type(
+        obj=obj, filesystem_identifier=filesystem_identifier, filename=filename
+    )
+    file.write(file_service=file_service)
+    return file.jsonable_dict()
+
+@inject
+def load_file(
+    self, file_rep: dict, file_service: FileService = Provide[Context.file_service]
+) -> Any:
+    """Load a file
+
+    Args:
+        file_rep (dict): File data representation
+        file_service (FileService): File service for interacting w/ filesystems
+
+    Returns:
+        Any: Unserialize file object
+
+    """
+
+    file_type = get_file_from_serializer_string(file_rep["file_type_string"])
+    file_result = file_type(**file_rep)
+
+    return file_result.read(file_service=file_service)
 
 class SaveFile(Task):
     """This task is used to save a workflow file to a filesystem for subsequent

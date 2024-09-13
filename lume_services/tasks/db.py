@@ -16,6 +16,68 @@ def _unique_db_location(result_rep):
     hash = fingerprint_dict(result_rep)
     return f"{hash}.prefect"
 
+@inject
+def save_db_result(
+    result,
+    results_db_service: ResultsDB = Provide[Context.results_db_service]) -> dict:
+        """Insert result into the results database service. Creates a PrefectResult that
+        contains minimal representative information for reconstruction.
+
+        Args:
+            result (Result): Result object to save
+            results_db_service (ResultsDB): Results database service
+
+
+        Returns:
+            dict: Unique representation for collecting results.
+
+        """
+
+        result.insert(results_db_service=results_db_service)
+        return result.unique_rep()
+
+@inject
+def load_db_result(
+    result_rep: dict,
+    attribute_index: Optional[list],
+    results_db_service: ResultsDB = Provide[Context.results_db_service],
+) -> Any:
+    """Load a result from the database using a lume_services.Result represention.
+
+    Args:
+        result_rep (Union[dict, str]): Result representation containing
+            result_type_string and query for selection. If string passed,
+            will perform json loads to get dictionary.
+        attribute_index (Optional[list]): Selection instructions from query.
+            For example, selecting the first `toyota` from a dictionary of form:
+            `{"vehicle": {"car":  ["toyota", "mini"], "boat": ["sail", "motor"]}}`
+            would be accomplished by passing `attribute_index=["car", 0].
+        results_db_service (ResultsDB): Results database service. This is injected
+            when using the LUME-service configuration toolset.
+
+    Returns:
+        Any: Returns selection of value from result if attibute_index is passed,
+            otherwise returns Result object.
+
+    """
+    result_type = get_result_from_string(result_rep["result_type_string"])
+    result = result_type.load_from_query(
+        result_rep["project_name"],
+        result_rep["query"],
+        results_db_service=results_db_service,
+    )
+
+    # select first attribute
+    attr_value = getattr(result, attribute_index[0], None)
+    if attr_value is None:
+        return result
+
+    else:
+        for index in attribute_index[1:]:
+            attr_value = attr_value[index]
+
+        return attr_value
+
 
 class SaveDBResult(Task):
     """Save a result from the results database. All database results generate a
@@ -76,7 +138,7 @@ class SaveDBResult(Task):
 
     """  # noqa
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
         object and accepts all Task arguments during initialization.
 
@@ -172,7 +234,7 @@ class SaveDBResult(Task):
         else:
             name = kwargs.pop("name")
 
-        super().__init__(name=name, **kwargs)
+        super().__init__(self, *args, name=name, **kwargs)
 
     @inject
     def run(
