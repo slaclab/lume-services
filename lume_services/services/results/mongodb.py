@@ -1,5 +1,5 @@
 import os
-from pydantic import SecretStr, Field
+from pydantic import ConfigDict, SecretStr, Field
 from typing import List, Optional, Dict
 
 from pymongo import DESCENDING, MongoClient
@@ -45,9 +45,7 @@ class MongodbResultsDBConfig(ResultsDBConfig):
     # Literal["DEFAULT", 'GSSAPI', 'MONGODB-AWS', 'MONGODB-CR', 'MONGODB-X509',
     # 'PLAIN', 'SCRAM-SHA-1', 'SCRAM-SHA-256'] = "DEFAULT"
     options: dict = Field({}, exclude=True)
-
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MongodbCollection(BaseModel):

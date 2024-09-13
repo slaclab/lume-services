@@ -2,9 +2,8 @@ import logging
 import json
 from dependency_injector.wiring import Provide, inject
 
-from typing import Optional, Generic, Any
-from pydantic import root_validator, Field
-from pydantic.generics import GenericModel
+from typing import Optional, Generic, Any, ClassVar
+from pydantic import model_validator, BaseModel, ConfigDict, Field
 
 import copy
 
@@ -23,11 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class File(
-    GenericModel,
-    Generic[ObjType],
-    arbitrary_types_allowed=True,
-    json_encoders=JSON_ENCODERS,
-    allow_population_by_field_name=True,
+    BaseModel, Generic[ObjType]
 ):
     filename: str
     file_type_string: str
@@ -41,7 +36,14 @@ class File(
 
     load: bool = Field(False, exclude=True)
 
-    @root_validator(pre=True)
+    write: ClassVar[Any]
+    read: ClassVar[Any]
+    load_file: ClassVar[Any]
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, json_encoders=JSON_ENCODERS)
+
+    @model_validator(mode="before")
+    @classmethod
     def validate_all(cls, values):
         serializer_type = cls.__fields__["serializer"].type_
 

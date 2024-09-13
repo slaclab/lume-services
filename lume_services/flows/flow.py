@@ -1,15 +1,11 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, validator, Field
-from prefect import Parameter
-from prefect.run_configs import RunConfig
-from typing import List, Optional, Dict, Literal, Any
+from pydantic import field_validator, ConfigDict, BaseModel
+from typing import List, Optional, Dict, Literal, Any, ClassVar
 from prefect import Flow as PrefectFlow
 from dependency_injector.wiring import Provide, inject
 from lume_services.config import Context
 
 from lume_services.services.scheduling import SchedulingService
-from lume_services.services.scheduling.backends.local import LocalBackend
-from lume_services.services.scheduling.backends.server import ServerBackend
 
 
 class MappedParameter(BaseModel):
@@ -48,7 +44,7 @@ class RawMappedParameter(MappedParameter):
 
     """
 
-    map_type: str = Field("raw", const=True)
+    map_type: Literal["raw"] = "raw"
 
 
 class FileMappedParameter(MappedParameter):
@@ -64,12 +60,12 @@ class FileMappedParameter(MappedParameter):
 
     """
 
-    map_type: str = Field("file", const=True)
+    map_type: Literal["file"] = "file"
 
 
 class DBMappedParameter(MappedParameter):
-    map_type: str = Field("db", const=True)
-    attribute_index: Optional[list]
+    map_type: Literal["db"] = "db"
+    attribute_index: Optional[list] = None
 
 
 _string_to_mapped_parameter_type = {
@@ -110,20 +106,20 @@ class Flow(BaseModel):
     """
 
     name: str
-    flow_id: Optional[str]
-    project_name: Optional[str]
-    prefect_flow: Optional[PrefectFlow]
-    parameters: Optional[Dict[str, Parameter]]
-    mapped_parameters: Optional[Dict[str, MappedParameter]]
-    task_slugs: Optional[Dict[str, str]]
+    flow_id: Optional[str] = None
+    project_name: Optional[str] = None
+    prefect_flow: Optional[PrefectFlow] = None
+    parameters: Optional[Dict[str, Any]] = None
+    mapped_parameters: Optional[Dict[str, MappedParameter]] = None
+    task_slugs: Optional[Dict[str, str]] = None
     labels: List[str] = ["lume-services"]
     image: str
+    load_flow: ClassVar[Any]
+    register: ClassVar[Any]
+    model_config = ConfigDict(arbitrary_types_allowed=True, validate_assignment=True)
 
-    class Config:
-        arbitrary_types_allowed = True
-        validate_assignment = True
-
-    @validator("mapped_parameters", pre=True)
+    @field_validator("mapped_parameters", mode="before")
+    @classmethod
     def validate_mapped_parameters(cls, v):
 
         if v is None:
@@ -156,7 +152,7 @@ class Flow(BaseModel):
     @inject
     def load_flow(
         self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
     ) -> None:
         """Loads Prefect flow artifact from the backend.
 
@@ -177,7 +173,7 @@ class Flow(BaseModel):
     @inject
     def register(
         self,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
     ) -> str:
         """Register flow with SchedulingService backend.
 
@@ -210,7 +206,7 @@ class Flow(BaseModel):
     def run(
         self,
         parameters,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs
     ):
         """Run the flow.
@@ -219,24 +215,25 @@ class Flow(BaseModel):
             kwargs: Arguments passed to run config construction
 
         """
-        if isinstance(scheduling_service.backend, (LocalBackend,)):
-            if self.prefect_flow is None:
-                self.load_flow()
+        scheduling_service.run(parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs)
+#        if isinstance(scheduling_service.backend, (LocalBackend,)):
+#            if self.prefect_flow is None:
+#                self.load_flow()
 
-            scheduling_service.run(
-                parameters=parameters, flow=self.prefect_flow, **kwargs
-            )
+#            scheduling_service.run(
+#                parameters=parameters, flow=self.prefect_flow, **kwargs
+#            )
 
-        elif isinstance(scheduling_service.backend, (ServerBackend,)):
-            scheduling_service.run(
-                parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs
-            )
+#        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+#            scheduling_service.run(
+#                parameters=parameters, flow_id=self.flow_id, image=self.image, **kwargs
+#            )
 
     def run_and_return(
         self,
         parameters,
         task_name: Optional[str],
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs
     ):
         """Run flow and return result. Result will reference either passed task name or
@@ -247,41 +244,46 @@ class Flow(BaseModel):
 
 
         """
-        if isinstance(scheduling_service.backend, (LocalBackend,)):
-            if self.prefect_flow is None:
-                self.load_flow()
+        return scheduling_service.run_and_return(
+            parameters=parameters,
+            flow_id=self.flow_id,
+            task_name=task_name,
+            image=self.image,
+            **kwargs
+        )
+#        if isinstance(scheduling_service.backend, (LocalBackend,)):
+#            if self.prefect_flow is None:
+#                self.load_flow()
 
-            return scheduling_service.run_and_return(
-                parameters=parameters,
-                flow=self.prefect_flow,
-                task_name=task_name,
-                image=self.image,
-                **kwargs
-            )
+#            return scheduling_service.run_and_return(
+#                parameters=parameters,
+#                flow=self.prefect_flow,
+#                task_name=task_name,
+#                image=self.image,
+#                **kwargs
+#            )
 
-        elif isinstance(scheduling_service.backend, (ServerBackend,)):
-            return scheduling_service.run_and_return(
-                parameters=parameters,
-                flow_id=self.flow_id,
-                task_name=task_name,
-                image=self.image,
-                **kwargs
-            )
+#        elif isinstance(scheduling_service.backend, (ServerBackend,)):
+#            return scheduling_service.run_and_return(
+#                parameters=parameters,
+#                flow_id=self.flow_id,
+#                task_name=task_name,
+#                image=self.image,
+#                **kwargs
+#            )
 
 
 # unused...
 class FlowConfig(BaseModel):
-    image: Optional[str]
-    env: Optional[List[str]]
+    image: Optional[str] = None
+    env: Optional[List[str]] = None
 
 
 class FlowRunConfig(BaseModel):
     poll_interval: timedelta = timedelta(seconds=10)
-    scheduled_start_time: Optional[datetime]
-    parameters: Optional[Dict[str, Any]]
-    run_config: Optional[RunConfig]
-    labels: Optional[List[str]]
-    run_name: Optional[str]
-
-    class Config:
-        arbitrary_types_allowed = True
+    scheduled_start_time: Optional[datetime] = None
+    parameters: Optional[Dict[str, Any]] = None
+    run_config: Optional[Any] = None
+    labels: Optional[List[str]] = None
+    run_name: Optional[str] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)

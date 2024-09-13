@@ -1,4 +1,4 @@
-from pydantic import BaseModel, root_validator
+from pydantic import model_validator, ConfigDict, BaseModel
 from typing import Optional, List
 import pandas as pd
 from importlib_metadata import distribution
@@ -17,7 +17,7 @@ from lume_services.errors import (
 
 from lume_services.services.scheduling import SchedulingService
 from lume_services.flows.flow import Flow
-from lume_services.flows.flow_of_flows import FlowOfFlows
+#from lume_services.flows.flow_of_flows import FlowOfFlows
 from lume_services.results import Result
 from lume_services.files import get_file_from_serializer_string
 from lume_services.results.utils import get_result_from_string
@@ -36,32 +36,25 @@ logger = logging.getLogger(__name__)
 
 
 class Project(BaseModel):
-    metadata: Optional[ProjectSchema]
-
-    class Config:
-        arbitrary_types_allowed = True
+    metadata: Optional[ProjectSchema] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Deployment(BaseModel):
-    metadata: Optional[DeploymentSchema]
-    project: Optional[Project]
-    flow: Optional[Flow]  # defined using template entrypoints
-    model_type: Optional[type]
-
-    class Config:
-        arbitrary_types_allowed = True
-        validate_on_assignment = True
+    metadata: Optional[DeploymentSchema] = None
+    project: Optional[Project] = None
+    flow: Optional[Flow] = None  # defined using template entrypoints
+    model_type: Optional[type] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True, validate_on_assignment=True)
 
 
 class Model(BaseModel):
     """Class used for interacting with models."""
 
-    metadata: Optional[ModelSchema]
-    deployment: Optional[Deployment]
-    results: Optional[List[Result]]
-
-    class Config:
-        arbitrary_types_allowed = True
+    metadata: Optional[ModelSchema] = None
+    deployment: Optional[Deployment] = None
+    results: Optional[List[Result]] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(
         self,
@@ -71,7 +64,8 @@ class Model(BaseModel):
         values["model_db_service"] = model_db_service
         super().__init__(**values)
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def load_model_data(cls, values):
         """Loads relevant sqlalchemy objects from the database."""
         model_db_service = None
@@ -119,12 +113,18 @@ class Model(BaseModel):
                             for flow in flows
                         ]
 
-                        new_values["deployment"]["flow"] = FlowOfFlows(
+                        new_values["deployment"]["flow"] = Flow(
                             flow_id=flow.flow_id,
                             name=flow.flow_name,
                             project_name=flow.project_name,
-                            composing_flows=composing_flows,
                         )
+
+#                        new_values["deployment"]["flow"] = FlowOfFlows(
+#                            flow_id=flow.flow_id,
+#                            name=flow.flow_name,
+#                            project_name=flow.project_name,
+#                            composing_flows=composing_flows,
+#                        )
 
                     # if not flow of flow, use standard flow
                     except FlowOfFlowsNotFoundError:
@@ -202,13 +202,20 @@ class Model(BaseModel):
                 {"name": flow.name, "project_name": flow.project_name} for flow in flows
             ]
 
-            flow = FlowOfFlows(
+            flow = Flow(
                 flow_id=flow_metadata.flow_id,
                 name=flow_metadata.flow_name,
                 project_name=flow_metadata.project_name,
-                composing_flows=composing_flows,
                 image=deployment.image,
             )
+
+#            flow = FlowOfFlows(
+#                flow_id=flow_metadata.flow_id,
+#                name=flow_metadata.flow_name,
+#                project_name=flow_metadata.project_name,
+#                composing_flows=composing_flows,
+#                image=deployment.image,
+#            )
 
         # if not flow of flow, use standard flow
         except FlowOfFlowsNotFoundError:
@@ -250,7 +257,7 @@ class Model(BaseModel):
         source_path: str,
         project_name: str,
         is_live: bool = True,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         model_db_service: ModelDBService = Provide[Context.model_db_service],
     ):
         """
@@ -331,7 +338,7 @@ class Model(BaseModel):
     def run(
         self,
         parameters: dict,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         **kwargs,
     ):
         """
@@ -355,7 +362,7 @@ class Model(BaseModel):
         self,
         parameters: dict,
         task_name: str = None,
-        scheduling_service: SchedulingService = Provide[Context.scheduling_service],
+        scheduling_service: SchedulingService = None,
         results_db_service: ResultsDBService = Provide[Context.results_db_service],
         **kwargs,
     ):

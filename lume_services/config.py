@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
-from pydantic import BaseSettings, ValidationError
+from pydantic import ValidationError
+from pydantic_settings import SettingsConfigDict, BaseSettings
 from typing import Optional
 
 from lume_services.services.models.db import ModelDB, ModelDBConfig
@@ -17,14 +18,7 @@ from lume_services.services.files.filesystems import (
     LocalFilesystem,
     MountedFilesystem,
 )
-from lume_services.services.scheduling import PrefectConfig, SchedulingService
-from lume_services.services.scheduling.backends import (
-    Backend,
-    LocalBackend,
-    DockerBackend,
-    KubernetesBackend,
-)
-
+from lume_services.services.scheduling import SchedulingService
 
 from lume_services.errors import EnvironmentNotConfiguredError
 
@@ -49,8 +43,6 @@ class Context(containers.DeclarativeContainer):
 
     results_db = providers.Dependency(instance_of=ResultsDB)
 
-    scheduling_backend = providers.Dependency(instance_of=Backend)
-
     # filter on the case that a filesystem is undefined
     file_service = providers.Singleton(FileService, filesystems=filesystems)
 
@@ -61,10 +53,6 @@ class Context(containers.DeclarativeContainer):
     results_db_service = providers.Singleton(
         ResultsDBService,
         results_db=results_db,
-    )
-
-    scheduling_service = providers.Singleton(
-        SchedulingService, backend=scheduling_backend
     )
 
     wiring_config = containers.WiringConfiguration(
@@ -80,20 +68,11 @@ class Context(containers.DeclarativeContainer):
 class LUMEServicesSettings(BaseSettings):
     """Settings describing configuration for default LUME-services provider objects."""
 
-    model_db: Optional[ModelDBConfig]
-    results_db: Optional[MongodbResultsDBConfig]
-    prefect: PrefectConfig
-    mounted_filesystem: Optional[MountedFilesystem]
+    model_db: Optional[ModelDBConfig] = None
+    results_db: Optional[MongodbResultsDBConfig] = None
+    mounted_filesystem: Optional[MountedFilesystem] = None
     backend: str = "local"
-    # something wrong with pydantic literal parsing?
-    # Literal["kubernetes", "local", "docker"] = "local"
-
-    class Config:
-        # env_file = '.env'
-        # env_file_encoding = 'utf-8'
-        validate_assignment = True
-        env_prefix = "LUME_"
-        env_nested_delimiter = "__"
+    model_config = SettingsConfigDict(validate_assignment=True, env_prefix="LUME_", env_nested_delimiter="__")
 
 
 def configure(settings: Optional[LUMEServicesSettings] = None):
@@ -116,8 +95,8 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
             )
 
     # apply prefect config
-    if settings.prefect is not None:
-        settings.prefect.apply()
+#    if settings.prefect is not None:
+#        settings.prefect.apply()
 
     global context, _settings
     model_db = None
@@ -127,24 +106,6 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
     results_db = None
     if settings.results_db is not None:
         results_db = MongodbResultsDB(settings.results_db)
-
-    # this could be moved to an enum
-    if settings.backend is not None:
-        if settings.backend == "kubernetes":
-            backend = KubernetesBackend(config=settings.prefect)
-
-        elif settings.backend == "docker":
-            backend = DockerBackend(config=settings.prefect)
-
-        elif settings.backend == "local":
-            backend = LocalBackend()
-
-        else:
-            raise ValueError(f"Unsupported backend {settings.backend}")
-
-    # default to local
-    else:
-        backend = LocalBackend()
 
     filesystems = [
         LocalFilesystem(),
@@ -157,7 +118,6 @@ def configure(settings: Optional[LUMEServicesSettings] = None):
         model_db=model_db,
         results_db=results_db,
         filesystems=filesystems,
-        scheduling_backend=backend
     )
     _settings = settings
     logger.info("Environment configured.")

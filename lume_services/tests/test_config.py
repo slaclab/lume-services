@@ -3,7 +3,6 @@ import os
 import numpy as np
 
 import prefect
-from prefect.utilities.backend import load_backend, save_backend
 
 from dependency_injector.containers import DynamicContainer
 
@@ -25,15 +24,10 @@ class TestLumeSettings:
     def test_configure_from_env(
         self, model_db_service, results_db_service, scheduling_service
     ):
-        save_backend("cloud")
         assert config.context is None
         config.configure()
         assert config.context is not None
         assert isinstance(config.context, (DynamicContainer,))
-
-        # check that server has been applied
-        backend_spec = load_backend()
-        assert backend_spec["backend"] == "server"
 
         assert config._settings.model_db.user == model_db_service._model_db.config.user
         assert (
@@ -229,10 +223,6 @@ class TestResultServiceInjection:
 class TestPrefectConfig:
     def test_prefect_config(self, lume_services_settings):
         prefect_config = lume_services_settings.prefect
-
-        # check that server has been applied
-        backend_spec = load_backend()
-        assert backend_spec["backend"] == "server"
 
         # check assignment, has already been applied
         assert prefect.config.debug == prefect_config.debug

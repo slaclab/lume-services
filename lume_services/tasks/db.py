@@ -4,8 +4,7 @@ from dependency_injector.wiring import Provide, inject
 
 from lume_services.config import Context
 from lume_services.services.results import ResultsDB
-from prefect.engine.results import PrefectResult
-from prefect import Task, Parameter
+from prefect import Task
 
 from lume_services.results import get_result_from_string
 from lume_services.utils import fingerprint_dict
@@ -168,25 +167,12 @@ class SaveDBResult(Task):
                 types).
 
         """  # noqa
-
-        # apply some defaults but allow overrides
-        log_stdout = kwargs.get("log_stdout")
-        if not kwargs.get("log_stdout"):
-            log_stdout = True
-        else:
-            log_stdout = kwargs.pop("log_stdout")
-
         if not kwargs.get("name"):
             name = "save_db_result"
         else:
             name = kwargs.pop("name")
 
-        if not kwargs.get("result"):
-            result = PrefectResult(location=_unique_db_location)
-        else:
-            result = kwargs.pop("result")
-
-        super().__init__(log_stdout=log_stdout, name=name, result=result, **kwargs)
+        super().__init__(name=name, **kwargs)
 
     @inject
     def run(
@@ -273,11 +259,6 @@ class LoadDBResult(Task):
         ```
 
     """  # noqa
-
-    parameters = {
-        "attribute_index": Parameter("attribute_index"),
-        "result_rep": Parameter("result_rep"),
-    }
 
     def __init__(self, **kwargs):
         """This task is defined as a subclass of the Prefect [Task](https://docs-v1.prefect.io/api/latest/core/task.html#task-2)
