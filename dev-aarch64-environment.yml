@@ -33,7 +33,10 @@ dependencies:
   - pytest-cov
   - pre-commit
   - flake8
-  - lume-impact
+
+#  - lume-impact  ## version in conda-forge not update for numpy 2?
+  - pip:
+    - git+https://github.com/ChristopherMayes/lume-impact.git
 #  - docker-compose  ## install with apt in aarch64 envs
   - pyfakefs
   - black
