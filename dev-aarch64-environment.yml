@@ -14,7 +14,10 @@ dependencies:
   - pandas
   - pymongo
   - click
-#  - dependency_injector  ## not avail in conda-forge for aarch64 - install with pip
+
+#  ## not avail in conda-forge for aarch64 - install with pip
+#  - dependency_injector
+
   - h5py
   - sqlalchemy_schemadisplay
   - pyyaml
@@ -34,10 +37,20 @@ dependencies:
   - pre-commit
   - flake8
 
-#  - lume-impact  ## version in conda-forge not update for numpy 2?
+#  ## version in conda-forge not update for numpy 2?
+#  - lume-impact
   - pip:
     - git+https://github.com/ChristopherMayes/lume-impact.git
-#  - docker-compose  ## install with apt in aarch64 envs
+
+#  ## install with apt in aarch64 envs
+#  - docker-compose
+
+#  ## version '0.5.6' seems to be missing a name:
+#  ## E   ImportError: cannot import name 'fourier_field_reconsruction' from 'pmd_beamphysics.interfaces.impact'
+  - openpmd-beamphysics
+
+  - distgen
+
   - pyfakefs
   - black
   - jupyterlab
