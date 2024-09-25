@@ -1,0 +1,53 @@
+# conda env create -f environment.yml
+name: lume-services-dev
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pydantic
+  - python-dotenv
+  - sqlalchemy>=1.4
+  - pymysql
+  - graphviz
+  - python-graphviz
+  - prefect[viz]>=2.0
+  - pandas
+  - pymongo
+  - click
+#  - dependency_injector  ## not avail in conda-forge for aarch64 - install with pip
+  - h5py
+  - sqlalchemy_schemadisplay
+  - pyyaml
+  - docker-py>=5.0
+  - lume-base>=0.2.2
+  - lume-model>=1.4
+  - pkginfo
+  - importlib_metadata
+
+  - pip
+  - pip: 
+    - dependency_injector
+
+# Developer
+  - pytest
+  - pytest-cov
+  - pre-commit
+  - flake8
+  - lume-impact
+#  - docker-compose  ## install with apt in aarch64 envs
+  - pyfakefs
+  - black
+  - jupyterlab
+
+# Docs
+  - mkdocs
+  - mkdocstrings
+  - mkdocs-material
+  - mkdocstrings-python
+  - pymdown-extensions>9.4
+  - Pygments>=2.12
+  - diagrams
+  - mkdocs-jupyter
+  - mkdocs-click
+  - pytablewriter
+  - mkdocs-macros-plugin
