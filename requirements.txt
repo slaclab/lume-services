@@ -1,11 +1,12 @@
-pydantic>=1.9
+typing-extensions==4.5.0
+pydantic==1.9
 python-dotenv
-sqlalchemy>=1.4
+sqlalchemy==1.4.44
 pymysql
 pandas
 pymongo
 click
-prefect<2.0
+prefect==1.4.1
 dependency_injector
 lume-base>=0.2.2
 h5py
