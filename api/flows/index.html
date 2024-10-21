@@ -1,0 +1,4290 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://slaclab.github.io/lume-services/api/flows/">
+      
+      
+        <link rel="prev" href="../utils/">
+      
+      
+        <link rel="next" href="../utils/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.41">
+    
+    
+      
+        <title>Flows - lume-services</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lume_services.flows.flow" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="lume-services" class="md-header__button md-logo" aria-label="lume-services" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            lume-services
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Flows
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/slaclab/lume-services" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  Overview
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../model_packaging/" class="md-tabs__link">
+        
+  
+    
+  
+  Model Packaging
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../services/files/" class="md-tabs__link">
+          
+  
+  Services
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../tasks/" class="md-tabs__link">
+          
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../developer/setup/" class="md-tabs__link">
+          
+  
+  Developer
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="lume-services" class="md-nav__button md-logo" aria-label="lume-services" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    lume-services
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/slaclab/lume-services" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Overview
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LUME-Services
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model_packaging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Packaging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflows/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Workflows
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Demo
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model_packaging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Packaging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Services
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/files/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    File Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/results/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Results DB Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/hpc/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HPC Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modeling Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../services/scheduling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scheduling Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tasks
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            Tasks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tasks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Files
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Files
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/files/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    File
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/serializers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Serializers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../files/utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Models
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../results/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Results
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Errors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Flows
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Flows
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.FileMappedParameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      FileMappedParameter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.Flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flow
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.Flow.load_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.Flow.register" class="md-nav__link">
+    <span class="md-ellipsis">
+      register
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.Flow.run" class="md-nav__link">
+    <span class="md-ellipsis">
+      run
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.Flow.run_and_return" class="md-nav__link">
+    <span class="md-ellipsis">
+      run_and_return
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.MappedParameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      MappedParameter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow.RawMappedParameter" class="md-nav__link">
+    <span class="md-ellipsis">
+      RawMappedParameter
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow_of_flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      flow_of_flows
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lume_services.flows.flow_of_flows.FlowOfFlows" class="md-nav__link">
+    <span class="md-ellipsis">
+      FlowOfFlows
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FlowOfFlows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow_of_flows.FlowOfFlows.compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      compose
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow_of_flows.FlowOfFlows.compose_and_register" class="md-nav__link">
+    <span class="md-ellipsis">
+      compose_and_register
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lume_services.flows.flow_of_flows.FlowOfFlows.validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Services
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10_1" id="__nav_4_10_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Results
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_10_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10_1">
+            <span class="md-nav__icon md-icon"></span>
+            Results
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/results/results/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Results Database Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/results/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10_2" id="__nav_4_10_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Files
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_10_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10_2">
+            <span class="md-nav__icon md-icon"></span>
+            Files
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/files/files/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    File Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/files/filesystems/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Filesystems
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10_3" id="__nav_4_10_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Model
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            Model
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/models/models/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Model Database Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/models/db/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Database
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_10_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_10_4" id="__nav_4_10_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Scheduling
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_10_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_10_4">
+            <span class="md-nav__icon md-icon"></span>
+            Scheduling
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/scheduling/scheduling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scheduling Service
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/scheduling/backends/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Backends
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Developer
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Developer
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/todo/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    TODO
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/cluster/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cluster Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer/docker_image/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Docker Image
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Flows</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="lume_services.flows.flow"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="lume_services.flows.flow.FileMappedParameter" class="doc doc-heading">
+            <code>FileMappedParameter</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code>MappedParameter</code></p>
+
+
+        <p>FileMappedParameters describe files passed between different flows. Files are
+saved as json representations describing file type (and serialization) and
+filesystem information.</p>
+
+
+<details class="attr" open>
+  <summary>Attr</summary>
+  <p>parent_flow_name (str): Parent flow holding origin of mapped parameter.
+parent_task_name (str): Task whose result is mapped to the parameter.
+map_type (Literal["file", "db", "raw"] = "file"): The "file" map type describes
+    the</p>
+</details>
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">FileMappedParameter</span><span class="p">(</span><span class="n">MappedParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;FileMappedParameters describe files passed between different flows. Files are</span>
+<span class="sd">    saved as json representations describing file type (and serialization) and</span>
+<span class="sd">    filesystem information.</span>
+
+<span class="sd">    Attr:</span>
+<span class="sd">        parent_flow_name (str): Parent flow holding origin of mapped parameter.</span>
+<span class="sd">        parent_task_name (str): Task whose result is mapped to the parameter.</span>
+<span class="sd">        map_type (Literal[&quot;file&quot;, &quot;db&quot;, &quot;raw&quot;] = &quot;file&quot;): The &quot;file&quot; map type describes</span>
+<span class="sd">            the</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">map_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="lume_services.flows.flow.Flow" class="doc doc-heading">
+            <code>Flow</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code>BaseModel</code></p>
+
+
+        <p>Interface to a workflow object.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.name">name</span></code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of flow</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.flow_id">flow_id</span></code></td>
+            <td>
+                  <code>Optional[str]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>ID of flow as registered with Prefect. If running
+locally, this will be null.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.project_name">project_name</span></code></td>
+            <td>
+                  <code>Optional[str]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of Prefect project with which the flow is
+registered. If running locally this will be null.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.parameters">parameters</span></code></td>
+            <td>
+                  <code>Optional[Dict[str, Parameter]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary of Prefect parameters
+associated with the flow.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.mapped_parameters">mapped_parameters</span></code></td>
+            <td>
+                  <code>Optional[Dict[str, MappedParameter]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Parameters to be
+collected from results of other flows.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.task_slugs">task_slugs</span></code></td>
+            <td>
+                  <code>Optional[Dict[str, str]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Slug of tasks associated with the
+Prefect flow.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.labels">labels</span></code></td>
+            <td>
+                  <code>List[str] = [&#34;lume-services&#34;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of labels to assign to flow when
+registering with Prefect backend. This label is used to assign agents that
+will manage deployment.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="lume_services.flows.flow.Flow.image">image</span></code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Image inside which to run flow if deploying to remote backend.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Flow</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface to a workflow object.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        name: Name of flow</span>
+<span class="sd">        flow_id (Optional[str]): ID of flow as registered with Prefect. If running</span>
+<span class="sd">            locally, this will be null.</span>
+<span class="sd">        project_name (Optional[str]): Name of Prefect project with which the flow is</span>
+<span class="sd">            registered. If running locally this will be null.</span>
+<span class="sd">        parameters (Optional[Dict[str, Parameter]]): Dictionary of Prefect parameters</span>
+<span class="sd">            associated with the flow.</span>
+<span class="sd">        mapped_parameters (Optional[Dict[str, MappedParameter]]): Parameters to be</span>
+<span class="sd">            collected from results of other flows.</span>
+<span class="sd">        task_slugs (Optional[Dict[str, str]]): Slug of tasks associated with the</span>
+<span class="sd">            Prefect flow.</span>
+<span class="sd">        labels (List[str] = [&quot;lume-services&quot;]): List of labels to assign to flow when</span>
+<span class="sd">            registering with Prefect backend. This label is used to assign agents that</span>
+<span class="sd">            will manage deployment.</span>
+<span class="sd">        image (str): Image inside which to run flow if deploying to remote backend.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">flow_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">prefect_flow</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PrefectFlow</span><span class="p">]</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">]]</span>
+    <span class="n">mapped_parameters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MappedParameter</span><span class="p">]]</span>
+    <span class="n">task_slugs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lume-services&quot;</span><span class="p">]</span>
+    <span class="n">image</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">validate_assignment</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@validator</span><span class="p">(</span><span class="s2">&quot;mapped_parameters&quot;</span><span class="p">,</span> <span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate_mapped_parameters</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">v</span>
+
+        <span class="n">mapped_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># persist instantiated params</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="p">(</span><span class="n">MappedParameter</span><span class="p">,)):</span>
+                <span class="n">mapped_parameters</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,)):</span>
+                <span class="c1"># default raw</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">param</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;map_type&quot;</span><span class="p">):</span>
+                    <span class="n">mapped_parameters</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">RawMappedParameter</span><span class="p">(</span><span class="o">**</span><span class="n">param</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mapped_param_type</span> <span class="o">=</span> <span class="n">_get_mapped_parameter_type</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s2">&quot;map_type&quot;</span><span class="p">])</span>
+                    <span class="n">mapped_parameters</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapped_param_type</span><span class="p">(</span><span class="o">**</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Mapped parameters must be passed as instantiated </span><span class="se">\</span>
+<span class="s2">                    MappedParameters or dictionary&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mapped_parameters</span>
+
+    <span class="nd">@inject</span>
+    <span class="k">def</span> <span class="nf">load_flow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads Prefect flow artifact from the backend.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scheduling_service (SchedulingService): Scheduling service. If not</span>
+<span class="sd">                provided, uses injected service.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">flow_dict</span> <span class="o">=</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">load_flow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+
+        <span class="n">flow</span> <span class="o">=</span> <span class="n">flow_dict</span><span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">]</span>
+
+        <span class="c1"># assign attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_slugs</span> <span class="o">=</span> <span class="p">{</span><span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">slug</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">get_tasks</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">parameter</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span> <span class="o">=</span> <span class="n">flow_dict</span><span class="p">[</span><span class="s2">&quot;flow_id&quot;</span><span class="p">]</span>
+
+    <span class="nd">@inject</span>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register flow with SchedulingService backend.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scheduling_service (SchedulingService): Scheduling service. If not</span>
+<span class="sd">                provided, uses injected service.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            flow_id (str): ID of registered flow.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># attempt loading</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span> <span class="o">=</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">register_flow</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">parameter</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_slugs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">slug</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">get_tasks</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">,</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the flow.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs: Arguments passed to run config construction</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">LocalBackend</span><span class="p">,)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+            <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">ServerBackend</span><span class="p">,)):</span>
+            <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">run_and_return</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">,</span>
+        <span class="n">task_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run flow and return result. Result will reference either passed task name or</span>
+<span class="sd">        the result of all tasks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            kwargs: Arguments passed to run config construction</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">LocalBackend</span><span class="p">,)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run_and_return</span><span class="p">(</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span>
+                <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
+                <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">ServerBackend</span><span class="p">,)):</span>
+            <span class="k">return</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run_and_return</span><span class="p">(</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+                <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
+                <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow.Flow.load_flow" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_flow</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">=</span><span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">])</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Loads Prefect flow artifact from the backend.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>scheduling_service</code>
+            </td>
+            <td>
+                  <code>SchedulingService</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Scheduling service. If not
+provided, uses injected service.</p>
+              </div>
+            </td>
+            <td>
+                  <code>Provide[scheduling_service]</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@inject</span>
+<span class="k">def</span> <span class="nf">load_flow</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loads Prefect flow artifact from the backend.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scheduling_service (SchedulingService): Scheduling service. If not</span>
+<span class="sd">            provided, uses injected service.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flow_dict</span> <span class="o">=</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">load_flow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">flow_dict</span><span class="p">[</span><span class="s2">&quot;flow&quot;</span><span class="p">]</span>
+
+    <span class="c1"># assign attributes</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">flow</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">task_slugs</span> <span class="o">=</span> <span class="p">{</span><span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">slug</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">get_tasks</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">parameter</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span> <span class="o">=</span> <span class="n">flow_dict</span><span class="p">[</span><span class="s2">&quot;flow_id&quot;</span><span class="p">]</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow.Flow.register" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">=</span><span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">])</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register flow with SchedulingService backend.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>scheduling_service</code>
+            </td>
+            <td>
+                  <code>SchedulingService</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Scheduling service. If not
+provided, uses injected service.</p>
+              </div>
+            </td>
+            <td>
+                  <code>Provide[scheduling_service]</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>flow_id</code></td>            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>ID of registered flow.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@inject</span>
+<span class="k">def</span> <span class="nf">register</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register flow with SchedulingService backend.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scheduling_service (SchedulingService): Scheduling service. If not</span>
+<span class="sd">            provided, uses injected service.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        flow_id (str): ID of registered flow.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># attempt loading</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span> <span class="o">=</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">register_flow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">parameter</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">task_slugs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">slug</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">get_tasks</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow.Flow.run" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">scheduling_service</span><span class="o">=</span><span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run the flow.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Arguments passed to run config construction</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">parameters</span><span class="p">,</span>
+    <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the flow.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Arguments passed to run config construction</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">LocalBackend</span><span class="p">,)):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+        <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">ServerBackend</span><span class="p">,)):</span>
+        <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow.Flow.run_and_return" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_and_return</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">scheduling_service</span><span class="o">=</span><span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Run flow and return result. Result will reference either passed task name or
+the result of all tasks.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>kwargs</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Arguments passed to run config construction</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">run_and_return</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">parameters</span><span class="p">,</span>
+    <span class="n">task_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run flow and return result. Result will reference either passed task name or</span>
+<span class="sd">    the result of all tasks.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        kwargs: Arguments passed to run config construction</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">LocalBackend</span><span class="p">,)):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run_and_return</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+            <span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span><span class="p">,</span>
+            <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
+            <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="p">(</span><span class="n">ServerBackend</span><span class="p">,)):</span>
+        <span class="k">return</span> <span class="n">scheduling_service</span><span class="o">.</span><span class="n">run_and_return</span><span class="p">(</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+            <span class="n">flow_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+            <span class="n">task_name</span><span class="o">=</span><span class="n">task_name</span><span class="p">,</span>
+            <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="lume_services.flows.flow.MappedParameter" class="doc doc-heading">
+            <code>MappedParameter</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code>BaseModel</code></p>
+
+
+        <p>There are three types of mapped parameters: file, db, and raw.</p>
+<p>file: File parameters are file outputs that will be loaded in downstream flows.
+Downstream loading must use the packaged <code>load_file</code> task in
+<code>lume_services.tasks.file</code>.</p>
+<p>db: Database results ...</p>
+<p>raw: Raw values are passed from task output to parameter input.</p>
+
+
+<details class="attr" open>
+  <summary>Attr</summary>
+  <p>parent_flow_name (str): Parent flow holding origin of mapped parameter.
+parent_task_name (str): Task whose result is mapped to the parameter.
+map_type (Literal["file", "db", "raw"]): Type of mapping describing the
+    parameters.</p>
+</details>
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MappedParameter</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;There are three types of mapped parameters: file, db, and raw.</span>
+
+<span class="sd">    file: File parameters are file outputs that will be loaded in downstream flows.</span>
+<span class="sd">    Downstream loading must use the packaged `load_file` task in</span>
+<span class="sd">    `lume_services.tasks.file`.</span>
+
+<span class="sd">    db: Database results ...</span>
+
+<span class="sd">    raw: Raw values are passed from task output to parameter input.</span>
+
+<span class="sd">    Attr:</span>
+<span class="sd">        parent_flow_name (str): Parent flow holding origin of mapped parameter.</span>
+<span class="sd">        parent_task_name (str): Task whose result is mapped to the parameter.</span>
+<span class="sd">        map_type (Literal[&quot;file&quot;, &quot;db&quot;, &quot;raw&quot;]): Type of mapping describing the</span>
+<span class="sd">            parameters.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">parent_flow_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">parent_task_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">map_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;db&quot;</span><span class="p">,</span> <span class="s2">&quot;raw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="lume_services.flows.flow.RawMappedParameter" class="doc doc-heading">
+            <code>RawMappedParameter</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code>MappedParameter</code></p>
+
+
+        <p>RawMappedParameters describe parameter mappings where the result of a task is
+used as the input to a parameter.</p>
+
+
+<details class="attr" open>
+  <summary>Attr</summary>
+  <p>parent_flow_name (str): Parent flow holding origin of mapped parameter.
+parent_task_name (str): Task whose result is mapped to the parameter.
+map_type (Literal["file", "db", "raw"] = "raw"): The "raw" map type describes
+    the one-to-one result to parameter map.</p>
+</details>
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>lume_services/flows/flow.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">RawMappedParameter</span><span class="p">(</span><span class="n">MappedParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RawMappedParameters describe parameter mappings where the result of a task is</span>
+<span class="sd">    used as the input to a parameter.</span>
+
+<span class="sd">    Attr:</span>
+<span class="sd">        parent_flow_name (str): Parent flow holding origin of mapped parameter.</span>
+<span class="sd">        parent_task_name (str): Task whose result is mapped to the parameter.</span>
+<span class="sd">        map_type (Literal[&quot;file&quot;, &quot;db&quot;, &quot;raw&quot;] = &quot;raw&quot;): The &quot;raw&quot; map type describes</span>
+<span class="sd">            the one-to-one result to parameter map.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">map_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="lume_services.flows.flow_of_flows"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="lume_services.flows.flow_of_flows.FlowOfFlows" class="doc doc-heading">
+            <code>FlowOfFlows</code>
+
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code>Flow</code></p>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>lume_services/flows/flow_of_flows.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">FlowOfFlows</span><span class="p">(</span><span class="n">Flow</span><span class="p">):</span>
+    <span class="n">composing_flows</span><span class="p">:</span> <span class="nb">dict</span>
+
+    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
+        <span class="n">arbitrary_types_allowed</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate composing flow data against Prefect server.&quot;&quot;&quot;</span>
+        <span class="n">flows</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">scheduling_service</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;scheduling_service&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="n">scheduling_service</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;scheduling_service&quot;</span><span class="p">)</span>
+
+        <span class="c1"># validate composing flow existence</span>
+        <span class="n">composing_flows</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">composing_flows</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,)):</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># iterate to create dict</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">composing_flows</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,)):</span>
+            <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">]:</span>
+
+                <span class="c1"># compose flow objects</span>
+                <span class="n">flow_obj</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                    <span class="n">project_name</span><span class="o">=</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;project_name&quot;</span><span class="p">],</span>
+                    <span class="n">mapped_parameters</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mapped_parameters&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># load Prefect parameters</span>
+                <span class="k">if</span> <span class="n">scheduling_service</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">flow_obj</span><span class="o">.</span><span class="n">load_flow</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">=</span><span class="n">scheduling_service</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">flow_obj</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+                <span class="n">flows</span><span class="p">[</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">flow_obj</span>
+
+        <span class="c1"># validate flow parameters</span>
+        <span class="k">for</span> <span class="n">flow_name</span><span class="p">,</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">flows</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">parameter_name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                    <span class="c1"># validate parameter is in flow spec</span>
+                    <span class="n">parameter_obj</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">parameter_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ParameterNotInFlowError</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">flow_name</span><span class="p">)</span>
+
+                    <span class="c1"># validate parent flow is included in listed flows</span>
+                    <span class="n">parent_flow</span> <span class="o">=</span> <span class="n">flows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">parent_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">ParentFlowNotInFlowsError</span><span class="p">(</span>
+                            <span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">flows</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># validate task is in the parent flow</span>
+                    <span class="n">task</span> <span class="o">=</span> <span class="n">parent_flow</span><span class="o">.</span><span class="n">task_slugs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">parent_task_name</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TaskNotInFlowError</span><span class="p">(</span>
+                            <span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">parent_task_name</span>
+                        <span class="p">)</span>
+
+        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flows</span>
+
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">compose</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">image_tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+        <span class="n">local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrefectFlow</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose Prefect flow from FlowOfFlows object. Uses base image assigned to</span>
+<span class="sd">        the FlowOfFlows Object and builds a new Docker image containing the composite</span>
+<span class="sd">        flow.</span>
+
+
+<span class="sd">        Args:</span>
+<span class="sd">            image_name (str): Name of generated image.</span>
+<span class="sd">            image_tag (str): Tag of generated image.</span>
+<span class="sd">            local (bool=False): Whether to use local images for the base image.</span>
+
+
+<span class="sd">        Returns:</span>
+<span class="sd">            PrefectFlow</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># compose flow of flows</span>
+        <span class="k">with</span> <span class="n">PrefectFlow</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">storage</span><span class="o">=</span><span class="n">Docker</span><span class="p">(</span>
+                <span class="n">base_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+                <span class="n">image_name</span><span class="o">=</span><span class="n">image_name</span><span class="p">,</span>
+                <span class="n">image_tag</span><span class="o">=</span><span class="n">image_tag</span><span class="p">,</span>
+                <span class="n">local_image</span><span class="o">=</span><span class="n">local</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">composed_flow</span><span class="p">:</span>
+
+            <span class="n">flow_runs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">flow_waits</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">flow_name</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">composing_flows</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+
+                <span class="c1"># begin by creating parameters for all flow parameters</span>
+                <span class="n">flow_params</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                    <span class="c1"># update name and slug</span>
+                    <span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flow_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">param</span><span class="o">.</span><span class="n">slug</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flow_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+
+                    <span class="c1"># use original param name for flow config</span>
+                    <span class="n">flow_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+
+                <span class="c1"># set up entry task</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">flow_run</span> <span class="o">=</span> <span class="n">create_flow_run</span><span class="p">(</span>
+                        <span class="n">flow_id</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+                        <span class="n">parameters</span><span class="o">=</span><span class="n">flow_params</span><span class="p">,</span>
+                        <span class="n">labels</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># setup other tasks</span>
+                <span class="k">elif</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                    <span class="c1"># create references to parameters</span>
+                    <span class="n">upstream_flows</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                        <span class="c1"># update flow_params with mapping</span>
+                        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">mapped_param</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            <span class="n">task_slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">composing_flows</span><span class="p">[</span>
+                                <span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span>
+                            <span class="p">]</span><span class="o">.</span><span class="n">task_slugs</span><span class="p">[</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_task_name</span><span class="p">]</span>
+
+                            <span class="n">task_run_result</span> <span class="o">=</span> <span class="n">get_task_run_result</span><span class="p">(</span>
+                                <span class="n">flow_runs</span><span class="p">[</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">],</span> <span class="n">task_slug</span>
+                            <span class="p">)</span>
+
+                            <span class="c1"># raw results and file results use their values directly</span>
+                            <span class="k">if</span> <span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">]:</span>
+                                <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                    <span class="n">flow_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">param_name</span><span class="p">),</span> <span class="n">task_run_result</span>
+                                <span class="p">)</span>
+
+                            <span class="c1"># handle database results</span>
+                            <span class="k">elif</span> <span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span> <span class="o">==</span> <span class="s2">&quot;db&quot;</span><span class="p">:</span>
+                                <span class="n">load_db_result</span> <span class="o">=</span> <span class="n">LoadDBResult</span><span class="p">()</span>
+                                <span class="n">db_result</span> <span class="o">=</span> <span class="n">load_db_result</span><span class="p">(</span>
+                                    <span class="n">task_run_result</span><span class="p">,</span>
+                                    <span class="n">attribute_index</span><span class="o">=</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">attribute_index</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                    <span class="n">flow_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">param_name</span><span class="p">),</span> <span class="n">db_result</span>
+                                <span class="p">)</span>
+
+                                <span class="c1"># add db result parameters to the task and create edge</span>
+                                <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">load_db_result</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                                    <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                                    <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+                                        <span class="n">param</span><span class="p">,</span> <span class="n">load_db_result</span><span class="p">,</span> <span class="n">mapped</span><span class="o">=</span><span class="kc">True</span>
+                                    <span class="p">)</span>
+
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># should never reach if instantiating MappedParameter</span>
+                                <span class="n">mapped_param_types</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span>
+                                    <span class="n">MappedParameter</span><span class="o">.</span><span class="n">__fields__</span><span class="p">[</span><span class="s2">&quot;map_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">type_</span>
+                                <span class="p">)</span>
+                                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                    <span class="sa">f</span><span class="s2">&quot;Task type </span><span class="si">{</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span><span class="si">}</span><span class="s2"> not in task. </span><span class="se">\</span>
+<span class="s2">                                        Allowed types: </span><span class="si">{</span><span class="n">mapped_param_types</span><span class="si">}</span><span class="s2">.&quot;</span>
+                                <span class="p">)</span>
+
+                            <span class="c1"># add flow to upstream</span>
+                            <span class="n">upstream_flows</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">)</span>
+
+                        <span class="c1"># add creation of flow run to flow</span>
+                        <span class="n">flow_run</span> <span class="o">=</span> <span class="n">create_flow_run</span><span class="p">(</span>
+                            <span class="n">flow_id</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+                            <span class="n">parameters</span><span class="o">=</span><span class="n">flow_params</span><span class="p">,</span>
+                            <span class="n">labels</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+                    <span class="c1"># configure upstreams if any</span>
+                    <span class="k">for</span> <span class="n">upstream</span> <span class="ow">in</span> <span class="n">upstream_flows</span><span class="p">:</span>
+                        <span class="n">flow_run</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">flow_waits</span><span class="p">[</span><span class="n">upstream</span><span class="p">])</span>
+
+                <span class="n">flow_wait</span> <span class="o">=</span> <span class="n">wait_for_flow_run</span><span class="p">(</span><span class="n">flow_run</span><span class="p">,</span> <span class="n">raise_final_state</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">flow_runs</span><span class="p">[</span><span class="n">flow_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_run</span>
+                <span class="n">flow_waits</span><span class="p">[</span><span class="n">flow_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_wait</span>
+
+        <span class="c1"># validate flow of flows</span>
+        <span class="n">composed_flow</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+
+        <span class="c1"># assign to obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">composed_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">image_tag</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="n">composed_flow</span>
+
+    <span class="k">def</span> <span class="nf">compose_and_register</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compose flow and register with project.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Registered flow id</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">flow</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@inject</span>
+    <span class="k">def</span> <span class="nf">from_yaml</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">yaml_obj</span><span class="p">,</span>
+        <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">yaml_obj</span><span class="p">):</span>
+            <span class="n">flow_of_flow_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">yaml_obj</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flow_of_flow_config</span> <span class="o">=</span> <span class="n">yaml_obj</span>
+
+        <span class="c1"># now validate</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">flow_of_flow_config</span><span class="p">,</span> <span class="n">scheduling_service</span><span class="o">=</span><span class="n">scheduling_service</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_compose_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Prefect 1.0 does not allow subflow run without previous registration with</span>
+<span class="sd">            the server. This function is a workaround, but will be massively simplified</span>
+<span class="sd">            once moved to Prefect 2.0, which does support direct subflow run.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow_of_flows.FlowOfFlows.compose" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compose</span><span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="n">image_tag</span><span class="o">=</span><span class="s1">&#39;latest&#39;</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scheduling_service</span><span class="o">=</span><span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">])</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compose Prefect flow from FlowOfFlows object. Uses base image assigned to
+the FlowOfFlows Object and builds a new Docker image containing the composite
+flow.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>image_name</code>
+            </td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of generated image.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>image_tag</code>
+            </td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tag of generated image.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;latest&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>local</code>
+            </td>
+            <td>
+                  <code>bool=False</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether to use local images for the base image.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code>Flow</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>PrefectFlow</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow_of_flows.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">compose</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">image_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">image_tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span><span class="p">,</span>
+    <span class="n">local</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">scheduling_service</span><span class="p">:</span> <span class="n">SchedulingService</span> <span class="o">=</span> <span class="n">Provide</span><span class="p">[</span><span class="n">Context</span><span class="o">.</span><span class="n">scheduling_service</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PrefectFlow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose Prefect flow from FlowOfFlows object. Uses base image assigned to</span>
+<span class="sd">    the FlowOfFlows Object and builds a new Docker image containing the composite</span>
+<span class="sd">    flow.</span>
+
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_name (str): Name of generated image.</span>
+<span class="sd">        image_tag (str): Tag of generated image.</span>
+<span class="sd">        local (bool=False): Whether to use local images for the base image.</span>
+
+
+<span class="sd">    Returns:</span>
+<span class="sd">        PrefectFlow</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># compose flow of flows</span>
+    <span class="k">with</span> <span class="n">PrefectFlow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">storage</span><span class="o">=</span><span class="n">Docker</span><span class="p">(</span>
+            <span class="n">base_image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+            <span class="n">image_name</span><span class="o">=</span><span class="n">image_name</span><span class="p">,</span>
+            <span class="n">image_tag</span><span class="o">=</span><span class="n">image_tag</span><span class="p">,</span>
+            <span class="n">local_image</span><span class="o">=</span><span class="n">local</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">composed_flow</span><span class="p">:</span>
+
+        <span class="n">flow_runs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">flow_waits</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">flow_name</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">composing_flows</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+
+            <span class="c1"># begin by creating parameters for all flow parameters</span>
+            <span class="n">flow_params</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                <span class="c1"># update name and slug</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flow_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">slug</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flow_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">param_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+
+                <span class="c1"># use original param name for flow config</span>
+                <span class="n">flow_params</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">param</span>
+
+            <span class="c1"># set up entry task</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">flow_run</span> <span class="o">=</span> <span class="n">create_flow_run</span><span class="p">(</span>
+                    <span class="n">flow_id</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+                    <span class="n">parameters</span><span class="o">=</span><span class="n">flow_params</span><span class="p">,</span>
+                    <span class="n">labels</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="c1"># setup other tasks</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+                <span class="c1"># create references to parameters</span>
+                <span class="n">upstream_flows</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                    <span class="c1"># update flow_params with mapping</span>
+                    <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">mapped_param</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">task_slug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">composing_flows</span><span class="p">[</span>
+                            <span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span>
+                        <span class="p">]</span><span class="o">.</span><span class="n">task_slugs</span><span class="p">[</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_task_name</span><span class="p">]</span>
+
+                        <span class="n">task_run_result</span> <span class="o">=</span> <span class="n">get_task_run_result</span><span class="p">(</span>
+                            <span class="n">flow_runs</span><span class="p">[</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">],</span> <span class="n">task_slug</span>
+                        <span class="p">)</span>
+
+                        <span class="c1"># raw results and file results use their values directly</span>
+                        <span class="k">if</span> <span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">]:</span>
+                            <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                <span class="n">flow_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">param_name</span><span class="p">),</span> <span class="n">task_run_result</span>
+                            <span class="p">)</span>
+
+                        <span class="c1"># handle database results</span>
+                        <span class="k">elif</span> <span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span> <span class="o">==</span> <span class="s2">&quot;db&quot;</span><span class="p">:</span>
+                            <span class="n">load_db_result</span> <span class="o">=</span> <span class="n">LoadDBResult</span><span class="p">()</span>
+                            <span class="n">db_result</span> <span class="o">=</span> <span class="n">load_db_result</span><span class="p">(</span>
+                                <span class="n">task_run_result</span><span class="p">,</span>
+                                <span class="n">attribute_index</span><span class="o">=</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">attribute_index</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                                <span class="n">flow_params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">param_name</span><span class="p">),</span> <span class="n">db_result</span>
+                            <span class="p">)</span>
+
+                            <span class="c1"># add db result parameters to the task and create edge</span>
+                            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">load_db_result</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                                <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">add_task</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                                <span class="n">flow</span><span class="o">.</span><span class="n">prefect_flow</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span>
+                                    <span class="n">param</span><span class="p">,</span> <span class="n">load_db_result</span><span class="p">,</span> <span class="n">mapped</span><span class="o">=</span><span class="kc">True</span>
+                                <span class="p">)</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># should never reach if instantiating MappedParameter</span>
+                            <span class="n">mapped_param_types</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span>
+                                <span class="n">MappedParameter</span><span class="o">.</span><span class="n">__fields__</span><span class="p">[</span><span class="s2">&quot;map_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">type_</span>
+                            <span class="p">)</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Task type </span><span class="si">{</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">map_type</span><span class="si">}</span><span class="s2"> not in task. </span><span class="se">\</span>
+<span class="s2">                                    Allowed types: </span><span class="si">{</span><span class="n">mapped_param_types</span><span class="si">}</span><span class="s2">.&quot;</span>
+                            <span class="p">)</span>
+
+                        <span class="c1"># add flow to upstream</span>
+                        <span class="n">upstream_flows</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mapped_param</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">)</span>
+
+                    <span class="c1"># add creation of flow run to flow</span>
+                    <span class="n">flow_run</span> <span class="o">=</span> <span class="n">create_flow_run</span><span class="p">(</span>
+                        <span class="n">flow_id</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">flow_id</span><span class="p">,</span>
+                        <span class="n">parameters</span><span class="o">=</span><span class="n">flow_params</span><span class="p">,</span>
+                        <span class="n">labels</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># configure upstreams if any</span>
+                <span class="k">for</span> <span class="n">upstream</span> <span class="ow">in</span> <span class="n">upstream_flows</span><span class="p">:</span>
+                    <span class="n">flow_run</span><span class="o">.</span><span class="n">set_upstream</span><span class="p">(</span><span class="n">flow_waits</span><span class="p">[</span><span class="n">upstream</span><span class="p">])</span>
+
+            <span class="n">flow_wait</span> <span class="o">=</span> <span class="n">wait_for_flow_run</span><span class="p">(</span><span class="n">flow_run</span><span class="p">,</span> <span class="n">raise_final_state</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">flow_runs</span><span class="p">[</span><span class="n">flow_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_run</span>
+            <span class="n">flow_waits</span><span class="p">[</span><span class="n">flow_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_wait</span>
+
+    <span class="c1"># validate flow of flows</span>
+    <span class="n">composed_flow</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+
+    <span class="c1"># assign to obj</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">composed_flow</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">image_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">image_tag</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">return</span> <span class="n">composed_flow</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow_of_flows.FlowOfFlows.compose_and_register" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compose_and_register</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compose flow and register with project.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Registered flow id</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow_of_flows.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">compose_and_register</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose flow and register with project.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Registered flow id</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compose</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prefect_flow</span> <span class="o">=</span> <span class="n">flow</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="lume_services.flows.flow_of_flows.FlowOfFlows.validate" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">values</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Validate composing flow data against Prefect server.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>lume_services/flows/flow_of_flows.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span>
+<span class="normal">93</span>
+<span class="normal">94</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@root_validator</span><span class="p">(</span><span class="n">pre</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate composing flow data against Prefect server.&quot;&quot;&quot;</span>
+    <span class="n">flows</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">scheduling_service</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s2">&quot;scheduling_service&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">scheduling_service</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;scheduling_service&quot;</span><span class="p">)</span>
+
+    <span class="c1"># validate composing flow existence</span>
+    <span class="n">composing_flows</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">composing_flows</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,)):</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># iterate to create dict</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">composing_flows</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,)):</span>
+        <span class="k">for</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">]:</span>
+
+            <span class="c1"># compose flow objects</span>
+            <span class="n">flow_obj</span> <span class="o">=</span> <span class="n">Flow</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                <span class="n">project_name</span><span class="o">=</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;project_name&quot;</span><span class="p">],</span>
+                <span class="n">mapped_parameters</span><span class="o">=</span><span class="n">flow</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mapped_parameters&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+
+            <span class="c1"># load Prefect parameters</span>
+            <span class="k">if</span> <span class="n">scheduling_service</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">flow_obj</span><span class="o">.</span><span class="n">load_flow</span><span class="p">(</span><span class="n">scheduling_service</span><span class="o">=</span><span class="n">scheduling_service</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flow_obj</span><span class="o">.</span><span class="n">load_flow</span><span class="p">()</span>
+
+            <span class="n">flows</span><span class="p">[</span><span class="n">flow</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">flow_obj</span>
+
+    <span class="c1"># validate flow parameters</span>
+    <span class="k">for</span> <span class="n">flow_name</span><span class="p">,</span> <span class="n">flow</span> <span class="ow">in</span> <span class="n">flows</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">parameter_name</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">flow</span><span class="o">.</span><span class="n">mapped_parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                <span class="c1"># validate parameter is in flow spec</span>
+                <span class="n">parameter_obj</span> <span class="o">=</span> <span class="n">flow</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parameter_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParameterNotInFlowError</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">flow_name</span><span class="p">)</span>
+
+                <span class="c1"># validate parent flow is included in listed flows</span>
+                <span class="n">parent_flow</span> <span class="o">=</span> <span class="n">flows</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parent_flow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParentFlowNotInFlowsError</span><span class="p">(</span>
+                        <span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">flows</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># validate task is in the parent flow</span>
+                <span class="n">task</span> <span class="o">=</span> <span class="n">parent_flow</span><span class="o">.</span><span class="n">task_slugs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">parent_task_name</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">TaskNotInFlowError</span><span class="p">(</span>
+                        <span class="n">parameter</span><span class="o">.</span><span class="n">parent_flow_name</span><span class="p">,</span> <span class="n">parameter</span><span class="o">.</span><span class="n">parent_task_name</span>
+                    <span class="p">)</span>
+
+    <span class="n">values</span><span class="p">[</span><span class="s2">&quot;composing_flows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flows</span>
+
+    <span class="k">return</span> <span class="n">values</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["toc.integrate", "toc.follow", "navigation.top", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>
