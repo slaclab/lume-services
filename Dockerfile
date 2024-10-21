@@ -9,7 +9,7 @@ RUN conda install -c conda-forge conda-pack && \
     conda run -n lume-services pip install /lume/lume-services
 
 # Use conda-pack to create a  enviornment in /venv:
-RUN conda-pack -n lume-services -o /tmp/env.tar && \
+RUN conda-pack --ignore-missing-files -n lume-services -o /tmp/env.tar && \
   mkdir /venv && cd /venv && tar xf /tmp/env.tar && \
   rm /tmp/env.tar
 

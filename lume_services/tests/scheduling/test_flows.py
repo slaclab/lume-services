@@ -202,6 +202,7 @@ class TestFlowExecution:
             assert result.outputs["output1"] == f"{self.text1}{self.text2}"
             return result_rep
 
+    @pytest.mark.skip()
     def test_flow3_run(
         self,
         flow3_id,

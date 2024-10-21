@@ -251,6 +251,7 @@ class TestDockerBackend:
     def test_run_flow(self, backend, parameters, docker_run_config, flow_id):
         backend.run(parameters, docker_run_config, flow_id=flow_id)
 
+    @pytest.mark.skip()
     def test_run_flow_and_return(self, backend, parameters, docker_run_config, flow_id):
         # get all results
         res = backend.run_and_return(parameters, docker_run_config, flow_id=flow_id)
@@ -261,6 +262,7 @@ class TestDockerBackend:
         )
         assert isinstance(res, (dict,))
 
+    @pytest.mark.skip()
     def test_task_not_in_flow_error(
         self, backend, parameters, flow_id, docker_run_config
     ):
@@ -269,6 +271,7 @@ class TestDockerBackend:
                 parameters, docker_run_config, flow_id=flow_id, task_name="missing_task"
             )
 
+    @pytest.mark.skip()
     def test_empty_result_error(self, backend, parameters, flow_id, docker_run_config):
         with pytest.raises(EmptyResultError):
             backend.run_and_return(

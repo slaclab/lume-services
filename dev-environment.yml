@@ -6,7 +6,7 @@ dependencies:
   - python=3.9
   - pydantic
   - python-dotenv
-  - sqlalchemy>=1.4
+  - sqlalchemy=1.4.44
   - pymysql
   - graphviz
   - python-graphviz
